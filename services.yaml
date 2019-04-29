@@ -1,0 +1,20 @@
+add_product:
+  description: Adds a given amount of a product to the stock
+  fields:
+    product_id:
+      example: '3'
+    amount:
+      example: 3.0
+    price:
+      example: 1.99
+consume_product:
+  description: Consumes a given amount of a product to the stock
+  fields:
+    product_id:
+      example: '3'
+    amount:
+      example: 3.0
+    spoiled:
+      example: false
+    transaction_type:
+      example: "CONSUME"
