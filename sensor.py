@@ -1,6 +1,8 @@
 """Sensor platform for grocy."""
 from homeassistant.helpers.entity import Entity
-from .const import ATTRIBUTION, DEFAULT_NAME, DOMAIN_DATA, ICON, SENSOR_UNIT_OF_MEASUREMENT
+
+from .const import (ATTRIBUTION, DEFAULT_NAME, DOMAIN_DATA, ICON,
+                    SENSOR_UNIT_OF_MEASUREMENT)
 
 
 async def async_setup_platform(

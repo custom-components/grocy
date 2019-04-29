@@ -1,27 +1,20 @@
 """
 The integration for grocy.
 """
+import logging
 import os
 from datetime import timedelta
-import logging
+
 import voluptuous as vol
+
 import homeassistant.helpers.config_validation as cv
+from homeassistant.const import CONF_API_KEY, CONF_URL
 from homeassistant.helpers import discovery
 from homeassistant.util import Throttle
-from homeassistant.const import CONF_URL, CONF_API_KEY
-from .const import (
-    CONF_NAME,
-    CONF_ENABLED,
-    CONF_SENSOR,
-    DEFAULT_NAME,
-    DOMAIN_DATA,
-    DOMAIN,
-    ISSUE_URL,
-    PLATFORMS,
-    REQUIRED_FILES,
-    STARTUP,
-    VERSION,
-)
+
+from .const import (CONF_ENABLED, CONF_NAME, CONF_SENSOR, DEFAULT_NAME, DOMAIN,
+                    DOMAIN_DATA, ISSUE_URL, PLATFORMS, REQUIRED_FILES, STARTUP,
+                    VERSION)
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=30)
 
