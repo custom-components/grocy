@@ -1,0 +1,16 @@
+{
+  "grocy": {
+    "updated_at": "2019-05-22",
+    "version": "0.0.3",
+    "local_location": "/custom_components/grocy/__init__.py"
+    "remote_location": "https://github.com/kalkih/mini-media-player/releases/download/v1.1.3/mini-media-player-bundle.js",
+    "visit_repo": "https://github.com/custom-components/grocy",
+    "changelog": "https://github.com/custom-components/grocy/releases/latest".
+    "resources": [
+        "https://raw.githubusercontent.com/custom-components/grocy/develop/custom_components/grocy/const.py",
+        "https://raw.githubusercontent.com/custom-components/grocy/develop/custom_components/grocy/manifest.json",
+        "https://raw.githubusercontent.com/custom-components/grocy/develop/custom_components/grocy/sensor.py",
+        "https://raw.githubusercontent.com/custom-components/grocy/develop/custom_components/grocy/services.yaml"
+    ]
+  }
+}
