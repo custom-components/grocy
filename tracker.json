@@ -2,7 +2,7 @@
   "grocy": {
     "updated_at": "2019-05-22",
     "version": "0.0.3",
-    "local_location": "/custom_components/grocy/__init__.py"
+    "local_location": "/custom_components/grocy/__init__.py",
     "remote_location": "https://raw.githubusercontent.com/custom-components/grocy/master/custom_components/grocy/__init__.py",
     "visit_repo": "https://github.com/custom-components/grocy",
     "changelog": "https://github.com/custom-components/grocy/releases/latest",
