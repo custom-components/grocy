@@ -29,6 +29,7 @@ class GrocySensor(Entity):
 
         # Get new data (if any)
         stock = self.hass.data[DOMAIN_DATA]["stock"]
+        chores = self.hass.data[DOMAIN_DATA]["chores"]
 
         # Check the data and update the value.
         if stock is None:
@@ -39,6 +40,7 @@ class GrocySensor(Entity):
         # Set/update attributes
         self.attr["attribution"] = ATTRIBUTION
         self.attr["items"] = jsonpickle.encode(stock,unpicklable=False)
+        self.attr["chores"] = jsonpickle.encode(chores,unpicklable=False)
 
     @property
     def name(self):

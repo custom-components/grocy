@@ -128,7 +128,9 @@ class GrocyData:
         # This is where the main logic to update platform data goes.
         try:
             stock = self.client.stock(get_details=True)
+            chores = self.client.chores(get_details=True)
             self.hass.data[DOMAIN_DATA]["stock"] = stock
+            self.hass.data[DOMAIN_DATA]["chores"] = chores
         except Exception as error:  # pylint: disable=broad-except
             _LOGGER.error("Could not update data - %s", error)
 
