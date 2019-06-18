@@ -45,6 +45,8 @@ async def async_setup(hass, config):
     """Set up this component."""
     # Import client from a external python package hosted on PyPi
     from pygrocy import Grocy,TransactionType
+    from datetime import datetime
+    import iso8601
 
     # Print startup message
     startup = STARTUP.format(name=DOMAIN, version=VERSION, issueurl=ISSUE_URL)
@@ -110,6 +112,18 @@ async def async_setup(hass, config):
         grocy.consume_product(product_id, amount, spoiled=spoiled, transaction_type=transaction_type)
 
     hass.services.async_register(DOMAIN, "consume_product", handle_consume_product)
+
+    def handle_execute_chore(call):
+        chore_id = call.data['chore_id']
+        done_by = call.data.get('done_by', None)
+        tracked_time_str = call.data.get('tracked_time', None)
+
+        tracked_time = datetime.now()
+        if tracked_time_str is not None:
+            tracked_time = iso8601.parse_date(tracked_time_str)
+        grocy.execute_chore(chore_id, done_by, tracked_time)
+
+    hass.services.async_register(DOMAIN, "execute_chore", handle_execute_chore)
     
     return True
 

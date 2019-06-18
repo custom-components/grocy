@@ -18,3 +18,12 @@ consume_product:
       example: false
     transaction_type:
       example: "CONSUME"
+execute_chore:
+  description: Executes the given chore with an optional timestamp and executor
+  fields:
+    chore_id:
+      example: '3'
+    tracked_time:
+      example: '2019-06-18T19:00:00.251Z'
+    done_by:
+      example: '0'
