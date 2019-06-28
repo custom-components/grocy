@@ -28,12 +28,12 @@ class GrocySensor(Entity):
         await self.hass.data[DOMAIN_DATA]["client"].update_data()
 
         # Get new data (if any)
-        stock = self.hass.data[DOMAIN_DATA]["stock"]
-        chores = self.hass.data[DOMAIN_DATA]["chores"]
+        stock = self.hass.data[DOMAIN_DATA].get("stock")
+        chores = self.hass.data[DOMAIN_DATA].get("chores")
 
         # Check the data and update the value.
         if stock is None:
-            self._state = self._status
+            self._state = self._state
         else:
             self._state = len(stock)
 
