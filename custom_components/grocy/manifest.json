@@ -7,7 +7,7 @@
     "@SebRut"
   ],
   "requirements": [
-    "pygrocy==0.8.0",
+    "pygrocy==0.9.0",
     "jsonpickle==1.1",
     "iso8601==0.1.12"
   ]

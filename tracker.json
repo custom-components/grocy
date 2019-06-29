@@ -1,7 +1,7 @@
 {
   "grocy": {
-    "updated_at": "2019-06-28",
-    "version": "0.1.1",
+    "updated_at": "2019-06-29",
+    "version": "0.1.2",
     "local_location": "/custom_components/grocy/__init__.py",
     "remote_location": "https://raw.githubusercontent.com/custom-components/grocy/master/custom_components/grocy/__init__.py",
     "visit_repo": "https://github.com/custom-components/grocy",
