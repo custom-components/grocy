@@ -1,4 +1,4 @@
-<b>Installation instructions:</b>
+## Installation instructions:
 
 1. Install HACS for Home Assistant
 2. Go to Community-Store-Grocy
