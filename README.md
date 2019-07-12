@@ -1,7 +1,17 @@
-```yaml
+Installation instructions:
+
+1. Install HACS for Home Assistant
+2. Go to Community-Store-Grocy
+3. Install Grocy
+4. Restart Home Assistant
+5. Go to Grocy-Wrench icon-Manage API keys-Add
+6. Copy resulting API key and Grocy URL and input this in configuration.yaml:
+
 grocy:
   url: "https://{{YOUR_GROCY_URL}}/api/"
   api_key: "{{YOUR_GROCY_API_KEY}}"
   sensor:
     - enabled: true
-```
+
+7. Restart Home Assistant
+8. Look for the new Grocy sensor in States and use its info
