@@ -17,3 +17,6 @@ grocy:
 
 7. Restart Home Assistant
 8. Look for the new Grocy sensor in States and use its info
+
+---
+[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/X8X1LYUK)
