@@ -9,17 +9,21 @@ async def async_setup_platform(
     hass, config, async_add_entities, discovery_info=None
 ):  # pylint: disable=unused-argument
     """Setup sensor platform."""
-    async_add_entities([GrocySensor(hass, discovery_info)], True)
+    async_add_entities([GrocySensor(hass)], True)
+
+async def async_setup_entry(hass, config_entry, async_add_devices):
+    """Setup sensor platform."""
+    async_add_devices([GrocySensor(hass)], True)
 
 
 class GrocySensor(Entity):
     """grocy Sensor class."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass):
         self.hass = hass
         self.attr = {}
         self._state = None
-        self._name = config.get("name", DEFAULT_NAME)
+        self._name = DEFAULT_NAME
 
     async def async_update(self):
         import jsonpickle
@@ -43,14 +47,14 @@ class GrocySensor(Entity):
         self.attr["chores"] = jsonpickle.encode(chores,unpicklable=False)
 
     @property
-    def name(self):
-        """Return the name of the sensor."""
-        return self._name
-
-    @property
     def state(self):
         """Return the state of the sensor."""
         return self._state
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
 
     @property
     def icon(self):

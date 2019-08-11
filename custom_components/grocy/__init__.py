@@ -11,21 +11,15 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.const import CONF_API_KEY, CONF_URL
 from homeassistant.helpers import discovery
 from homeassistant.util import Throttle
+from homeassistant import config_entries
+from homeassistant import config_entries
+from integrationhelper.const import CC_STARTUP_VERSION
 
-from .const import (CONF_ENABLED, CONF_NAME, CONF_SENSOR, DEFAULT_NAME, DOMAIN,
-                    DOMAIN_DATA, ISSUE_URL, PLATFORMS, REQUIRED_FILES, STARTUP,
-                    VERSION)
+from .const import (DOMAIN, DOMAIN_DATA, ISSUE_URL, PLATFORMS, REQUIRED_FILES, STARTUP, VERSION)
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=30)
 
 _LOGGER = logging.getLogger(__name__)
-
-SENSOR_SCHEMA = vol.Schema(
-    {
-        vol.Optional(CONF_ENABLED, default=True): cv.boolean,
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-    }
-)
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -33,7 +27,6 @@ CONFIG_SCHEMA = vol.Schema(
             {
                 vol.Required(CONF_URL): cv.string,
                 vol.Required(CONF_API_KEY): cv.string,
-                vol.Optional(CONF_SENSOR): vol.All(cv.ensure_list, [SENSOR_SCHEMA]),
             }
         )
     },
@@ -61,6 +54,8 @@ async def async_setup(hass, config):
     hass.data[DOMAIN_DATA] = {}
 
     # Get "global" configuration.
+    if DOMAIN not in config:
+        return True
     url = config[DOMAIN].get(CONF_URL)
     api_key = config[DOMAIN].get(CONF_API_KEY)
 
@@ -68,27 +63,18 @@ async def async_setup(hass, config):
     grocy = Grocy(url, api_key)
     hass.data[DOMAIN_DATA]["client"] = GrocyData(hass, grocy)
 
-    # Load platforms
-    for platform in PLATFORMS:
-        # Get platform specific configuration
-        platform_config = config[DOMAIN].get(platform, {})
 
-        # If platform is not enabled, skip.
-        if not platform_config:
-            continue
+    hass.async_create_task(
+        discovery.async_load_platform(
+            hass, "sensor", DOMAIN, None, config
+        )
+    )
 
-        for entry in platform_config:
-            entry_config = entry
-
-            # If entry is not enabled, skip.
-            if not entry_config[CONF_ENABLED]:
-                continue
-
-            hass.async_create_task(
-                discovery.async_load_platform(
-                    hass, platform, DOMAIN, entry_config, config
-                )
-            )
+    hass.async_create_task(
+        hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data={}
+        )
+    )
 
     def handle_add_product(call):
         product_id = call.data['product_id']
@@ -123,9 +109,48 @@ async def async_setup(hass, config):
         grocy.execute_chore(chore_id, done_by, tracked_time)
 
     hass.services.async_register(DOMAIN, "execute_chore", handle_execute_chore)
-    
+
     return True
 
+async def async_setup_entry(hass, config_entry):
+    """Set up this integration using UI."""
+    from pygrocy import Grocy
+
+    conf = hass.data.get(DOMAIN_DATA)
+    if config_entry.source == config_entries.SOURCE_IMPORT:
+        if conf is None:
+            hass.async_create_task(
+                hass.config_entries.async_remove(config_entry.entry_id)
+            )
+        return False
+
+    # Print startup message
+    _LOGGER.info(
+        CC_STARTUP_VERSION.format(name=DOMAIN, version=VERSION, issue_link=ISSUE_URL)
+    )
+
+    # Check that all required files are present
+    file_check = await check_files(hass)
+    if not file_check:
+        return False
+
+    # Create DATA dict
+    hass.data[DOMAIN_DATA] = {}
+
+    # Get "global" configuration.
+    url = config_entry.data.get(CONF_URL)
+    api_key = config_entry.data.get(CONF_API_KEY)
+
+    # Configure the client.
+    grocy = Grocy(url, api_key)
+    hass.data[DOMAIN_DATA]["client"] = GrocyData(hass, grocy)
+
+    # Add sensor
+    hass.async_add_job(
+        hass.config_entries.async_forward_entry_setup(config_entry, "sensor")
+    )
+
+    return True
 
 class GrocyData:
     """This class handle communication and stores the data."""
@@ -165,3 +190,11 @@ async def check_files(hass):
         returnvalue = True
 
     return returnvalue
+
+async def async_remove_entry(hass, config_entry):
+    """Handle removal of an entry."""
+    try:
+        await hass.config_entries.async_forward_entry_unload(config_entry, "sensor")
+        _LOGGER.info("Successfully removed sensor from the grocy integration")
+    except ValueError:
+        pass
