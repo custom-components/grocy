@@ -8,7 +8,7 @@ from datetime import timedelta
 import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
-from homeassistant.const import CONF_API_KEY, CONF_URL
+from homeassistant.const import CONF_API_KEY, CONF_URL, CONF_VERIFY_SSL
 from homeassistant.helpers import discovery
 from homeassistant.util import Throttle
 
@@ -33,6 +33,7 @@ CONFIG_SCHEMA = vol.Schema(
             {
                 vol.Required(CONF_URL): cv.string,
                 vol.Required(CONF_API_KEY): cv.string,
+                vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
                 vol.Optional(CONF_SENSOR): vol.All(cv.ensure_list, [SENSOR_SCHEMA]),
             }
         )
@@ -63,9 +64,10 @@ async def async_setup(hass, config):
     # Get "global" configuration.
     url = config[DOMAIN].get(CONF_URL)
     api_key = config[DOMAIN].get(CONF_API_KEY)
+    verify_ssl = config[DOMAIN].get(CONF_VERIFY_SSL)
 
     # Configure the client.
-    grocy = Grocy(url, api_key)
+    grocy = Grocy(url, api_key, verify_ssl)
     hass.data[DOMAIN_DATA]["client"] = GrocyData(hass, grocy)
 
     # Load platforms
