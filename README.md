@@ -14,6 +14,8 @@ grocy:
   verify_ssl: true
   sensor:
     - enabled: true
+  binary_sensor:
+    - enabled: true
 ```
 
 7. Restart Home Assistant
