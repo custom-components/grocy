@@ -25,7 +25,7 @@ class GrocySensor(Entity):
         import jsonpickle
         """Update the sensor."""
         # Send update "signal" to the component
-        await self.hass.data[DOMAIN_DATA]["client"].update_data()
+        await self.hass.data[DOMAIN_DATA]["client"].async_update_data()
 
         # Get new data (if any)
         stock = self.hass.data[DOMAIN_DATA].get("stock")

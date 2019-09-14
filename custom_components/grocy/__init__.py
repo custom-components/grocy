@@ -11,12 +11,13 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.const import CONF_API_KEY, CONF_URL, CONF_VERIFY_SSL
 from homeassistant.helpers import discovery
 from homeassistant.util import Throttle
+from homeassistant.core import callback
 
 from .const import (CONF_ENABLED, CONF_NAME, CONF_SENSOR, DEFAULT_NAME, DOMAIN,
                     DOMAIN_DATA, ISSUE_URL, PLATFORMS, REQUIRED_FILES, STARTUP,
                     VERSION)
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=30)
+MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -92,6 +93,7 @@ async def async_setup(hass, config):
                 )
             )
 
+    @callback
     def handle_add_product(call):
         product_id = call.data['product_id']
         amount = call.data.get('amount', 0)
@@ -100,6 +102,7 @@ async def async_setup(hass, config):
 
     hass.services.async_register(DOMAIN, "add_product", handle_add_product)
 
+    @callback
     def handle_consume_product(call):
         product_id = call.data['product_id']
         amount = call.data.get('amount', 0)
@@ -114,6 +117,7 @@ async def async_setup(hass, config):
 
     hass.services.async_register(DOMAIN, "consume_product", handle_consume_product)
 
+    @callback
     def handle_execute_chore(call):
         chore_id = call.data['chore_id']
         done_by = call.data.get('done_by', None)
@@ -138,16 +142,12 @@ class GrocyData:
         self.client = client
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    async def update_data(self):
+    async def async_update_data(self):
         """Update data."""
         # This is where the main logic to update platform data goes.
-        try:
-            stock = self.client.stock(get_details=True)
-            chores = self.client.chores(get_details=True)
-            self.hass.data[DOMAIN_DATA]["stock"] = stock
-            self.hass.data[DOMAIN_DATA]["chores"] = chores
-        except Exception as error:  # pylint: disable=broad-except
-            _LOGGER.error("Could not update data - %s", error)
+        self.hass.data[DOMAIN_DATA]["stock"] = await self.hass.async_add_executor_job(self.client.stock,[True])
+        self.hass.data[DOMAIN_DATA]["chores"] = await self.hass.async_add_executor_job(self.client.chores,[True])
+        
 
 
 async def check_files(hass):
