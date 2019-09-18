@@ -25,7 +25,8 @@ If you have any issues with this you need to open an issue here:
 ICON = "mdi:format-quote-close"
 
 # Device classes
-SENSOR_UNIT_OF_MEASUREMENT = "Product(s)"
+SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT = "Product(s)"
+SENSOR_CHORES_UNIT_OF_MEASUREMENT = "Chore(s)"
 
 # Configuration
 CONF_SENSOR = "sensor"

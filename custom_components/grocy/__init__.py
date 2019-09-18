@@ -142,13 +142,18 @@ class GrocyData:
         self.client = client
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    async def async_update_data(self):
+    async def async_update_stock(self):
         """Update data."""
         # This is where the main logic to update platform data goes.
         self.hass.data[DOMAIN_DATA]["stock"] = await self.hass.async_add_executor_job(self.client.stock,[True])
+        
+        
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    async def async_update_chores(self):
+        """Update data."""
+        # This is where the main logic to update platform data goes.
         self.hass.data[DOMAIN_DATA]["chores"] = await self.hass.async_add_executor_job(self.client.chores,[True])
         
-
 
 async def check_files(hass):
     """Return bool that indicates if all files are present."""
