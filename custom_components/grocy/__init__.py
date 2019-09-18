@@ -13,7 +13,7 @@ from homeassistant.helpers import discovery
 from homeassistant.util import Throttle
 from homeassistant.core import callback
 
-from .const import (CONF_ENABLED, CONF_NAME, CONF_SENSOR, DEFAULT_NAME, DOMAIN,
+from .const import (CONF_ENABLED, CONF_NAME, CONF_SENSOR, CONF_BINARY_SENSOR, DEFAULT_NAME, DOMAIN,
                     DOMAIN_DATA, ISSUE_URL, PLATFORMS, REQUIRED_FILES, STARTUP,
                     VERSION)
 
@@ -28,6 +28,13 @@ SENSOR_SCHEMA = vol.Schema(
     }
 )
 
+BINARY_SENSOR_SCHEMA = vol.Schema(
+    {
+        vol.Optional(CONF_ENABLED, default=True): cv.boolean,
+        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
+    }
+)
+
 CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema(
@@ -36,6 +43,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Required(CONF_API_KEY): cv.string,
                 vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
                 vol.Optional(CONF_SENSOR): vol.All(cv.ensure_list, [SENSOR_SCHEMA]),
+                vol.Optional(CONF_BINARY_SENSOR): vol.All(cv.ensure_list, [BINARY_SENSOR_SCHEMA]),
             }
         )
     },
@@ -154,6 +162,12 @@ class GrocyData:
         # This is where the main logic to update platform data goes.
         self.hass.data[DOMAIN_DATA]["chores"] = await self.hass.async_add_executor_job(self.client.chores,[True])
         
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    async def async_update_expiring_products(self):
+        """Update data."""
+        # This is where the main logic to update platform data goes.
+        self.hass.data[DOMAIN_DATA]["expiring_products"] = await self.hass.async_add_executor_job(self.client.expiring_products)
+
 
 async def check_files(hass):
     """Return bool that indicates if all files are present."""
