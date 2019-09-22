@@ -1,8 +1,14 @@
 """Sensor platform for grocy."""
 from homeassistant.helpers.entity import Entity
 
-from .const import (ATTRIBUTION, DEFAULT_NAME, DOMAIN_DATA, ICON,
-                    SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT, SENSOR_CHORES_UNIT_OF_MEASUREMENT)
+from .const import (
+    ATTRIBUTION,
+    DEFAULT_NAME,
+    DOMAIN_DATA,
+    ICON,
+    SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT,
+    SENSOR_CHORES_UNIT_OF_MEASUREMENT,
+)
 
 
 async def async_setup_platform(
@@ -39,8 +45,7 @@ class GrocyProductsSensor(Entity):
 
         # Set/update attributes
         self.attr["attribution"] = ATTRIBUTION
-        self.attr["items"] = jsonpickle.encode(stock,unpicklable=False)
-
+        self.attr["items"] = jsonpickle.encode(stock, unpicklable=False)
 
     @property
     def name(self):
@@ -65,6 +70,7 @@ class GrocyProductsSensor(Entity):
     def device_state_attributes(self):
         """Return the state attributes."""
         return self.attr
+
 
 class GrocyChoresSensor(Entity):
     """grocy Sensor class."""
@@ -92,8 +98,7 @@ class GrocyChoresSensor(Entity):
 
         # Set/update attributes
         self.attr["attribution"] = ATTRIBUTION
-        self.attr["items"] = jsonpickle.encode(chores,unpicklable=False)
-
+        self.attr["items"] = jsonpickle.encode(chores, unpicklable=False)
 
     @property
     def name(self):

@@ -12,8 +12,8 @@ async def async_setup_platform(
     hass, config, async_add_entities, discovery_info=None
 ):  # pylint: disable=unused-argument
     """Setup binary_sensor platform."""
-    async_add_entities([GrocyExpiringProductsBinarySensor(hass, discovery_info)], True)
-
+    async_add_entities(
+        [GrocyExpiringProductsBinarySensor(hass, discovery_info)], True)
 
 
 class GrocyExpiringProductsBinarySensor(BinarySensorDevice):
@@ -24,15 +24,17 @@ class GrocyExpiringProductsBinarySensor(BinarySensorDevice):
         self.attr = {}
         self._status = False
         self._name = config.get("name", DEFAULT_NAME) + ".expiring_products"
+        self._client = self.hass.data[DOMAIN_DATA]["client"]
 
     async def async_update(self):
         import jsonpickle
         """Update the binary_sensor."""
         # Send update "signal" to the component
-        await self.hass.data[DOMAIN_DATA]["client"].async_update_expiring_products()
+        await self._client.async_update_expiring_products()
 
         # Get new data (if any)
-        expiring_products = self.hass.data[DOMAIN_DATA].get("expiring_products")
+        expiring_products = (
+            self.hass.data[DOMAIN_DATA].get("expiring_products"))
 
         # Check the data and update the value.
         if not expiring_products:
@@ -42,9 +44,9 @@ class GrocyExpiringProductsBinarySensor(BinarySensorDevice):
 
         # Set/update attributes
         self.attr["attribution"] = ATTRIBUTION
-        self.attr["items"] = jsonpickle.encode(expiring_products,unpicklable=False)
-
-    
+        self.attr["items"] = jsonpickle.encode(
+            expiring_products,
+            unpicklable=False)
 
     @property
     def name(self):
