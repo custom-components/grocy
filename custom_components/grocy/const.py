@@ -2,7 +2,7 @@
 # Base component constants
 DOMAIN = "grocy"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
-VERSION = "0.1.3"
+VERSION = "0.2.0"
 PLATFORMS = ["sensor", "binary_sensor"]
 REQUIRED_FILES = [
     "const.py",
