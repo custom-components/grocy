@@ -36,14 +36,34 @@ CONFIG_SCHEMA = vol.Schema(
 
 async def async_setup(hass, config):
     """Set up this component."""
+
+    # Check that all required files are present
+    file_check = await check_files(hass)
+    if not file_check:
+        return False
+
+    return True
+
+async def async_setup_entry(hass, config_entry):
+    """Set up this integration using UI."""
     # Import client from a external python package hosted on PyPi
     from pygrocy import Grocy,TransactionType
     from datetime import datetime
     import iso8601
 
+
+    conf = hass.data.get(DOMAIN_DATA)
+    if config_entry.source == config_entries.SOURCE_IMPORT:
+        if conf is None:
+            hass.async_create_task(
+                hass.config_entries.async_remove(config_entry.entry_id)
+            )
+        return False
+
     # Print startup message
-    startup = STARTUP.format(name=DOMAIN, version=VERSION, issueurl=ISSUE_URL)
-    _LOGGER.info(startup)
+    _LOGGER.info(
+        CC_STARTUP_VERSION.format(name=DOMAIN, version=VERSION, issue_link=ISSUE_URL)
+    )
 
     # Check that all required files are present
     file_check = await check_files(hass)
@@ -54,26 +74,16 @@ async def async_setup(hass, config):
     hass.data[DOMAIN_DATA] = {}
 
     # Get "global" configuration.
-    if DOMAIN not in config:
-        return True
-    url = config[DOMAIN].get(CONF_URL)
-    api_key = config[DOMAIN].get(CONF_API_KEY)
+    url = config_entry.data.get(CONF_URL)
+    api_key = config_entry.data.get(CONF_API_KEY)
 
     # Configure the client.
     grocy = Grocy(url, api_key)
     hass.data[DOMAIN_DATA]["client"] = GrocyData(hass, grocy)
 
-
-    hass.async_create_task(
-        discovery.async_load_platform(
-            hass, "sensor", DOMAIN, None, config
-        )
-    )
-
-    hass.async_create_task(
-        hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data={}
-        )
+    # Add sensor
+    hass.async_add_job(
+        hass.config_entries.async_forward_entry_setup(config_entry, "sensor")
     )
 
     def handle_add_product(call):
@@ -109,46 +119,6 @@ async def async_setup(hass, config):
         grocy.execute_chore(chore_id, done_by, tracked_time)
 
     hass.services.async_register(DOMAIN, "execute_chore", handle_execute_chore)
-
-    return True
-
-async def async_setup_entry(hass, config_entry):
-    """Set up this integration using UI."""
-    from pygrocy import Grocy
-
-    conf = hass.data.get(DOMAIN_DATA)
-    if config_entry.source == config_entries.SOURCE_IMPORT:
-        if conf is None:
-            hass.async_create_task(
-                hass.config_entries.async_remove(config_entry.entry_id)
-            )
-        return False
-
-    # Print startup message
-    _LOGGER.info(
-        CC_STARTUP_VERSION.format(name=DOMAIN, version=VERSION, issue_link=ISSUE_URL)
-    )
-
-    # Check that all required files are present
-    file_check = await check_files(hass)
-    if not file_check:
-        return False
-
-    # Create DATA dict
-    hass.data[DOMAIN_DATA] = {}
-
-    # Get "global" configuration.
-    url = config_entry.data.get(CONF_URL)
-    api_key = config_entry.data.get(CONF_API_KEY)
-
-    # Configure the client.
-    grocy = Grocy(url, api_key)
-    hass.data[DOMAIN_DATA]["client"] = GrocyData(hass, grocy)
-
-    # Add sensor
-    hass.async_add_job(
-        hass.config_entries.async_forward_entry_setup(config_entry, "sensor")
-    )
 
     return True
 
