@@ -9,9 +9,10 @@
 
 ```yaml
 grocy:
-  url: "https://{{YOUR_GROCY_URL}}/api/"
+  url: "https://{{YOUR_GROCY_URL}}"
   api_key: "{{YOUR_GROCY_API_KEY}}"
   verify_ssl: true
+  port: 9192
   sensor:
     - enabled: true
   binary_sensor:

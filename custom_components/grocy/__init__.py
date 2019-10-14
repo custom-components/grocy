@@ -8,7 +8,12 @@ from datetime import timedelta
 import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
-from homeassistant.const import CONF_API_KEY, CONF_URL, CONF_VERIFY_SSL
+from homeassistant.const import (
+    CONF_API_KEY,
+    CONF_URL,
+    CONF_VERIFY_SSL,
+    CONF_PORT,
+)
 from homeassistant.helpers import discovery
 from homeassistant.util import Throttle
 from homeassistant.core import callback
@@ -18,7 +23,9 @@ from .const import (
     CONF_NAME,
     CONF_SENSOR,
     CONF_BINARY_SENSOR,
-    DEFAULT_NAME, DOMAIN,
+    DEFAULT_NAME,
+    DOMAIN,
+    DEFAULT_PORT_NUMBER,
     DOMAIN_DATA, ISSUE_URL,
     PLATFORMS,
     REQUIRED_FILES,
@@ -50,6 +57,7 @@ CONFIG_SCHEMA = vol.Schema(
             {
                 vol.Required(CONF_URL): cv.string,
                 vol.Required(CONF_API_KEY): cv.string,
+                vol.Optional(CONF_PORT, default=DEFAULT_PORT_NUMBER): cv.port,
                 vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
                 vol.Optional(CONF_SENSOR): vol.All(
                     cv.ensure_list, [SENSOR_SCHEMA]
@@ -87,9 +95,10 @@ async def async_setup(hass, config):
     url = config[DOMAIN].get(CONF_URL)
     api_key = config[DOMAIN].get(CONF_API_KEY)
     verify_ssl = config[DOMAIN].get(CONF_VERIFY_SSL)
+    port_number = config[DOMAIN].get(CONF_PORT)
 
     # Configure the client.
-    grocy = Grocy(url, api_key, verify_ssl)
+    grocy = Grocy(url, api_key, port_number, verify_ssl)
     hass.data[DOMAIN_DATA]["client"] = GrocyData(hass, grocy)
 
     # Load platforms
