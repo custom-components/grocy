@@ -2,7 +2,7 @@
 # Base component constants
 DOMAIN = "grocy"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
-VERSION = "0.3.0"
+VERSION = "0.2.0"
 PLATFORMS = ["sensor", "binary_sensor"]
 REQUIRED_FILES = [
     "const.py",
@@ -34,6 +34,11 @@ CONF_SENSOR = "sensor"
 CONF_BINARY_SENSOR = "binary_sensor"
 CONF_ENABLED = "enabled"
 CONF_NAME = "name"
+CONF_STOCK_NAME = "stock"
+CONF_CHORES_NAME = "chores"
+SENSOR_TYPE = {}
+SENSOR_TYPE[CONF_STOCK_NAME] = CONF_STOCK_NAME
+SENSOR_TYPE[CONF_CHORES_NAME] = CONF_CHORES_NAME
 
 # Defaults
 DEFAULT_NAME = DOMAIN

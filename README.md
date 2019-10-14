@@ -14,7 +14,8 @@ grocy:
   verify_ssl: true
   port: 9192
   sensor:
-    - enabled: true
+    - 'stock'
+    - 'chores'
   binary_sensor:
     - enabled : true
 ```

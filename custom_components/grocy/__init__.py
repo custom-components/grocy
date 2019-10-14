@@ -23,6 +23,9 @@ from .const import (
     CONF_NAME,
     CONF_SENSOR,
     CONF_BINARY_SENSOR,
+    CONF_CHORES_NAME,
+    CONF_STOCK_NAME,
+    SENSOR_TYPE,
     DEFAULT_NAME,
     DOMAIN,
     DEFAULT_PORT_NUMBER,
@@ -37,12 +40,6 @@ MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
 _LOGGER = logging.getLogger(__name__)
 
-SENSOR_SCHEMA = vol.Schema(
-    {
-        vol.Optional(CONF_ENABLED, default=True): cv.boolean,
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-    }
-)
 
 BINARY_SENSOR_SCHEMA = vol.Schema(
     {
@@ -60,7 +57,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_PORT, default=DEFAULT_PORT_NUMBER): cv.port,
                 vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
                 vol.Optional(CONF_SENSOR): vol.All(
-                    cv.ensure_list, [SENSOR_SCHEMA]
+                    cv.ensure_list, [vol.In(SENSOR_TYPE)]
                 ),
                 vol.Optional(CONF_BINARY_SENSOR): vol.All(
                     cv.ensure_list, [BINARY_SENSOR_SCHEMA]
@@ -100,28 +97,25 @@ async def async_setup(hass, config):
     # Configure the client.
     grocy = Grocy(url, api_key, port_number, verify_ssl)
     hass.data[DOMAIN_DATA]["client"] = GrocyData(hass, grocy)
-
+    hass.data[DOMAIN_DATA][CONF_SENSOR] = config[DOMAIN].get(CONF_SENSOR)
     # Load platforms
     for platform in PLATFORMS:
         # Get platform specific configuration
-        platform_config = config[DOMAIN].get(platform, {})
+        platform_config_temp = config[DOMAIN].get(platform, {})
 
         # If platform is not enabled, skip.
-        if not platform_config:
+        if not platform_config_temp:
             continue
+        if platform == CONF_BINARY_SENSOR:
+            platform_config = platform_config_temp[0]
+        else:
+            platform_config = platform_config_temp
 
-        for entry in platform_config:
-            entry_config = entry
-
-            # If entry is not enabled, skip.
-            if not entry_config[CONF_ENABLED]:
-                continue
-
-            hass.async_create_task(
-                discovery.async_load_platform(
-                    hass, platform, DOMAIN, entry_config, config
-                )
+        hass.async_create_task(
+            discovery.async_load_platform(
+                hass, platform, DOMAIN, platform_config, config
             )
+        )
 
     @callback
     def handle_add_product(call):
@@ -175,6 +169,13 @@ class GrocyData:
         """Initialize the class."""
         self.hass = hass
         self.client = client
+
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    async def async_update_data(self, type):
+        if type == CONF_CHORES_NAME:
+            await self.async_update_chores()
+        else:
+            await self.async_update_stock()
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update_stock(self):
