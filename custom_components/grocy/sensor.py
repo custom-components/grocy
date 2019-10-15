@@ -5,6 +5,7 @@ from .const import (
     ATTRIBUTION,
     DEFAULT_NAME,
     DOMAIN_DATA,
+    DOMAIN,
     ICON,
     SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT,
     SENSOR_CHORES_UNIT_OF_MEASUREMENT,
@@ -15,18 +16,25 @@ async def async_setup_platform(
     hass, config, async_add_entities, discovery_info=None
 ):  # pylint: disable=unused-argument
     """Setup sensor platform."""
+
     async_add_entities([GrocyProductsSensor(hass, discovery_info)], True)
     async_add_entities([GrocyChoresSensor(hass, discovery_info)], True)
+
+async def async_setup_entry(hass, config_entry, async_add_devices):
+    """Setup sensor platform."""
+    async_add_devices([GrocyProductsSensor(hass)], True)
+    async_add_devices([GrocyChoresSensor(hass)], True)
+
 
 
 class GrocyProductsSensor(Entity):
     """grocy Sensor class."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass):
         self.hass = hass
         self.attr = {}
         self._state = None
-        self._name = '{}.products'.format(config.get("name", DEFAULT_NAME))
+        self._name = '{}.products'.format(DEFAULT_NAME)
 
     async def async_update(self):
         import jsonpickle
@@ -48,14 +56,28 @@ class GrocyProductsSensor(Entity):
         self.attr["items"] = jsonpickle.encode(stock, unpicklable=False)
 
     @property
-    def name(self):
-        """Return the name of the sensor."""
-        return self._name
+    def unique_id(self):
+        """Return a unique ID to use for this sensor."""
+        return (
+            "b1c94975-a96e-48b6-aa73-b161f5e7e717"
+        )
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, self.unique_id)},
+            "name": self.name,
+            "manufacturer": "Grocy",
+        }
 
     @property
     def state(self):
         """Return the state of the sensor."""
         return self._state
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
 
     @property
     def icon(self):
@@ -75,11 +97,11 @@ class GrocyProductsSensor(Entity):
 class GrocyChoresSensor(Entity):
     """grocy Sensor class."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass):
         self.hass = hass
         self.attr = {}
         self._state = None
-        self._name = '{}.chores'.format(config.get("name", DEFAULT_NAME))
+        self._name = '{}.chores'.format(DEFAULT_NAME)
 
     async def async_update(self):
         import jsonpickle
@@ -99,6 +121,20 @@ class GrocyChoresSensor(Entity):
         # Set/update attributes
         self.attr["attribution"] = ATTRIBUTION
         self.attr["items"] = jsonpickle.encode(chores, unpicklable=False)
+
+    @property
+    def unique_id(self):
+        """Return a unique ID to use for this sensor."""
+        return (
+            "b070620d-8151-4553-9247-fb079564da6b"
+        )
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, self.unique_id)},
+            "name": self.name,
+            "manufacturer": "Grocy",
+        }
 
     @property
     def name(self):

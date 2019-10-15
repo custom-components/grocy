@@ -15,6 +15,9 @@ async def async_setup_platform(
     async_add_entities(
         [GrocyExpiringProductsBinarySensor(hass, discovery_info)], True)
 
+async def async_setup_entry(hass, config_entry, async_add_devices):
+    """Setup sensor platform."""
+    async_add_devices([GrocyExpiringProductsBinarySensor(hass,config_entry)], True)
 
 class GrocyExpiringProductsBinarySensor(BinarySensorDevice):
     """grocy binary_sensor class."""
@@ -23,7 +26,7 @@ class GrocyExpiringProductsBinarySensor(BinarySensorDevice):
         self.hass = hass
         self.attr = {}
         self._status = False
-        self._name = config.get("name", DEFAULT_NAME) + ".expiring_products"
+        self._name = '{}.expiring_products'.format(DEFAULT_NAME)
         self._client = self.hass.data[DOMAIN_DATA]["client"]
 
     async def async_update(self):
@@ -47,6 +50,21 @@ class GrocyExpiringProductsBinarySensor(BinarySensorDevice):
         self.attr["items"] = jsonpickle.encode(
             expiring_products,
             unpicklable=False)
+
+    @property
+    def unique_id(self):
+        """Return a unique ID to use for this binary_sensor."""
+        return (
+            "e308a906-4c3f-4a58-a067-47d04d3e196e"
+        )
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, self.unique_id)},
+            "name": self.name,
+            "manufacturer": "Grocy",
+        }
 
     @property
     def name(self):

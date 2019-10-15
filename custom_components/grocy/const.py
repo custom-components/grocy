@@ -9,6 +9,7 @@ REQUIRED_FILES = [
     "manifest.json",
     "sensor.py",
     "binary_sensor.py",
+    "config_flow.py",
 ]
 ISSUE_URL = "https://github.com/custom-components/grocy/issues"
 ATTRIBUTION = "Data from this is provided by grocy."
