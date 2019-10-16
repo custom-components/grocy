@@ -4,7 +4,7 @@ import voluptuous as vol
 from pygrocy import Grocy
 from homeassistant import config_entries
 
-from .const import DOMAIN
+from .const import DOMAIN, DEFAULT_PORT_NUMBER
 
 
 @config_entries.HANDLERS.register(DOMAIN)
@@ -48,7 +48,7 @@ class GrocyFlowHandler(config_entries.ConfigFlow):
         # Defaults
         url = ""
         api_key = ""
-        port = 9192
+        port = DEFAULT_PORT_NUMBER
         verify_ssl = True
 
         if user_input is not None:

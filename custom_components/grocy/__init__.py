@@ -35,9 +35,15 @@ from .const import (
     REQUIRED_FILES,
     STARTUP,
     VERSION,
+    STOCK_NAME,
+    CHORES_NAME,
+    SHOPPING_LIST_NAME,
+    EXPIRING_PRODUCTS_NAME,
+    EXPIRED_PRODUCTS_NAME,
+    MISSING_PRODUCTS_NAME,
 )
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
+MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=300)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -177,28 +183,64 @@ class GrocyData:
         """Initialize the class."""
         self.hass = hass
         self.client = client
+        self.sensor_types_dict = { STOCK_NAME : self.async_update_stock,
+            CHORES_NAME : self.async_update_chores,
+            SHOPPING_LIST_NAME : self.async_update_shopping_list,
+            EXPIRING_PRODUCTS_NAME : self.async_update_expiring_products,
+            EXPIRED_PRODUCTS_NAME : self.async_update_expiring_products,
+            MISSING_PRODUCTS_NAME : self.async_update_missing_products,
+        }
+
+    async def async_update_data(self, sensor_type):
+        """Update data."""
+        if sensor_type in self.sensor_types_dict:
+            # This is where the main logic to update platform data goes.
+            self.hass.async_create_task(self.sensor_types_dict[sensor_type]())
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update_stock(self):
         """Update data."""
         # This is where the main logic to update platform data goes.
-        self.hass.data[DOMAIN_DATA]["stock"] = (
+        self.hass.data[DOMAIN_DATA][STOCK_NAME] = (
             await self.hass.async_add_executor_job(self.client.stock, [True]))
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update_chores(self):
         """Update data."""
         # This is where the main logic to update platform data goes.
-        self.hass.data[DOMAIN_DATA]["chores"] = (
+        self.hass.data[DOMAIN_DATA][CHORES_NAME] = (
             await self.hass.async_add_executor_job(self.client.chores, [True]))
+
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    async def async_update_shopping_list(self):
+        """Update data."""
+        # This is where the main logic to update platform data goes.
+        self.hass.data[DOMAIN_DATA][SHOPPING_LIST_NAME] = (
+            await self.hass.async_add_executor_job(self.client.shopping_list, [True]))
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update_expiring_products(self):
         """Update data."""
         # This is where the main logic to update platform data goes.
-        self.hass.data[DOMAIN_DATA]["expiring_products"] = (
+        self.hass.data[DOMAIN_DATA][EXPIRING_PRODUCTS_NAME] = (
             await self.hass.async_add_executor_job(
-                self.client.expiring_products))
+                self.client.expiring_products, [True]))
+
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    async def async_update_expired_products(self):
+        """Update data."""
+        # This is where the main logic to update platform data goes.
+        self.hass.data[DOMAIN_DATA][EXPIRED_PRODUCTS_NAME] = (
+            await self.hass.async_add_executor_job(
+                self.client.expired_products, [True]))
+
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    async def async_update_missing_products(self):
+        """Update data."""
+        # This is where the main logic to update platform data goes.
+        self.hass.data[DOMAIN_DATA][MISSING_PRODUCTS_NAME] = (
+            await self.hass.async_add_executor_job(
+                self.client.missing_products, [True]))
 
 
 async def check_files(hass):

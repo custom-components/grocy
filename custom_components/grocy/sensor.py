@@ -9,6 +9,8 @@ from .const import (
     ICON,
     SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT,
     SENSOR_CHORES_UNIT_OF_MEASUREMENT,
+    SENSOR_TYPES,
+    CHORES_NAME,
 )
 
 
@@ -17,49 +19,49 @@ async def async_setup_platform(
 ):  # pylint: disable=unused-argument
     """Setup sensor platform."""
 
-    async_add_entities([GrocyProductsSensor(hass, discovery_info)], True)
-    async_add_entities([GrocyChoresSensor(hass, discovery_info)], True)
+    async_add_entities([GrocySensor(hass, discovery_info)], True)
 
 async def async_setup_entry(hass, config_entry, async_add_devices):
     """Setup sensor platform."""
-    async_add_devices([GrocyProductsSensor(hass)], True)
-    async_add_devices([GrocyChoresSensor(hass)], True)
+    for sensor in SENSOR_TYPES:
+        async_add_devices([GrocySensor(hass, sensor)], True)
 
 
-
-class GrocyProductsSensor(Entity):
+class GrocySensor(Entity):
     """grocy Sensor class."""
 
-    def __init__(self, hass):
+    def __init__(self, hass, sensor_type):
         self.hass = hass
+        self.sensor_type = sensor_type
         self.attr = {}
         self._state = None
-        self._name = '{}.products'.format(DEFAULT_NAME)
+        self._name = '{}.{}'.format(DEFAULT_NAME, self.sensor_type)
 
     async def async_update(self):
         import jsonpickle
         """Update the sensor."""
         # Send update "signal" to the component
-        await self.hass.data[DOMAIN_DATA]["client"].async_update_stock()
+        await self.hass.data[DOMAIN_DATA]["client"].async_update_data(self.sensor_type)
 
         # Get new data (if any)
-        stock = self.hass.data[DOMAIN_DATA].get("stock")
+        data = self.hass.data[DOMAIN_DATA].get(self.sensor_type)
+        
 
         # Check the data and update the value.
-        if stock is None:
+        if data is None:
             self._state = self._state
         else:
-            self._state = len(stock)
+            self._state = len(data)
 
         # Set/update attributes
         self.attr["attribution"] = ATTRIBUTION
-        self.attr["items"] = jsonpickle.encode(stock, unpicklable=False)
+        self.attr["items"] = jsonpickle.encode(data, unpicklable=False)
 
     @property
     def unique_id(self):
         """Return a unique ID to use for this sensor."""
         return (
-            "b1c94975-a96e-48b6-aa73-b161f5e7e717"
+            "b1c94975-a96e-48b6-aa73-b161f5e7e717" + self.name
         )
     @property
     def device_info(self):
@@ -86,76 +88,13 @@ class GrocyProductsSensor(Entity):
 
     @property
     def unit_of_measurement(self):
-        return SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT
-
-    @property
-    def device_state_attributes(self):
-        """Return the state attributes."""
-        return self.attr
-
-
-class GrocyChoresSensor(Entity):
-    """grocy Sensor class."""
-
-    def __init__(self, hass):
-        self.hass = hass
-        self.attr = {}
-        self._state = None
-        self._name = '{}.chores'.format(DEFAULT_NAME)
-
-    async def async_update(self):
-        import jsonpickle
-        """Update the sensor."""
-        # Send update "signal" to the component
-        await self.hass.data[DOMAIN_DATA]["client"].async_update_chores()
-
-        # Get new data (if any)
-        chores = self.hass.data[DOMAIN_DATA].get("chores")
-
-        # Check the data and update the value.
-        if chores is None:
-            self._state = self._state
+        if self.sensor_type == CHORES_NAME:
+            return SENSOR_CHORES_UNIT_OF_MEASUREMENT
         else:
-            self._state = len(chores)
-
-        # Set/update attributes
-        self.attr["attribution"] = ATTRIBUTION
-        self.attr["items"] = jsonpickle.encode(chores, unpicklable=False)
-
-    @property
-    def unique_id(self):
-        """Return a unique ID to use for this sensor."""
-        return (
-            "b070620d-8151-4553-9247-fb079564da6b"
-        )
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {(DOMAIN, self.unique_id)},
-            "name": self.name,
-            "manufacturer": "Grocy",
-        }
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-        return self._state
-
-    @property
-    def icon(self):
-        """Return the icon of the sensor."""
-        return ICON
-
-    @property
-    def unit_of_measurement(self):
-        return SENSOR_CHORES_UNIT_OF_MEASUREMENT
+            return SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT
 
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
         return self.attr
+

@@ -5,6 +5,7 @@ from .const import (
     DEFAULT_NAME,
     DOMAIN_DATA,
     DOMAIN,
+    BINARY_SENSOR_TYPES,
 )
 
 
@@ -13,34 +14,35 @@ async def async_setup_platform(
 ):  # pylint: disable=unused-argument
     """Setup binary_sensor platform."""
     async_add_entities(
-        [GrocyExpiringProductsBinarySensor(hass, discovery_info)], True)
+        [GrocyBinarySensor(hass, discovery_info)], True)
 
 async def async_setup_entry(hass, config_entry, async_add_devices):
     """Setup sensor platform."""
-    async_add_devices([GrocyExpiringProductsBinarySensor(hass,config_entry)], True)
+    for binary_sensor in BINARY_SENSOR_TYPES:
+        async_add_devices([GrocyBinarySensor(hass, binary_sensor)], True)
 
-class GrocyExpiringProductsBinarySensor(BinarySensorDevice):
+class GrocyBinarySensor(BinarySensorDevice):
     """grocy binary_sensor class."""
 
-    def __init__(self, hass, config):
+    def __init__(self, hass, sensor_type):
         self.hass = hass
+        self.sensor_type = sensor_type
         self.attr = {}
         self._status = False
-        self._name = '{}.expiring_products'.format(DEFAULT_NAME)
+        self._name = '{}.{}'.format(DEFAULT_NAME, self.sensor_type)
         self._client = self.hass.data[DOMAIN_DATA]["client"]
 
     async def async_update(self):
         import jsonpickle
         """Update the binary_sensor."""
         # Send update "signal" to the component
-        await self._client.async_update_expiring_products()
+        await self._client.async_update_data(self.sensor_type)
 
         # Get new data (if any)
-        expiring_products = (
-            self.hass.data[DOMAIN_DATA].get("expiring_products"))
+        data = self.hass.data[DOMAIN_DATA].get(self.sensor_type)
 
         # Check the data and update the value.
-        if not expiring_products:
+        if not data:
             self._status = self._status
         else:
             self._status = True
@@ -48,14 +50,14 @@ class GrocyExpiringProductsBinarySensor(BinarySensorDevice):
         # Set/update attributes
         self.attr["attribution"] = ATTRIBUTION
         self.attr["items"] = jsonpickle.encode(
-            expiring_products,
+            data,
             unpicklable=False)
 
     @property
     def unique_id(self):
         """Return a unique ID to use for this binary_sensor."""
         return (
-            "e308a906-4c3f-4a58-a067-47d04d3e196e"
+            "e308a906-4c3f-4a58-a067-47d04d3e196e" + self.name
         )
 
     @property
