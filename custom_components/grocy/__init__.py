@@ -266,10 +266,12 @@ async def async_remove_entry(hass, config_entry):
     try:
         await hass.config_entries.async_forward_entry_unload(config_entry, "sensor")
         _LOGGER.info("Successfully removed sensor from the grocy integration")
-    except ValueError:
+    except ValueError as error:
+        _LOGGER.exception(error)
         pass
     try:
         await hass.config_entries.async_forward_entry_unload(config_entry, "binary_sensor")
         _LOGGER.info("Successfully removed sensor from the grocy integration")
-    except ValueError:
+    except ValueError as error:
+        _LOGGER.exception(error)
         pass

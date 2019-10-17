@@ -37,6 +37,7 @@ class GrocyFlowHandler(config_entries.ConfigFlow):
                 return self.async_create_entry(title="Grocy", data=user_input)
             else:
                 self._errors["base"] = "auth"
+                _LOGGER.error(self._errors)
 
             return await self._show_config_form(user_input)
 
@@ -86,6 +87,7 @@ class GrocyFlowHandler(config_entries.ConfigFlow):
             client = Grocy(url, api_key, port, verify_ssl)
             client.stock()
             return True
-        except Exception:  # pylint: disable=broad-except
+        except Exception as e:  # pylint: disable=broad-except
+            _LOGGER.exception(e)
             pass
         return False
