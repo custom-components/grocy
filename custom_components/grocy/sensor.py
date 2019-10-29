@@ -1,5 +1,6 @@
 """Sensor platform for grocy."""
 from homeassistant.helpers.entity import Entity
+from uuid import getnode as get_mac
 
 from .const import (
     ATTRIBUTION,
@@ -35,6 +36,7 @@ class GrocySensor(Entity):
         self.sensor_type = sensor_type
         self.attr = {}
         self._state = None
+        self._unique_id = '{}-{}'.format(get_mac() , self.sensor_type)
         self._name = '{}.{}'.format(DEFAULT_NAME, self.sensor_type)
 
     async def async_update(self):
@@ -60,9 +62,8 @@ class GrocySensor(Entity):
     @property
     def unique_id(self):
         """Return a unique ID to use for this sensor."""
-        return (
-            "b1c94975-a96e-48b6-aa73-b161f5e7e717" + self.name
-        )
+        return self._unique_id
+
     @property
     def device_info(self):
         return {

@@ -1,5 +1,6 @@
 """Binary sensor platform for grocy."""
 from homeassistant.components.binary_sensor import BinarySensorDevice
+from uuid import getnode as get_mac
 from .const import (
     ATTRIBUTION,
     DEFAULT_NAME,
@@ -29,6 +30,7 @@ class GrocyBinarySensor(BinarySensorDevice):
         self.sensor_type = sensor_type
         self.attr = {}
         self._status = False
+        self._unique_id = '{}-{}'.format(get_mac() , self.sensor_type)
         self._name = '{}.{}'.format(DEFAULT_NAME, self.sensor_type)
         self._client = self.hass.data[DOMAIN_DATA]["client"]
 
@@ -56,9 +58,7 @@ class GrocyBinarySensor(BinarySensorDevice):
     @property
     def unique_id(self):
         """Return a unique ID to use for this binary_sensor."""
-        return (
-            "e308a906-4c3f-4a58-a067-47d04d3e196e" + self.name
-        )
+        return self._unique_id
 
     @property
     def device_info(self):
