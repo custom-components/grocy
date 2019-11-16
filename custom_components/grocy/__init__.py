@@ -165,6 +165,18 @@ async def async_setup(hass, config):
 
     hass.services.async_register(DOMAIN, "execute_chore", handle_execute_chore)
 
+    @callback
+    def handle_complete_task(call):
+        id = call.data['id']
+        done = call.data.get('done_time', None)
+
+        done_time = datetime.now()
+        if done_time_str is not None:
+            done_time = iso8601.parse_date(done_time_str)
+        grocy.mark_task_complete(id, done_time)
+
+    hass.services.async_register(DOMAIN, "mark_task_complete", handle_complete_task)
+
     return True
 
 
@@ -189,6 +201,13 @@ class GrocyData:
         # This is where the main logic to update platform data goes.
         self.hass.data[DOMAIN_DATA]["chores"] = (
             await self.hass.async_add_executor_job(self.client.chores, [True]))
+
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    async def async_update_tasks(self):
+        """Update data."""
+        # This is where the main logic to update platform data goes.
+        self.hass.data[DOMAIN_DATA]["tasks"] = (
+            await self.hass.async_add_executor_job(self.client.tasks, [True]))
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update_expiring_products(self):

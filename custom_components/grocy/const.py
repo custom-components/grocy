@@ -28,6 +28,7 @@ ICON = "mdi:format-quote-close"
 # Device classes
 SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT = "Product(s)"
 SENSOR_CHORES_UNIT_OF_MEASUREMENT = "Chore(s)"
+SENSOR_TASKS_UNIT_OF_MEASUREMENT = "Task(s)"
 
 # Configuration
 CONF_SENSOR = "sensor"
