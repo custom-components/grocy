@@ -8,7 +8,6 @@ from .const import (
     ICON,
     SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT,
     SENSOR_CHORES_UNIT_OF_MEASUREMENT,
-    SENSOR_TASKS_UNIT_OF_MEASUREMENT,
 )
 
 
@@ -18,7 +17,6 @@ async def async_setup_platform(
     """Setup sensor platform."""
     async_add_entities([GrocyProductsSensor(hass, discovery_info)], True)
     async_add_entities([GrocyChoresSensor(hass, discovery_info)], True)
-    async_add_entities([GrocyTasksSensor(hass, discovery_info)], True)
 
 
 class GrocyProductsSensor(Entity):
@@ -120,59 +118,6 @@ class GrocyChoresSensor(Entity):
     @property
     def unit_of_measurement(self):
         return SENSOR_CHORES_UNIT_OF_MEASUREMENT
-
-    @property
-    def device_state_attributes(self):
-        """Return the state attributes."""
-        return self.attr
-
-
-class GrocyTasksSensor(Entity):
-    """grocy Sensor class."""
-
-    def __init__(self, hass, config):
-        self.hass = hass
-        self.attr = {}
-        self._state = None
-        self._name = '{}.tasks'.format(config.get("name", DEFAULT_NAME))
-
-    async def async_update(self):
-        import jsonpickle
-        """Update the sensor."""
-        # Send update "signal" to the component
-        await self.hass.data[DOMAIN_DATA]["client"].async_update_tasks()
-
-        # Get new data (if any)
-        tasks = self.hass.data[DOMAIN_DATA].get("tasks")
-
-        # Check the data and update the value.
-        if tasks is None:
-            self._state = self._state
-        else:
-            self._state = len(tasks)
-
-        # Set/update attributes
-        self.attr["attribution"] = ATTRIBUTION
-        self.attr["items"] = jsonpickle.encode(tasks, unpicklable=False)
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-        return self._state
-
-    @property
-    def icon(self):
-        """Return the icon of the sensor."""
-        return ICON
-
-    @property
-    def unit_of_measurement(self):
-        return SENSOR_TASKS_UNIT_OF_MEASUREMENT
 
     @property
     def device_state_attributes(self):
