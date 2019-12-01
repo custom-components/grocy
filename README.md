@@ -28,7 +28,7 @@ grocy:
 The configuration is slightly different for users that use Hass.io and the [official Grocy addon](https://github.com/hassio-addons/addon-grocy) from the Hass.io Add-on store.
 
 1. If you haven't already done so, install Grocy from the Add-on store
-2. In the 'Network' section of the add-on config, input 9192 in the host field [screenshot](https://github.com/custom-components/grocy/raw/master/grocy-addon-config.png). Save your changes and restart the add-on.
+2. In the 'Network' section of the add-on config, input 9192 in the host field ( [screenshot](https://github.com/custom-components/grocy/raw/develop/grocy-addon-config.png) ). Save your changes and restart the add-on.
 3. Install HACS for Home Assistant
 4. Go to Community > Store > Grocy
 5. Install the Grocy integration component
