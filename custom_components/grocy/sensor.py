@@ -82,23 +82,26 @@ class GrocyChoresSensor(Entity):
         self._name = '{}.chores'.format(config.get("name", DEFAULT_NAME))
 
     async def async_update(self):
-        import jsonpickle
         """Update the sensor."""
         # Send update "signal" to the component
         await self.hass.data[DOMAIN_DATA]["client"].async_update_chores()
 
         # Get new data (if any)
         chores = self.hass.data[DOMAIN_DATA].get("chores")
+        data = []
 
         # Check the data and update the value.
         if chores is None:
             self._state = self._state
         else:
             self._state = len(chores)
+            for chore in chores:
+                chore = dict(chore)
+                data.append(chore)
 
         # Set/update attributes
         self.attr["attribution"] = ATTRIBUTION
-        self.attr["items"] = jsonpickle.encode(chores, unpicklable=False)
+        self.attr["items"] = data
 
     @property
     def name(self):
