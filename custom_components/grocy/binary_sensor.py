@@ -30,9 +30,8 @@ class GrocyBinarySensor(BinarySensorDevice):
         self.sensor_type = sensor_type
         self.attr = {}
         self._status = False
-        self._url = self.hass.data[DOMAIN_DATA]["url"]
         self._hash_key = self.hass.data[DOMAIN_DATA]["hash_key"]
-        self._unique_id = '{}-{}-{}'.format(self._hash_key , self._url, self.sensor_type)
+        self._unique_id = '{}-{}'.format(self._hash_key , self.sensor_type)
         self._name = '{}.{}'.format(DEFAULT_NAME, self.sensor_type)
         self._client = self.hass.data[DOMAIN_DATA]["client"]
 
@@ -87,5 +86,8 @@ class GrocyBinarySensor(BinarySensorDevice):
 
     @property
     def device_state_attributes(self):
+        """Return the state attributes."""
+        return self.attr
+
         """Return the state attributes."""
         return self.attr

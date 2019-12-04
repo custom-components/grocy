@@ -119,13 +119,12 @@ async def async_setup_entry(hass, config_entry):
     api_key = config_entry.data.get(CONF_API_KEY)
     verify_ssl = config_entry.data.get(CONF_VERIFY_SSL)
     port_number = config_entry.data.get(CONF_PORT)
-    hash_key = hashlib.md5(api_key.encode('utf-8')).hexdigest()
+    hash_key = hashlib.md5(api_key.encode('utf-8') + url.encode('utf-8')).hexdigest()
 
     # Configure the client.
     grocy = Grocy(url, api_key, port_number, verify_ssl)
     hass.data[DOMAIN_DATA]["client"] = GrocyData(hass, grocy)
     hass.data[DOMAIN_DATA]["hash_key"] = hash_key
-    hass.data[DOMAIN_DATA]["url"] = url
 
     # Add sensor
     hass.async_add_job(
@@ -278,4 +277,6 @@ async def async_remove_entry(hass, config_entry):
         _LOGGER.info("Successfully removed sensor from the grocy integration")
     except ValueError as error:
         _LOGGER.exception(error)
+        pass
+ror)
         pass
