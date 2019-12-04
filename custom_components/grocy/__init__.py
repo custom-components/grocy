@@ -1,48 +1,27 @@
 """
 The integration for grocy.
 """
+import hashlib
 import logging
 import os
 from datetime import timedelta
-import hashlib
-
-import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
-from homeassistant.const import (
-    CONF_API_KEY,
-    CONF_URL,
-    CONF_VERIFY_SSL,
-    CONF_PORT,
-)
+import voluptuous as vol
+from homeassistant import config_entries
+from homeassistant.const import (CONF_API_KEY, CONF_PORT, CONF_URL,
+                                 CONF_VERIFY_SSL)
+from homeassistant.core import callback
 from homeassistant.helpers import discovery
 from homeassistant.util import Throttle
-
-from homeassistant.core import callback
-
-from homeassistant import config_entries
 from integrationhelper.const import CC_STARTUP_VERSION
 
-from .const import (
-    CONF_ENABLED,
-    CONF_NAME,
-    CONF_SENSOR,
-    CONF_BINARY_SENSOR,
-    DEFAULT_NAME,
-    DOMAIN,
-    DEFAULT_PORT_NUMBER,
-    DOMAIN_DATA, ISSUE_URL,
-    PLATFORMS,
-    REQUIRED_FILES,
-    STARTUP,
-    VERSION,
-    STOCK_NAME,
-    CHORES_NAME,
-    SHOPPING_LIST_NAME,
-    EXPIRING_PRODUCTS_NAME,
-    EXPIRED_PRODUCTS_NAME,
-    MISSING_PRODUCTS_NAME,
-)
+from .const import (CHORES_NAME, CONF_BINARY_SENSOR, CONF_ENABLED, CONF_NAME,
+                    CONF_SENSOR, DEFAULT_NAME, DEFAULT_PORT_NUMBER, DOMAIN,
+                    DOMAIN_DATA, EXPIRED_PRODUCTS_NAME, EXPIRING_PRODUCTS_NAME,
+                    ISSUE_URL, MISSING_PRODUCTS_NAME, PLATFORMS,
+                    REQUIRED_FILES, SHOPPING_LIST_NAME, STARTUP, STOCK_NAME,
+                    VERSION)
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=300)
 

@@ -1,13 +1,8 @@
 """Binary sensor platform for grocy."""
 from homeassistant.components.binary_sensor import BinarySensorDevice
 
-from .const import (
-    ATTRIBUTION,
-    DEFAULT_NAME,
-    DOMAIN_DATA,
-    DOMAIN,
-    BINARY_SENSOR_TYPES,
-)
+from .const import (ATTRIBUTION, BINARY_SENSOR_TYPES, DEFAULT_NAME, DOMAIN,
+                    DOMAIN_DATA)
 
 
 async def async_setup_platform(

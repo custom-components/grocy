@@ -1,10 +1,11 @@
 """Adds config flow for grocy."""
 from collections import OrderedDict
-import voluptuous as vol
-from pygrocy import Grocy
-from homeassistant import config_entries
 
-from .const import DOMAIN, DEFAULT_PORT_NUMBER
+import voluptuous as vol
+from homeassistant import config_entries
+from pygrocy import Grocy
+
+from .const import DEFAULT_PORT_NUMBER, DOMAIN
 
 
 @config_entries.HANDLERS.register(DOMAIN)

@@ -1,18 +1,9 @@
 """Sensor platform for grocy."""
 from homeassistant.helpers.entity import Entity
 
-
-from .const import (
-    ATTRIBUTION,
-    DEFAULT_NAME,
-    DOMAIN_DATA,
-    DOMAIN,
-    ICON,
-    SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT,
-    SENSOR_CHORES_UNIT_OF_MEASUREMENT,
-    SENSOR_TYPES,
-    CHORES_NAME,
-)
+from .const import (ATTRIBUTION, CHORES_NAME, DEFAULT_NAME, DOMAIN,
+                    DOMAIN_DATA, ICON, SENSOR_CHORES_UNIT_OF_MEASUREMENT,
+                    SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT, SENSOR_TYPES)
 
 
 async def async_setup_platform(
@@ -103,4 +94,3 @@ class GrocySensor(Entity):
 
         """Return the state attributes."""
         return self.attr
-
