@@ -6,20 +6,10 @@
 4. Restart Home Assistant
 5. Go to Grocy-Wrench icon-Manage API keys-Add
 6. Copy resulting API key and Grocy URL and input this in configuration.yaml:
+7. Choose:
+   - Add `grocy:` to your HA configuration.
+   - In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Grocy"
 
-```yaml
-grocy:
-  url: "https://{{YOUR_GROCY_URL}}"
-  api_key: "{{YOUR_GROCY_API_KEY}}"
-  verify_ssl: true
-  port: 9192
-  sensor:
-    - enabled: true
-  binary_sensor:
-    - enabled : true
-```
-
-7. Restart Home Assistant
 8. Look for the new Grocy sensor in States and use its info
 
 
