@@ -31,25 +31,30 @@ class GrocyBinarySensor(BinarySensorDevice):
         self._client = self.hass.data[DOMAIN_DATA]["client"]
 
     async def async_update(self):
-        import jsonpickle
         """Update the binary_sensor."""
         # Send update "signal" to the component
         await self._client.async_update_data(self.sensor_type)
 
         # Get new data (if any)
-        data = self.hass.data[DOMAIN_DATA].get(self.sensor_type)
+        data = []
+        items = self.hass.data[DOMAIN_DATA].get(self.sensor_type)
 
         # Check the data and update the value.
-        if not data:
+        if not items:
             self._status = self._status
         else:
             self._status = True
+            for item in items:
+                item_dict = vars(item)
+                if '_product' in item_dict and hasattr(item_dict['_product'], '__dict__'):
+                    item_dict['_product'] = vars(item_dict['_product'])
+                if '_last_done_by' in item_dict and hasattr(item_dict['_last_done_by'], '__dict__'):
+                    item_dict['_last_done_by'] = vars(item_dict['_last_done_by'])
+                data.append(item_dict)
 
         # Set/update attributes
         self.attr["attribution"] = ATTRIBUTION
-        self.attr["items"] = jsonpickle.encode(
-            data,
-            unpicklable=False)
+        self.attr["items"] = data
 
     @property
     def unique_id(self):

@@ -257,5 +257,3 @@ async def async_remove_entry(hass, config_entry):
     except ValueError as error:
         _LOGGER.exception(error)
         pass
-ror)
-        pass
