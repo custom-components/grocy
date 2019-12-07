@@ -32,24 +32,31 @@ class GrocySensor(Entity):
         self._name = '{}.{}'.format(DEFAULT_NAME, self.sensor_type)
 
     async def async_update(self):
-        import jsonpickle
         """Update the sensor."""
         # Send update "signal" to the component
         await self.hass.data[DOMAIN_DATA]["client"].async_update_data(self.sensor_type)
 
         # Get new data (if any)
-        data = self.hass.data[DOMAIN_DATA].get(self.sensor_type)
+        data = []
+        items = self.hass.data[DOMAIN_DATA].get(self.sensor_type)
         
 
         # Check the data and update the value.
-        if data is None:
+        if items is None:
             self._state = self._state
         else:
-            self._state = len(data)
+            self._state = len(items)
+            for item in items:
+                item_dict = vars(item)
+                if '_product' in item_dict and hasattr(item_dict['_product'], '__dict__'):
+                    item_dict['_product'] = vars(item_dict['_product'])
+                if '_last_done_by' in item_dict and hasattr(item_dict['_last_done_by'], '__dict__'):
+                    item_dict['_last_done_by'] = vars(item_dict['_last_done_by'])
+                data.append(item_dict)
 
         # Set/update attributes
         self.attr["attribution"] = ATTRIBUTION
-        self.attr["items"] = jsonpickle.encode(data, unpicklable=False)
+        self.attr["items"] = data
 
     @property
     def unique_id(self):

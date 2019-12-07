@@ -169,7 +169,7 @@ class GrocyData:
             CHORES_NAME : self.async_update_chores,
             SHOPPING_LIST_NAME : self.async_update_shopping_list,
             EXPIRING_PRODUCTS_NAME : self.async_update_expiring_products,
-            EXPIRED_PRODUCTS_NAME : self.async_update_expiring_products,
+            EXPIRED_PRODUCTS_NAME : self.async_update_expired_products,
             MISSING_PRODUCTS_NAME : self.async_update_missing_products,
         }
 
@@ -256,6 +256,4 @@ async def async_remove_entry(hass, config_entry):
         _LOGGER.info("Successfully removed sensor from the grocy integration")
     except ValueError as error:
         _LOGGER.exception(error)
-        pass
-ror)
         pass
