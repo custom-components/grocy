@@ -165,7 +165,6 @@ class GrocyData:
         """Initialize the class."""
         self.hass = hass
         self.client = client
-        self.last_db_changed = None
         self.sensor_types_dict = { STOCK_NAME : self.async_update_stock,
             CHORES_NAME : self.async_update_chores,
             SHOPPING_LIST_NAME : self.async_update_shopping_list,
@@ -173,21 +172,20 @@ class GrocyData:
             EXPIRED_PRODUCTS_NAME : self.async_update_expired_products,
             MISSING_PRODUCTS_NAME : self.async_update_missing_products,
         }
-        self.sensor_first_update_dict = { STOCK_NAME : True,
-            CHORES_NAME : True,
-            SHOPPING_LIST_NAME : True,
-            EXPIRING_PRODUCTS_NAME : True,
-            EXPIRED_PRODUCTS_NAME : True,
-            MISSING_PRODUCTS_NAME : True,
+        self.sensor_update_dict = { STOCK_NAME : None,
+            CHORES_NAME : None,
+            SHOPPING_LIST_NAME : None,
+            EXPIRING_PRODUCTS_NAME : None,
+            EXPIRED_PRODUCTS_NAME : None,
+            MISSING_PRODUCTS_NAME : None,
         }
 
     async def async_update_data(self, sensor_type):
         """Update data."""
-        first_update = self.sensor_first_update_dict[sensor_type]
+        sensor_update = self.sensor_update_dict[sensor_type]        
         db_changed = await self.hass.async_add_executor_job(self.client.get_last_db_changed)
-        if db_changed != self.last_db_changed or first_update:
-            self.last_db_changed = db_changed
-            self.sensor_first_update_dict[sensor_type] = False
+        if db_changed != sensor_update:
+            self.sensor_update_dict[sensor_type] = db_changed
             if sensor_type in self.sensor_types_dict:
                 # This is where the main logic to update platform data goes.
                 self.hass.async_create_task(self.sensor_types_dict[sensor_type]())
