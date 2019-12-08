@@ -3,12 +3,13 @@
   "name": "Grocy",
   "documentation": "https://github.com/custom-components/grocy",
   "dependencies": [],
+  "config_flow": true,
   "codeowners": [
     "@SebRut"
   ],
   "requirements": [
     "pygrocy==0.12.1",
-    "jsonpickle==1.1",
-    "iso8601==0.1.12"
+    "iso8601==0.1.12",
+    "integrationhelper"
   ]
 }
