@@ -98,6 +98,3 @@ class GrocySensor(Entity):
         """Return the state attributes."""
         return self.attr
 
-
-        """Return the state attributes."""
-        return self.attr
