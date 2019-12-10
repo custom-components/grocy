@@ -41,7 +41,7 @@ class GrocyBinarySensor(BinarySensorDevice):
 
         # Check the data and update the value.
         if not items:
-            self._status = self._status
+            self._status = False
         else:
             self._status = True
             for item in items:
@@ -89,5 +89,3 @@ class GrocyBinarySensor(BinarySensorDevice):
         """Return the state attributes."""
         return self.attr
 
-        """Return the state attributes."""
-        return self.attr
