@@ -5,6 +5,7 @@ import hashlib
 import logging
 import os
 from datetime import timedelta
+import asyncio
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -12,7 +13,7 @@ from homeassistant import config_entries
 from homeassistant.const import (CONF_API_KEY, CONF_PORT, CONF_URL,
                                  CONF_VERIFY_SSL)
 from homeassistant.core import callback
-from homeassistant.helpers import discovery
+from homeassistant.helpers import discovery, entity_component
 from homeassistant.util import Throttle
 from integrationhelper.const import CC_STARTUP_VERSION
 
@@ -153,6 +154,8 @@ async def async_setup_entry(hass, config_entry):
         if tracked_time_str is not None:
             tracked_time = iso8601.parse_date(tracked_time_str)
         grocy.execute_chore(chore_id, done_by, tracked_time)
+        asyncio.run_coroutine_threadsafe(entity_component.async_update_entity(hass, 'sensor.grocy_chores'),
+            hass.loop)
 
     hass.services.async_register(DOMAIN, "execute_chore", handle_execute_chore)
 
@@ -197,14 +200,14 @@ class GrocyData:
         self.hass.data[DOMAIN_DATA][STOCK_NAME] = (
             await self.hass.async_add_executor_job(self.client.stock, [True]))
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+
     async def async_update_chores(self):
         """Update data."""
         # This is where the main logic to update platform data goes.
         self.hass.data[DOMAIN_DATA][CHORES_NAME] = (
             await self.hass.async_add_executor_job(self.client.chores, [True]))
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+
     async def async_update_shopping_list(self):
         """Update data."""
         # This is where the main logic to update platform data goes.
