@@ -1,11 +1,11 @@
 """
 The integration for grocy.
 """
+import asyncio
 import hashlib
 import logging
 import os
 from datetime import timedelta
-import asyncio
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -200,13 +200,11 @@ class GrocyData:
         self.hass.data[DOMAIN_DATA][STOCK_NAME] = (
             await self.hass.async_add_executor_job(self.client.stock, [True]))
 
-
     async def async_update_chores(self):
         """Update data."""
         # This is where the main logic to update platform data goes.
         self.hass.data[DOMAIN_DATA][CHORES_NAME] = (
             await self.hass.async_add_executor_job(self.client.chores, [True]))
-
 
     async def async_update_shopping_list(self):
         """Update data."""
