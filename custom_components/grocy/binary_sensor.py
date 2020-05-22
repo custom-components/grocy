@@ -1,5 +1,5 @@
 """Binary sensor platform for grocy."""
-from homeassistant.components.binary_sensor import BinarySensorDevice
+from homeassistant.components.binary_sensor import BinarySensorEntity
 
 from .const import (ATTRIBUTION, BINARY_SENSOR_TYPES, DEFAULT_NAME, DOMAIN,
                     DOMAIN_DATA)
@@ -17,7 +17,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     for binary_sensor in BINARY_SENSOR_TYPES:
         async_add_devices([GrocyBinarySensor(hass, binary_sensor)], True)
 
-class GrocyBinarySensor(BinarySensorDevice):
+class GrocyBinarySensor(BinarySensorEntity):
     """grocy binary_sensor class."""
 
     def __init__(self, hass, sensor_type):
