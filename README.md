@@ -1,3 +1,5 @@
+**I'll not be able to maintain this project for the foreseeable future. I'd be happy to hand most of this over to someone willing to work on this integration and will try to support this by working on SebRut/pygrocy.**
+
 ## Installation instructions (general):
 
 1. Install HACS for Home Assistant
@@ -22,6 +24,3 @@ The configuration is slightly different for users that use Hass.io and the [offi
 7. Go to Grocy > Wrench icon > Manage API keys > Add
 8. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Grocy"
 9. Look for the new Grocy sensor in States and use its info
-
----
-[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/X8X1LYUK)
