@@ -3,27 +3,37 @@ add_product:
   fields:
     product_id:
       example: '3'
+      description: The id of the product to add to stock
     amount:
+      description: The amount to add to stock
       example: 3.0
     price:
       example: 1.99
+      description: The purchase price per purchase quantity unit of the added product
 consume_product:
   description: Consumes a given amount of a product to the stock
   fields:
     product_id:
       example: '3'
+      description: The id of the product to consume
     amount:
       example: 3.0
+      description: The amount to consume
     spoiled:
       example: false
+      description: if the product was removed because of spoilage
     transaction_type:
       example: "CONSUME"
+      description: The type of the transaction. One of "CONSUME", "PURCHASE", "INVENTORY_CORRECTION" or "PRODUCT_OPENED"
 execute_chore:
   description: Executes the given chore with an optional timestamp and executor
   fields:
     chore_id:
       example: '3'
+      description: The id of the chore to execute
     tracked_time:
       example: '2019-06-18T19:00:00.251Z'
+      description: The timestamp at when the chore got executed as ISO8601
     done_by:
       example: '0'
+      description: The id of the user who executed the chore

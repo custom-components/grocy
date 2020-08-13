@@ -7,12 +7,8 @@
 3. Install Grocy
 4. Restart Home Assistant
 5. Go to Grocy-Wrench icon-Manage API keys-Add
-6. Copy resulting API key and Grocy URL and input this in configuration.yaml:
-7. Choose:
-   - Add `grocy:` to your HA configuration.
-   - In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Grocy"
-
-8. Look for the new Grocy sensor in States and use its info
+6. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Grocy"
+7. Look for the new Grocy sensor in States and use its info
 
 
 ## Additional installation instructions for Hass.io users
@@ -26,9 +22,7 @@ The configuration is slightly different for users that use Hass.io and the [offi
 5. Copy resulting API key
 4. Go to Community > Store > Grocy
 5. Install the Grocy integration component
-6. Enter the previous API key and your URL and port number for your Grocy instance
-7. Restart Home Assistant
-8. Look for the new Grocy sensor in States and use its info
-
----
-[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/X8X1LYUK)
+6. Restart Home Assistant
+7. Go to Grocy > Wrench icon > Manage API keys > Add
+8. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Grocy"
+9. Look for the new Grocy sensor in States and use its info
