@@ -1,4 +1,4 @@
-**I'll not be able to maintain this project for the foreseeable future. I'd be happy to hand most of this over to someone willing to work on this integration and will try to support this by working on SebRut/pygrocy.**
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
 
 ## Installation instructions (general):
 
@@ -18,6 +18,8 @@ The configuration is slightly different for users that use Hass.io and the [offi
 1. If you haven't already done so, install Grocy from the Add-on store
 2. In the 'Network' section of the add-on config, input 9192 in the host field [screenshot](https://github.com/custom-components/grocy/raw/master/grocy-addon-config.png). Save your changes and restart the add-on.
 3. Install HACS for Home Assistant
+4. Go to Grocy > Wrench icon > Manage API keys > Add
+5. Copy resulting API key
 4. Go to Community > Store > Grocy
 5. Install the Grocy integration component
 6. Restart Home Assistant

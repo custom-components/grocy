@@ -1,0 +1,7 @@
+{
+  "name": "Grocy custom component",
+  "domains": ["sensor", "binary_sensor"],
+  "render_readme": true,
+  "iot_class": "Cloud Polling",
+  "homeassistant": "0.100.0"
+}
