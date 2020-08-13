@@ -4,12 +4,6 @@
   "documentation": "https://github.com/custom-components/grocy",
   "dependencies": [],
   "config_flow": true,
-  "codeowners": [
-    "@SebRut"
-  ],
-  "requirements": [
-    "pygrocy==0.15.0",
-    "iso8601==0.1.12",
-    "integrationhelper"
-  ]
+  "codeowners": ["@SebRut", "@isabellaalstrom"],
+  "requirements": ["pygrocy==0.16.0", "iso8601==0.1.12", "integrationhelper"]
 }
