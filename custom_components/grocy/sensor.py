@@ -3,6 +3,7 @@ from homeassistant.helpers.entity import Entity
 
 from .const import (ATTRIBUTION, CHORES_NAME, DEFAULT_NAME, DOMAIN,
                     DOMAIN_DATA, ICON, SENSOR_CHORES_UNIT_OF_MEASUREMENT,
+                    MEAL_PLAN_NAME,
                     SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT, SENSOR_TYPES)
 
 
@@ -39,7 +40,6 @@ class GrocySensor(Entity):
         # Get new data (if any)
         data = []
         items = self.hass.data[DOMAIN_DATA].get(self.sensor_type)
-        
 
         # Check the data and update the value.
         if items is None:

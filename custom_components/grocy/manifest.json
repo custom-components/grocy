@@ -8,7 +8,7 @@
     "@SebRut"
   ],
   "requirements": [
-    "pygrocy==0.15.0",
+    "git+https://github.com/SebRut/pygrocy.git@develop#pygrocy==0.16.0",
     "iso8601==0.1.12",
     "integrationhelper"
   ]

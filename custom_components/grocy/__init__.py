@@ -20,9 +20,12 @@ from integrationhelper.const import CC_STARTUP_VERSION
 from .const import (CHORES_NAME, CONF_BINARY_SENSOR, CONF_ENABLED, CONF_NAME,
                     CONF_SENSOR, DEFAULT_NAME, DEFAULT_PORT_NUMBER, DOMAIN,
                     DOMAIN_DATA, EXPIRED_PRODUCTS_NAME, EXPIRING_PRODUCTS_NAME,
+                    MEAL_PLAN_NAME,
                     ISSUE_URL, MISSING_PRODUCTS_NAME, PLATFORMS,
                     REQUIRED_FILES, SHOPPING_LIST_NAME, STARTUP, STOCK_NAME,
                     VERSION)
+
+from .helpers import MealPlanItem
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
@@ -105,6 +108,7 @@ async def async_setup_entry(hass, config_entry):
     grocy = Grocy(url, api_key, port_number, verify_ssl)
     hass.data[DOMAIN_DATA]["client"] = GrocyData(hass, grocy)
     hass.data[DOMAIN_DATA]["hash_key"] = hash_key
+    hass.data[DOMAIN_DATA]["url"] = f"{url}:{port_number}"
 
     # Add sensor
     hass.async_add_job(
@@ -174,6 +178,7 @@ class GrocyData:
             EXPIRING_PRODUCTS_NAME : self.async_update_expiring_products,
             EXPIRED_PRODUCTS_NAME : self.async_update_expired_products,
             MISSING_PRODUCTS_NAME : self.async_update_missing_products,
+            MEAL_PLAN_NAME : self.async_update_meal_plan,
         }
         self.sensor_update_dict = { STOCK_NAME : None,
             CHORES_NAME : None,
@@ -181,11 +186,12 @@ class GrocyData:
             EXPIRING_PRODUCTS_NAME : None,
             EXPIRED_PRODUCTS_NAME : None,
             MISSING_PRODUCTS_NAME : None,
+            MEAL_PLAN_NAME : None,
         }
 
     async def async_update_data(self, sensor_type):
         """Update data."""
-        sensor_update = self.sensor_update_dict[sensor_type]        
+        sensor_update = self.sensor_update_dict[sensor_type]
         db_changed = await self.hass.async_add_executor_job(self.client.get_last_db_changed)
         if db_changed != sensor_update:
             self.sensor_update_dict[sensor_type] = db_changed
@@ -236,6 +242,18 @@ class GrocyData:
             await self.hass.async_add_executor_job(
                 self.client.missing_products, [True]))
 
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    async def async_update_meal_plan(self):
+        """Update data."""
+        # This is where the main logic to update platform data goes.
+        self.hass.data[DOMAIN_DATA][MEAL_PLAN_NAME] = (
+            await self.hass.async_add_executor_job(self.update_meal_plan)
+        )
+
+    def update_meal_plan(self):
+        meal_plan = self.client.meal_plan(True)
+        base_url = self.hass.data[DOMAIN_DATA]["url"]
+        return [MealPlanItem(item, base_url) for item in meal_plan]
 
 async def check_files(hass):
     """Return bool that indicates if all files are present."""
