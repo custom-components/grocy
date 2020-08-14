@@ -5,11 +5,13 @@ from homeassistant.helpers.entity import Entity
 from .const import (
     ATTRIBUTION,
     CHORES_NAME,
+    TASKS_NAME,
     DEFAULT_NAME,
     DOMAIN,
     DOMAIN_DATA,
     ICON,
     SENSOR_CHORES_UNIT_OF_MEASUREMENT,
+    SENSOR_TASKS_UNIT_OF_MEASUREMENT,
     SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT,
     SENSOR_TYPES,
 )
@@ -86,6 +88,8 @@ class GrocySensor(Entity):
     def unit_of_measurement(self):
         if self.sensor_type == CHORES_NAME:
             return SENSOR_CHORES_UNIT_OF_MEASUREMENT
+        elif self.sensor_type == TASKS_NAME:
+            return SENSOR_TASKS_UNIT_OF_MEASUREMENT
         else:
             return SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT
 

@@ -18,6 +18,7 @@ from integrationhelper.const import CC_STARTUP_VERSION
 
 from .const import (
     CHORES_NAME,
+    TASKS_NAME,
     CONF_BINARY_SENSOR,
     CONF_ENABLED,
     CONF_NAME,
@@ -169,6 +170,21 @@ async def async_setup_entry(hass, config_entry):
 
     hass.services.async_register(DOMAIN, "execute_chore", handle_execute_chore)
 
+    @callback
+    def handle_complete_task(call):
+        task_id = call.data["task_id"]
+        done_time_str = call.data.get("done_time", None)
+
+        done_time = datetime.now()
+        if done_time_str is not None:
+            done_time = iso8601.parse_date(done_time_str)
+        grocy.complete_task(task_id, done_time)
+        asyncio.run_coroutine_threadsafe(
+            entity_component.async_update_entity(hass, "sensor.grocy_tasks"), hass.loop
+        )
+
+    hass.services.async_register(DOMAIN, "complete_task", handle_complete_task)
+
     return True
 
 
@@ -182,6 +198,7 @@ class GrocyData:
         self.sensor_types_dict = {
             STOCK_NAME: self.async_update_stock,
             CHORES_NAME: self.async_update_chores,
+            TASKS_NAME: self.async_update_tasks,
             SHOPPING_LIST_NAME: self.async_update_shopping_list,
             EXPIRING_PRODUCTS_NAME: self.async_update_expiring_products,
             EXPIRED_PRODUCTS_NAME: self.async_update_expired_products,
@@ -190,6 +207,7 @@ class GrocyData:
         self.sensor_update_dict = {
             STOCK_NAME: None,
             CHORES_NAME: None,
+            TASKS_NAME: None,
             SHOPPING_LIST_NAME: None,
             EXPIRING_PRODUCTS_NAME: None,
             EXPIRED_PRODUCTS_NAME: None,
@@ -225,6 +243,14 @@ class GrocyData:
         self.hass.data[DOMAIN_DATA][
             CHORES_NAME
         ] = await self.hass.async_add_executor_job(wrapper)
+
+    async def async_update_tasks(self):
+        """Update data."""
+        # This is where the main logic to update platform data goes.
+
+        self.hass.data[DOMAIN_DATA][
+            TASKS_NAME
+        ] = await self.hass.async_add_executor_job(self.client.tasks)
 
     async def async_update_shopping_list(self):
         """Update data."""
