@@ -6,10 +6,6 @@
 		"9123:8123"
 	],
 	"postCreateCommand": "container install",
-	"runArgs": [
-		"-v",
-		"${env:HOME}${env:USERPROFILE}/.ssh:/tmp/.ssh"
-	],
 	"extensions": [
 		"ms-python.python",
 		"github.vscode-pull-request-github",
