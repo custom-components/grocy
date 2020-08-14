@@ -37,3 +37,13 @@ execute_chore:
     done_by:
       example: '0'
       description: The id of the user who executed the chore
+
+complete_task:
+  description: Completes the given task
+  fields:
+    task_id:
+      example: '3'
+      description: The id of the task to complete
+    done_time:
+      example: '2019-06-18T19:00:00.251Z'
+      description: The timestamp at when the task got completed as ISO8601
