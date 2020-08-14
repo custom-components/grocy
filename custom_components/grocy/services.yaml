@@ -37,3 +37,10 @@ execute_chore:
     done_by:
       example: '0'
       description: The id of the user who executed the chore
+
+complete_task:
+  description: Completes the given task
+  fields:
+    task_id:
+      example: '3'
+      description: The id of the task to complete
