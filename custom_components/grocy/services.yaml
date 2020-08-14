@@ -43,7 +43,11 @@ complete_task:
   fields:
     task_id:
       example: '3'
+<<<<<<< HEAD
       description: The id of the task to complete
     done_time:
       example: '2019-06-18T19:00:00.251Z'
       description: The timestamp at when the task got completed as ISO8601
+=======
+      description: The id of the task to complete
+>>>>>>> 9d2be491fdff16dc7bcf1b26b87aa45387802cd9
