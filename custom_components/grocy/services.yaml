@@ -47,3 +47,13 @@ complete_task:
     done_time:
       example: '2019-06-18T19:00:00.251Z'
       description: The timestamp at when the task got completed as ISO8601
+
+add_generic:
+  description: Adds a single object of the given entity type
+  fields:
+    entity_type:
+      example: 'tasks'
+      description: Entity type is the type of entity you like to add. See Grocy api documentation on "Generic entity interactions" for more information.
+    data:
+      example: '{"name": "This is a task"}'
+      description: Data is a json object with what data you want to add.

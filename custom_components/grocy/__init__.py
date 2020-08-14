@@ -185,6 +185,15 @@ async def async_setup_entry(hass, config_entry):
 
     hass.services.async_register(DOMAIN, "complete_task", handle_complete_task)
 
+    @callback
+    def handle_add_generic(call):
+        entity_type = call.data["entity_type"]
+        data = call.data["data"]
+
+        grocy.add_generic(entity_type, data)
+
+    hass.services.async_register(DOMAIN, "add_generic", handle_add_generic)
+
     return True
 
 
