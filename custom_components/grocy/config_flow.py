@@ -86,7 +86,7 @@ class GrocyFlowHandler(config_entries.ConfigFlow):
         """Return true if credentials is valid."""
         try:
             client = Grocy(url, api_key, port, verify_ssl)
-            client.stock()
+            await self.hass.async_add_executor_job(client.stock)
             return True
         except Exception as e:  # pylint: disable=broad-except
             _LOGGER.exception(e)
