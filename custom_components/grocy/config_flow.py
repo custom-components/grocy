@@ -1,11 +1,14 @@
 """Adds config flow for grocy."""
 from collections import OrderedDict
 
+import logging
 import voluptuous as vol
 from homeassistant import config_entries
 from pygrocy import Grocy
 
 from .const import DEFAULT_PORT_NUMBER, DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @config_entries.HANDLERS.register(DOMAIN)
@@ -31,8 +34,10 @@ class GrocyFlowHandler(config_entries.ConfigFlow):
 
         if user_input is not None:
             valid = await self._test_credentials(
-                user_input["url"], user_input["api_key"],
-                user_input["port"],user_input["verify_ssl"]
+                user_input["url"],
+                user_input["api_key"],
+                user_input["port"],
+                user_input["verify_ssl"],
             )
             if valid:
                 return self.async_create_entry(title="Grocy", data=user_input)

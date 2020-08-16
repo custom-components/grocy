@@ -31,6 +31,7 @@ from .const import (
     EXPIRING_PRODUCTS_NAME,
     ISSUE_URL,
     MISSING_PRODUCTS_NAME,
+    MEAL_PLAN_NAME,
     PLATFORMS,
     REQUIRED_FILES,
     SHOPPING_LIST_NAME,
@@ -38,6 +39,8 @@ from .const import (
     STOCK_NAME,
     VERSION,
 )
+
+from .helpers import MealPlanItem
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
@@ -118,6 +121,7 @@ async def async_setup_entry(hass, config_entry):
     grocy = Grocy(url, api_key, port_number, verify_ssl)
     hass.data[DOMAIN_DATA]["client"] = GrocyData(hass, grocy)
     hass.data[DOMAIN_DATA]["hash_key"] = hash_key
+    hass.data[DOMAIN_DATA]["url"] = f"{url}:{port_number}"
 
     # Add sensor
     hass.async_add_job(
@@ -185,6 +189,15 @@ async def async_setup_entry(hass, config_entry):
 
     hass.services.async_register(DOMAIN, "complete_task", handle_complete_task)
 
+    @callback
+    def handle_add_generic(call):
+        entity_type = call.data["entity_type"]
+        data = call.data["data"]
+
+        grocy.add_generic(entity_type, data)
+
+    hass.services.async_register(DOMAIN, "add_generic", handle_add_generic)
+
     return True
 
 
@@ -203,6 +216,7 @@ class GrocyData:
             EXPIRING_PRODUCTS_NAME: self.async_update_expiring_products,
             EXPIRED_PRODUCTS_NAME: self.async_update_expired_products,
             MISSING_PRODUCTS_NAME: self.async_update_missing_products,
+            MEAL_PLAN_NAME : self.async_update_meal_plan,
         }
         self.sensor_update_dict = {
             STOCK_NAME: None,
@@ -212,6 +226,7 @@ class GrocyData:
             EXPIRING_PRODUCTS_NAME: None,
             EXPIRED_PRODUCTS_NAME: None,
             MISSING_PRODUCTS_NAME: None,
+            MEAL_PLAN_NAME : None,
         }
 
     async def async_update_data(self, sensor_type):
@@ -293,6 +308,19 @@ class GrocyData:
 
         self.hass.data[DOMAIN_DATA][
             MISSING_PRODUCTS_NAME
+        ] = await self.hass.async_add_executor_job(wrapper)
+
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    async def async_update_meal_plan(self):
+        """Update data."""
+        # This is where the main logic to update platform data goes.
+        def wrapper():
+            meal_plan = self.client.meal_plan(True)
+            base_url = self.hass.data[DOMAIN_DATA]["url"]
+            return [MealPlanItem(item, base_url) for item in meal_plan]
+
+        self.hass.data[DOMAIN_DATA][
+            MEAL_PLAN_NAME
         ] = await self.hass.async_add_executor_job(wrapper)
 
 
