@@ -9,7 +9,7 @@
     "@isabellaalstrom"
   ],
   "requirements": [
-    "pygrocy==0.18.0",
+    "pygrocy==0.20.0",
     "iso8601==0.1.12",
     "integrationhelper"
   ]
