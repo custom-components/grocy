@@ -6,6 +6,7 @@ from .const import (
     ATTRIBUTION,
     CHORES_NAME,
     TASKS_NAME,
+    MEAL_PLAN_NAME,
     DEFAULT_NAME,
     DOMAIN,
     DOMAIN_DATA,
@@ -13,6 +14,7 @@ from .const import (
     SENSOR_CHORES_UNIT_OF_MEASUREMENT,
     SENSOR_TASKS_UNIT_OF_MEASUREMENT,
     SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT,
+    SENSOR_MEALS_UNIT_OF_MEASUREMENT,
     SENSOR_TYPES,
 )
 
@@ -90,6 +92,8 @@ class GrocySensor(Entity):
             return SENSOR_CHORES_UNIT_OF_MEASUREMENT
         elif self.sensor_type == TASKS_NAME:
             return SENSOR_TASKS_UNIT_OF_MEASUREMENT
+        elif self.sensor_type == MEAL_PLAN_NAME:
+            return SENSOR_MEALS_UNIT_OF_MEASUREMENT
         else:
             return SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT
 
