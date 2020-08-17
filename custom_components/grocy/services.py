@@ -1,5 +1,4 @@
 """Grocy services."""
-# from pydeconz.utils import normalize_bridge_id
 import asyncio
 import voluptuous as vol
 import iso8601
@@ -7,18 +6,12 @@ import iso8601
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_component
 
-# from .config_flow import get_instance
 from pygrocy import TransactionType
 from datetime import timedelta, datetime
 
 from .const import (
-    #     CONF_BRIDGE_ID,
     DOMAIN,
     LOGGER,
-    #     NEW_GROUP,
-    #     NEW_LIGHT,
-    #     NEW_SCENE,
-    #     NEW_SENSOR,
 )
 
 GROCY_SERVICES = "grocy_services"
