@@ -1,5 +1,5 @@
 """
-The integration for grocy.
+The integration for Grocy.
 """
 import asyncio
 import hashlib
@@ -15,6 +15,9 @@ from homeassistant.core import callback
 from homeassistant.helpers import discovery, entity_component
 from homeassistant.util import Throttle
 from integrationhelper.const import CC_STARTUP_VERSION
+from pygrocy import Grocy, TransactionType
+from datetime import datetime
+import iso8601
 
 from .const import (
     CHORES_NAME,
@@ -46,15 +49,12 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass, config):
-    """Set up this component."""
+    """Old setup way."""
     return True
 
 
 async def async_setup_entry(hass, config_entry):
     """Set up this integration using UI."""
-    from pygrocy import Grocy, TransactionType
-    from datetime import datetime
-    import iso8601
 
     conf = hass.data.get(DOMAIN_DATA)
     if config_entry.source == config_entries.SOURCE_IMPORT:
