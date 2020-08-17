@@ -1,5 +1,4 @@
 """Binary sensor platform for grocy."""
-import logging
 from homeassistant.components.binary_sensor import BinarySensorEntity
 
 from .const import (
@@ -8,9 +7,8 @@ from .const import (
     DEFAULT_CONF_NAME,
     DOMAIN,
     DOMAIN_DATA,
+    LOGGER,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_platform(
@@ -48,7 +46,7 @@ class GrocyBinarySensor(BinarySensorEntity):
             x.as_dict() for x in self.hass.data[DOMAIN_DATA].get(self.sensor_type, [])
         ]
         self._status = len(self.attr["items"]) != 0
-        _LOGGER.debug(self.attr)
+        LOGGER.debug(self.attr)
 
     @property
     def unique_id(self):

@@ -10,7 +10,7 @@ from pygrocy import TransactionType
 from .const import (
     #     CONF_BRIDGE_ID,
     DOMAIN,
-    #     LOGGER,
+    LOGGER,
     #     NEW_GROUP,
     #     NEW_LIGHT,
     #     NEW_SCENE,

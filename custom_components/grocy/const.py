@@ -1,4 +1,8 @@
 """Constants for grocy."""
+import logging
+
+LOGGER = logging.getLogger(__package__)
+
 # Base component constants
 DOMAIN = "grocy"
 DOMAIN_DATA = "{}_data".format(DOMAIN)

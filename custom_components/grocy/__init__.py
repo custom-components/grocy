@@ -1,9 +1,8 @@
 """
-The integration for Grocy.
+The integration for grocy.
 """
 import asyncio
 import hashlib
-import logging
 import os
 from datetime import timedelta
 
@@ -20,6 +19,7 @@ from datetime import datetime
 import iso8601
 
 from .const import (
+    LOGGER,
     CHORES_NAME,
     TASKS_NAME,
     CONF_ENABLED,
@@ -45,8 +45,6 @@ from .helpers import MealPlanItem
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
-_LOGGER = logging.getLogger(__name__)
-
 
 async def async_setup(hass, config):
     """Old setup way."""
@@ -65,7 +63,7 @@ async def async_setup_entry(hass, config_entry):
         return False
 
     # Print startup message
-    _LOGGER.info(
+    LOGGER.info(
         CC_STARTUP_VERSION.format(name=DOMAIN, version=VERSION, issue_link=ISSUE_URL)
     )
 
@@ -301,7 +299,7 @@ def check_files(hass):
             missing.append(file)
 
     if missing:
-        _LOGGER.critical("The following files are missing: %s", str(missing))
+        LOGGER.critical("The following files are missing: %s", str(missing))
         returnvalue = False
     else:
         returnvalue = True
@@ -313,15 +311,15 @@ async def async_remove_entry(hass, config_entry):
     """Handle removal of an entry."""
     try:
         await hass.config_entries.async_forward_entry_unload(config_entry, "sensor")
-        _LOGGER.info("Successfully removed sensor from the grocy integration")
+        LOGGER.info("Successfully removed sensor from the grocy integration")
     except ValueError as error:
-        _LOGGER.exception(error)
+        LOGGER.exception(error)
         pass
     try:
         await hass.config_entries.async_forward_entry_unload(
             config_entry, "binary_sensor"
         )
-        _LOGGER.info("Successfully removed sensor from the grocy integration")
+        LOGGER.info("Successfully removed sensor from the grocy integration")
     except ValueError as error:
-        _LOGGER.exception(error)
+        LOGGER.exception(error)
         pass

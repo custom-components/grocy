@@ -1,6 +1,5 @@
 from collections import OrderedDict
 
-import logging
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
@@ -21,9 +20,8 @@ from .const import (
     DEFAULT_CONF_ALLOW_SHOPPING_LIST,
     DEFAULT_CONF_ALLOW_STOCK,
     DEFAULT_CONF_ALLOW_TASKS,
+    LOGGER,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -62,7 +60,7 @@ class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(title="Grocy", data=user_input)
             else:
                 self._errors["base"] = "auth"
-                _LOGGER.error(self._errors)
+                LOGGER.error(self._errors)
 
             return await self._show_config_form(user_input)
 
@@ -113,7 +111,7 @@ class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             await self.hass.async_add_executor_job(client.stock)
             return True
         except Exception as e:  # pylint: disable=broad-except
-            _LOGGER.exception(e)
+            LOGGER.exception(e)
             pass
         return False
 

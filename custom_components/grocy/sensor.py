@@ -1,5 +1,4 @@
 """Sensor platform for grocy."""
-import logging
 from homeassistant.helpers.entity import Entity
 
 from .const import (
@@ -17,8 +16,6 @@ from .const import (
     SENSOR_MEALS_UNIT_OF_MEASUREMENT,
     SENSOR_TYPES,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_platform(
@@ -56,7 +53,7 @@ class GrocySensor(Entity):
             x.as_dict() for x in self.hass.data[DOMAIN_DATA].get(self.sensor_type, [])
         ]
         self._state = len(self.attr["items"])
-        _LOGGER.debug(self.attr)
+        LOGGER.debug(self.attr)
 
     @property
     def unique_id(self):
