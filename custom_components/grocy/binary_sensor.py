@@ -2,7 +2,13 @@
 import logging
 from homeassistant.components.binary_sensor import BinarySensorEntity
 
-from .const import ATTRIBUTION, BINARY_SENSOR_TYPES, DEFAULT_NAME, DOMAIN, DOMAIN_DATA
+from .const import (
+    ATTRIBUTION,
+    BINARY_SENSOR_TYPES,
+    DEFAULT_CONF_NAME,
+    DOMAIN,
+    DOMAIN_DATA,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,7 +36,7 @@ class GrocyBinarySensor(BinarySensorEntity):
         self._status = False
         self._hash_key = self.hass.data[DOMAIN_DATA]["hash_key"]
         self._unique_id = "{}-{}".format(self._hash_key, self.sensor_type)
-        self._name = "{}.{}".format(DEFAULT_NAME, self.sensor_type)
+        self._name = "{}.{}".format(DEFAULT_CONF_NAME, self.sensor_type)
         self._client = self.hass.data[DOMAIN_DATA]["client"]
 
     async def async_update(self):

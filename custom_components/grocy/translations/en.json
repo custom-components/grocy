@@ -18,5 +18,19 @@
             "abort": {
                 "single_instance_allowed": "Only a single configuration of Grocy is allowed."
             }
+        },
+        "options": {
+            "step": {
+                "grocy_devices": {
+                    "data": {
+                        "allow_chores": "Chores enabled",
+                        "allow_meal_plan": "Meal plan enabled",
+                        "allow_products": "Products enabled",
+                        "allow_shopping_list": "Shopping list enabled",
+                        "allow_stock": "Stock enabled",
+                        "allow_tasks": "Tasks enabled"
+                    }
+                }
+            }
         }
     }

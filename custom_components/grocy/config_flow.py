@@ -1,22 +1,41 @@
-"""Adds config flow for grocy."""
 from collections import OrderedDict
 
 import logging
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.core import callback
 from pygrocy import Grocy
 
-from .const import DEFAULT_PORT_NUMBER, DOMAIN
+from .const import (
+    DEFAULT_PORT_NUMBER,
+    DOMAIN,
+    CONF_ALLOW_CHORES,
+    CONF_ALLOW_MEAL_PLAN,
+    CONF_ALLOW_PRODUCTS,
+    CONF_ALLOW_SHOPPING_LIST,
+    CONF_ALLOW_STOCK,
+    CONF_ALLOW_TASKS,
+    DEFAULT_CONF_ALLOW_CHORES,
+    DEFAULT_CONF_ALLOW_MEAL_PLAN,
+    DEFAULT_CONF_ALLOW_PRODUCTS,
+    DEFAULT_CONF_ALLOW_SHOPPING_LIST,
+    DEFAULT_CONF_ALLOW_STOCK,
+    DEFAULT_CONF_ALLOW_TASKS,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
 
-@config_entries.HANDLERS.register(DOMAIN)
-class GrocyFlowHandler(config_entries.ConfigFlow):
+class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for grocy."""
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        return GrocyOptionsFlowHandler(config_entry)
 
     def __init__(self):
         """Initialize."""
@@ -50,7 +69,7 @@ class GrocyFlowHandler(config_entries.ConfigFlow):
         return await self._show_config_form(user_input)
 
     async def _show_config_form(self, user_input):
-        """Show the configuration form to edit location data."""
+        """Show the configuration form to edit the data."""
 
         # Defaults
         url = ""
@@ -97,3 +116,73 @@ class GrocyFlowHandler(config_entries.ConfigFlow):
             _LOGGER.exception(e)
             pass
         return False
+
+
+class GrocyOptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle Grocy options."""
+
+    def __init__(self, config_entry):
+        """Initialize Grocy options flow."""
+        self.config_entry = config_entry
+        self.options = dict(config_entry.options)
+
+    async def async_step_init(self, user_input=None):
+        """Manage the Grocy options."""
+        return await self.async_step_grocy_devices()
+
+    async def async_step_grocy_devices(self, user_input=None):
+        """Manage the Grocy devices options."""
+        if user_input is not None:
+            self.options[CONF_ALLOW_CHORES] = user_input[CONF_ALLOW_CHORES]
+            self.options[CONF_ALLOW_MEAL_PLAN] = user_input[CONF_ALLOW_MEAL_PLAN]
+            self.options[CONF_ALLOW_PRODUCTS] = user_input[CONF_ALLOW_PRODUCTS]
+            self.options[CONF_ALLOW_SHOPPING_LIST] = user_input[
+                CONF_ALLOW_SHOPPING_LIST
+            ]
+            self.options[CONF_ALLOW_STOCK] = user_input[CONF_ALLOW_STOCK]
+            self.options[CONF_ALLOW_TASKS] = user_input[CONF_ALLOW_TASKS]
+            return self.async_create_entry(title="", data=self.options)
+
+        return self.async_show_form(
+            step_id="grocy_devices",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_ALLOW_CHORES,
+                        default=self.config_entry.options.get(
+                            CONF_ALLOW_CHORES, DEFAULT_CONF_ALLOW_CHORES
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        CONF_ALLOW_MEAL_PLAN,
+                        default=self.config_entry.options.get(
+                            CONF_ALLOW_MEAL_PLAN, DEFAULT_CONF_ALLOW_MEAL_PLAN
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        CONF_ALLOW_PRODUCTS,
+                        default=self.config_entry.options.get(
+                            CONF_ALLOW_PRODUCTS, DEFAULT_CONF_ALLOW_PRODUCTS
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        CONF_ALLOW_SHOPPING_LIST,
+                        default=self.config_entry.options.get(
+                            CONF_ALLOW_SHOPPING_LIST, DEFAULT_CONF_ALLOW_SHOPPING_LIST
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        CONF_ALLOW_STOCK,
+                        default=self.config_entry.options.get(
+                            CONF_ALLOW_STOCK, DEFAULT_CONF_ALLOW_STOCK
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        CONF_ALLOW_TASKS,
+                        default=self.config_entry.options.get(
+                            CONF_ALLOW_TASKS, DEFAULT_CONF_ALLOW_TASKS
+                        ),
+                    ): bool,
+                }
+            ),
+        )

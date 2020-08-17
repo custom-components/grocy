@@ -19,11 +19,9 @@ from integrationhelper.const import CC_STARTUP_VERSION
 from .const import (
     CHORES_NAME,
     TASKS_NAME,
-    CONF_BINARY_SENSOR,
     CONF_ENABLED,
     CONF_NAME,
-    CONF_SENSOR,
-    DEFAULT_NAME,
+    DEFAULT_CONF_NAME,
     DEFAULT_PORT_NUMBER,
     DOMAIN,
     DOMAIN_DATA,
@@ -45,38 +43,6 @@ from .helpers import MealPlanItem
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
 _LOGGER = logging.getLogger(__name__)
-
-SENSOR_SCHEMA = vol.Schema(
-    {
-        vol.Optional(CONF_ENABLED, default=True): cv.boolean,
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-    }
-)
-
-BINARY_SENSOR_SCHEMA = vol.Schema(
-    {
-        vol.Optional(CONF_ENABLED, default=True): cv.boolean,
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-    }
-)
-
-CONFIG_SCHEMA = vol.Schema(
-    {
-        DOMAIN: vol.Schema(
-            {
-                vol.Required(CONF_URL): cv.string,
-                vol.Required(CONF_API_KEY): cv.string,
-                vol.Optional(CONF_PORT, default=DEFAULT_PORT_NUMBER): cv.port,
-                vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
-                vol.Optional(CONF_SENSOR): vol.All(cv.ensure_list, [SENSOR_SCHEMA]),
-                vol.Optional(CONF_BINARY_SENSOR): vol.All(
-                    cv.ensure_list, [BINARY_SENSOR_SCHEMA]
-                ),
-            }
-        )
-    },
-    extra=vol.ALLOW_EXTRA,
-)
 
 
 async def async_setup(hass, config):
@@ -123,11 +89,11 @@ async def async_setup_entry(hass, config_entry):
     hass.data[DOMAIN_DATA]["hash_key"] = hash_key
     hass.data[DOMAIN_DATA]["url"] = f"{url}:{port_number}"
 
-    # Add sensor
+    # Add sensors
     hass.async_add_job(
         hass.config_entries.async_forward_entry_setup(config_entry, "sensor")
     )
-    # Add sensor
+    # Add binary sensors
     hass.async_add_job(
         hass.config_entries.async_forward_entry_setup(config_entry, "binary_sensor")
     )
@@ -216,7 +182,7 @@ class GrocyData:
             EXPIRING_PRODUCTS_NAME: self.async_update_expiring_products,
             EXPIRED_PRODUCTS_NAME: self.async_update_expired_products,
             MISSING_PRODUCTS_NAME: self.async_update_missing_products,
-            MEAL_PLAN_NAME : self.async_update_meal_plan,
+            MEAL_PLAN_NAME: self.async_update_meal_plan,
         }
         self.sensor_update_dict = {
             STOCK_NAME: None,
@@ -226,7 +192,7 @@ class GrocyData:
             EXPIRING_PRODUCTS_NAME: None,
             EXPIRED_PRODUCTS_NAME: None,
             MISSING_PRODUCTS_NAME: None,
-            MEAL_PLAN_NAME : None,
+            MEAL_PLAN_NAME: None,
         }
 
     async def async_update_data(self, sensor_type):

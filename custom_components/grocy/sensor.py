@@ -7,7 +7,7 @@ from .const import (
     CHORES_NAME,
     TASKS_NAME,
     MEAL_PLAN_NAME,
-    DEFAULT_NAME,
+    DEFAULT_CONF_NAME,
     DOMAIN,
     DOMAIN_DATA,
     ICON,
@@ -45,7 +45,7 @@ class GrocySensor(Entity):
         self._state = None
         self._hash_key = self.hass.data[DOMAIN_DATA]["hash_key"]
         self._unique_id = "{}-{}".format(self._hash_key, self.sensor_type)
-        self._name = "{}.{}".format(DEFAULT_NAME, self.sensor_type)
+        self._name = "{}.{}".format(DEFAULT_CONF_NAME, self.sensor_type)
 
     async def async_update(self):
         """Update the sensor."""
