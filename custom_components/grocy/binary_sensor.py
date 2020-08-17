@@ -6,7 +6,6 @@ from .const import (
     BINARY_SENSOR_TYPES,
     DEFAULT_CONF_NAME,
     DOMAIN,
-    DOMAIN_DATA,
     LOGGER,
 )
 
@@ -32,10 +31,10 @@ class GrocyBinarySensor(BinarySensorEntity):
         self.sensor_type = sensor_type
         self.attr = {}
         self._status = False
-        self._hash_key = self.hass.data[DOMAIN_DATA]["hash_key"]
+        self._hash_key = self.hass.data[DOMAIN]["hash_key"]
         self._unique_id = "{}-{}".format(self._hash_key, self.sensor_type)
         self._name = "{}.{}".format(DEFAULT_CONF_NAME, self.sensor_type)
-        self._client = self.hass.data[DOMAIN_DATA]["client"]
+        self._client = self.hass.data[DOMAIN]["client"]
 
     async def async_update(self):
         """Update the binary_sensor."""
@@ -43,7 +42,7 @@ class GrocyBinarySensor(BinarySensorEntity):
         await self._client.async_update_data(self.sensor_type)
 
         self.attr["items"] = [
-            x.as_dict() for x in self.hass.data[DOMAIN_DATA].get(self.sensor_type, [])
+            x.as_dict() for x in self.hass.data[DOMAIN].get(self.sensor_type, [])
         ]
         self._status = len(self.attr["items"]) != 0
         LOGGER.debug(self.attr)

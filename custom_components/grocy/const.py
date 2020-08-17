@@ -5,7 +5,6 @@ LOGGER = logging.getLogger(__package__)
 
 # Base component constants
 DOMAIN = "grocy"
-DOMAIN_DATA = "{}_data".format(DOMAIN)
 VERSION = "0.4.0"
 PLATFORMS = ["sensor", "binary_sensor"]
 REQUIRED_FILES = [

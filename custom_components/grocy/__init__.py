@@ -27,7 +27,6 @@ from .const import (
     DEFAULT_CONF_NAME,
     DEFAULT_PORT_NUMBER,
     DOMAIN,
-    DOMAIN_DATA,
     EXPIRED_PRODUCTS_NAME,
     EXPIRING_PRODUCTS_NAME,
     ISSUE_URL,
@@ -54,7 +53,7 @@ async def async_setup(hass, config):
 async def async_setup_entry(hass, config_entry):
     """Set up this integration using UI."""
 
-    conf = hass.data.get(DOMAIN_DATA)
+    conf = hass.data.get(DOMAIN)
     if config_entry.source == config_entries.SOURCE_IMPORT:
         if conf is None:
             hass.async_create_task(
@@ -72,7 +71,7 @@ async def async_setup_entry(hass, config_entry):
         return False
 
     # Create DATA dict
-    hass.data[DOMAIN_DATA] = {}
+    hass.data[DOMAIN] = {}
 
     # Get "global" configuration.
     url = config_entry.data.get(CONF_URL)
@@ -83,9 +82,9 @@ async def async_setup_entry(hass, config_entry):
 
     # Configure the client.
     grocy = Grocy(url, api_key, port_number, verify_ssl)
-    hass.data[DOMAIN_DATA]["client"] = GrocyData(hass, grocy)
-    hass.data[DOMAIN_DATA]["hash_key"] = hash_key
-    hass.data[DOMAIN_DATA]["url"] = f"{url}:{port_number}"
+    hass.data[DOMAIN]["client"] = GrocyData(hass, grocy)
+    hass.data[DOMAIN]["hash_key"] = hash_key
+    hass.data[DOMAIN]["url"] = f"{url}:{port_number}"
 
     # Add sensors
     hass.async_add_job(
@@ -209,9 +208,9 @@ class GrocyData:
     async def async_update_stock(self):
         """Update data."""
         # This is where the main logic to update platform data goes.
-        self.hass.data[DOMAIN_DATA][
-            STOCK_NAME
-        ] = await self.hass.async_add_executor_job(self.client.stock)
+        self.hass.data[DOMAIN][STOCK_NAME] = await self.hass.async_add_executor_job(
+            self.client.stock
+        )
 
     async def async_update_chores(self):
         """Update data."""
@@ -219,17 +218,17 @@ class GrocyData:
         def wrapper():
             return self.client.chores(True)
 
-        self.hass.data[DOMAIN_DATA][
-            CHORES_NAME
-        ] = await self.hass.async_add_executor_job(wrapper)
+        self.hass.data[DOMAIN][CHORES_NAME] = await self.hass.async_add_executor_job(
+            wrapper
+        )
 
     async def async_update_tasks(self):
         """Update data."""
         # This is where the main logic to update platform data goes.
 
-        self.hass.data[DOMAIN_DATA][
-            TASKS_NAME
-        ] = await self.hass.async_add_executor_job(self.client.tasks)
+        self.hass.data[DOMAIN][TASKS_NAME] = await self.hass.async_add_executor_job(
+            self.client.tasks
+        )
 
     async def async_update_shopping_list(self):
         """Update data."""
@@ -237,7 +236,7 @@ class GrocyData:
         def wrapper():
             return self.client.shopping_list(True)
 
-        self.hass.data[DOMAIN_DATA][
+        self.hass.data[DOMAIN][
             SHOPPING_LIST_NAME
         ] = await self.hass.async_add_executor_job(wrapper)
 
@@ -248,7 +247,7 @@ class GrocyData:
         def wrapper():
             return self.client.expiring_products(True)
 
-        self.hass.data[DOMAIN_DATA][
+        self.hass.data[DOMAIN][
             EXPIRING_PRODUCTS_NAME
         ] = await self.hass.async_add_executor_job(wrapper)
 
@@ -259,7 +258,7 @@ class GrocyData:
         def wrapper():
             return self.client.expired_products(True)
 
-        self.hass.data[DOMAIN_DATA][
+        self.hass.data[DOMAIN][
             EXPIRED_PRODUCTS_NAME
         ] = await self.hass.async_add_executor_job(wrapper)
 
@@ -270,7 +269,7 @@ class GrocyData:
         def wrapper():
             return self.client.missing_products(True)
 
-        self.hass.data[DOMAIN_DATA][
+        self.hass.data[DOMAIN][
             MISSING_PRODUCTS_NAME
         ] = await self.hass.async_add_executor_job(wrapper)
 
@@ -280,12 +279,12 @@ class GrocyData:
         # This is where the main logic to update platform data goes.
         def wrapper():
             meal_plan = self.client.meal_plan(True)
-            base_url = self.hass.data[DOMAIN_DATA]["url"]
+            base_url = self.hass.data[DOMAIN]["url"]
             return [MealPlanItem(item, base_url) for item in meal_plan]
 
-        self.hass.data[DOMAIN_DATA][
-            MEAL_PLAN_NAME
-        ] = await self.hass.async_add_executor_job(wrapper)
+        self.hass.data[DOMAIN][MEAL_PLAN_NAME] = await self.hass.async_add_executor_job(
+            wrapper
+        )
 
 
 def check_files(hass):

@@ -9,7 +9,6 @@ from .const import (
     DEFAULT_CONF_NAME,
     DOMAIN,
     LOGGER,
-    DOMAIN_DATA,
     ICON,
     SENSOR_CHORES_UNIT_OF_MEASUREMENT,
     SENSOR_TASKS_UNIT_OF_MEASUREMENT,
@@ -41,17 +40,17 @@ class GrocySensor(Entity):
         self.sensor_type = sensor_type
         self.attr = {}
         self._state = None
-        self._hash_key = self.hass.data[DOMAIN_DATA]["hash_key"]
+        self._hash_key = self.hass.data[DOMAIN]["hash_key"]
         self._unique_id = "{}-{}".format(self._hash_key, self.sensor_type)
         self._name = "{}.{}".format(DEFAULT_CONF_NAME, self.sensor_type)
 
     async def async_update(self):
         """Update the sensor."""
         # Send update "signal" to the component
-        await self.hass.data[DOMAIN_DATA]["client"].async_update_data(self.sensor_type)
+        await self.hass.data[DOMAIN]["client"].async_update_data(self.sensor_type)
 
         self.attr["items"] = [
-            x.as_dict() for x in self.hass.data[DOMAIN_DATA].get(self.sensor_type, [])
+            x.as_dict() for x in self.hass.data[DOMAIN].get(self.sensor_type, [])
         ]
         self._state = len(self.attr["items"])
         LOGGER.debug(self.attr)
