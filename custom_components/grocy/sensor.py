@@ -8,6 +8,7 @@ from .const import (
     MEAL_PLAN_NAME,
     DEFAULT_CONF_NAME,
     DOMAIN,
+    LOGGER,
     DOMAIN_DATA,
     ICON,
     SENSOR_CHORES_UNIT_OF_MEASUREMENT,
