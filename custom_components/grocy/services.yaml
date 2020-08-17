@@ -1,4 +1,4 @@
-add_product:
+add_product_to_stock:
   description: Adds a given amount of a product to the stock
   fields:
     product_id:
@@ -8,9 +8,9 @@ add_product:
       description: The amount to add to stock
       example: 3.0
     price:
-      example: 1.99
+      example: "1.99"
       description: The purchase price per purchase quantity unit of the added product
-consume_product:
+consume_product_from_stock:
   description: Consumes a given amount of a product to the stock
   fields:
     product_id:

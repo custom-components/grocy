@@ -41,6 +41,7 @@ from .const import (
 )
 
 from .helpers import MealPlanItem
+from .services import async_setup_services
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
@@ -82,6 +83,7 @@ async def async_setup_entry(hass, config_entry):
 
     # Configure the client.
     grocy = Grocy(url, api_key, port_number, verify_ssl)
+    hass.data[DOMAIN]["instance"] = grocy
     hass.data[DOMAIN]["client"] = GrocyData(hass, grocy)
     hass.data[DOMAIN]["hash_key"] = hash_key
     hass.data[DOMAIN]["url"] = f"{url}:{port_number}"
@@ -95,71 +97,8 @@ async def async_setup_entry(hass, config_entry):
         hass.config_entries.async_forward_entry_setup(config_entry, "binary_sensor")
     )
 
-    @callback
-    def handle_add_product(call):
-        product_id = call.data["product_id"]
-        amount = call.data.get("amount", 0)
-        price = call.data.get("price", None)
-        grocy.add_product(product_id, amount, price)
-
-    hass.services.async_register(DOMAIN, "add_product", handle_add_product)
-
-    @callback
-    def handle_consume_product(call):
-        product_id = call.data["product_id"]
-        amount = call.data.get("amount", 0)
-        spoiled = call.data.get("spoiled", False)
-
-        transaction_type_raw = call.data.get("transaction_type", None)
-        transaction_type = TransactionType.CONSUME
-
-        if transaction_type_raw is not None:
-            transaction_type = TransactionType[transaction_type_raw]
-        grocy.consume_product(
-            product_id, amount, spoiled=spoiled, transaction_type=transaction_type
-        )
-
-    hass.services.async_register(DOMAIN, "consume_product", handle_consume_product)
-
-    @callback
-    def handle_execute_chore(call):
-        chore_id = call.data["chore_id"]
-        done_by = call.data.get("done_by", None)
-        tracked_time_str = call.data.get("tracked_time", None)
-
-        tracked_time = datetime.now()
-        if tracked_time_str is not None:
-            tracked_time = iso8601.parse_date(tracked_time_str)
-        grocy.execute_chore(chore_id, done_by, tracked_time)
-        asyncio.run_coroutine_threadsafe(
-            entity_component.async_update_entity(hass, "sensor.grocy_chores"), hass.loop
-        )
-
-    hass.services.async_register(DOMAIN, "execute_chore", handle_execute_chore)
-
-    @callback
-    def handle_complete_task(call):
-        task_id = call.data["task_id"]
-        done_time_str = call.data.get("done_time", None)
-
-        done_time = datetime.now()
-        if done_time_str is not None:
-            done_time = iso8601.parse_date(done_time_str)
-        grocy.complete_task(task_id, done_time)
-        asyncio.run_coroutine_threadsafe(
-            entity_component.async_update_entity(hass, "sensor.grocy_tasks"), hass.loop
-        )
-
-    hass.services.async_register(DOMAIN, "complete_task", handle_complete_task)
-
-    @callback
-    def handle_add_generic(call):
-        entity_type = call.data["entity_type"]
-        data = call.data["data"]
-
-        grocy.add_generic(entity_type, data)
-
-    hass.services.async_register(DOMAIN, "add_generic", handle_add_generic)
+    # Setup services
+    await async_setup_services(hass)
 
     return True
 
