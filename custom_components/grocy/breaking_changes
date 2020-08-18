@@ -1,0 +1,5 @@
+services:
+    add_project -> add_product_to_stock
+        price -> str (was int)
+
+    consume_product -> consume_product_from_stock
