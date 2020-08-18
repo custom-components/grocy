@@ -14,29 +14,15 @@ from homeassistant.core import callback
 from homeassistant.helpers import discovery, entity_component
 from homeassistant.util import Throttle
 from integrationhelper.const import CC_STARTUP_VERSION
-from pygrocy import Grocy, TransactionType
 from datetime import datetime
 import iso8601
 
 from .const import (
     LOGGER,
-    CHORES_NAME,
-    TASKS_NAME,
-    CONF_ENABLED,
-    CONF_NAME,
-    DEFAULT_CONF_NAME,
-    DEFAULT_PORT_NUMBER,
     DOMAIN,
-    EXPIRED_PRODUCTS_NAME,
-    EXPIRING_PRODUCTS_NAME,
     ISSUE_URL,
-    MISSING_PRODUCTS_NAME,
-    MEAL_PLAN_NAME,
-    PLATFORMS,
     REQUIRED_FILES,
-    SHOPPING_LIST_NAME,
     STARTUP,
-    STOCK_NAME,
     VERSION,
 )
 
@@ -78,15 +64,6 @@ async def async_setup_entry(hass, config_entry):
 
     if not await instance.async_setup():
         return False
-
-    # Add sensors
-    hass.async_add_job(
-        hass.config_entries.async_forward_entry_setup(config_entry, "sensor")
-    )
-    # Add binary sensors
-    hass.async_add_job(
-        hass.config_entries.async_forward_entry_setup(config_entry, "binary_sensor")
-    )
 
     # Setup services
     await async_setup_services(hass)

@@ -6,7 +6,6 @@ LOGGER = logging.getLogger(__package__)
 # Base component constants
 DOMAIN = "grocy"
 VERSION = "1.2.0"
-PLATFORMS = ["sensor", "binary_sensor"]
 REQUIRED_FILES = [
     "const.py",
     "manifest.json",
@@ -45,6 +44,8 @@ EXPIRED_PRODUCTS_NAME = "expired_products"
 MISSING_PRODUCTS_NAME = "missing_products"
 MEAL_PLAN_NAME = "meal_plan"
 
+
+SUPPORTED_PLATFORMS = ["binary_sensor", "sensor"]
 SENSOR_TYPES = [STOCK_NAME, CHORES_NAME, TASKS_NAME, SHOPPING_LIST_NAME, MEAL_PLAN_NAME]
 BINARY_SENSOR_TYPES = [
     EXPIRING_PRODUCTS_NAME,
