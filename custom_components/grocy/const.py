@@ -39,6 +39,7 @@ STOCK_NAME = "stock"
 CHORES_NAME = "chores"
 TASKS_NAME = "tasks"
 SHOPPING_LIST_NAME = "shopping_list"
+PRODUCTS_NAME = "products"
 EXPIRING_PRODUCTS_NAME = "expiring_products"
 EXPIRED_PRODUCTS_NAME = "expired_products"
 MISSING_PRODUCTS_NAME = "missing_products"
@@ -52,6 +53,9 @@ BINARY_SENSOR_TYPES = [
     EXPIRED_PRODUCTS_NAME,
     MISSING_PRODUCTS_NAME,
 ]
+
+NEW_SENSOR = "sensors"
+NEW_BINARY_SENSOR = "binary_sensors"
 
 # Configuration
 CONF_ENABLED = "enabled"

@@ -5,6 +5,8 @@ import hashlib
 from datetime import timedelta
 from pygrocy import Grocy, TransactionType
 
+from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.core import callback
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.const import CONF_API_KEY, CONF_PORT, CONF_URL, CONF_VERIFY_SSL
 from homeassistant.util import Throttle
@@ -38,6 +40,8 @@ from .const import (
     VERSION,
     LOGGER,
     SUPPORTED_PLATFORMS,
+    NEW_BINARY_SENSOR,
+    NEW_SENSOR,
 )
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
@@ -53,6 +57,7 @@ class GrocyInstance:
 
         self.available = True
         self.api = None
+        self.listeners = []
 
         self._current_option_allow_chores = self.option_allow_chores
         self._current_option_allow_meal_plan = self.option_allow_meal_plan
@@ -126,9 +131,66 @@ class GrocyInstance:
                 )
             )
 
-        # self.config_entry.add_update_listener(self.async_config_entry_updated)
+        self.config_entry.add_update_listener(self.async_config_entry_updated)
 
         return True
+
+    @staticmethod
+    async def async_config_entry_updated(hass, entry) -> None:
+        """Handle signals of config entry being updated."""
+        instance = hass.data[DOMAIN]["instance"]
+
+        if not instance:
+            return
+
+        return await instance.options_updated()
+
+    async def options_updated(self):
+        """Manage entities affected by config entry options."""
+        if self._current_option_allow_chores != self.option_allow_chores:
+            self._current_option_allow_chores = self.option_allow_chores
+
+            # New is true, add sensor
+            if self._current_option_allow_chores:
+                self.async_add_device_callback(NEW_SENSOR, CHORES_NAME)
+        if self._current_option_allow_tasks != self.option_allow_tasks:
+            self._current_option_allow_tasks = self.option_allow_tasks
+
+            # New is true, add sensor
+            if self._current_option_allow_tasks:
+                self.async_add_device_callback(NEW_SENSOR, TASKS_NAME)
+
+    @callback
+    def async_add_device_callback(self, device_type, device) -> None:
+        """Handle event of new device creation in deCONZ."""
+        if not isinstance(device, list):
+            device = [device]
+        async_dispatcher_send(
+            self.hass, self.async_signal_new_device(device_type), device
+        )
+
+    @callback
+    def async_signal_new_device(self, device_type) -> str:
+        """Gateway specific event to signal new device."""
+        new_device = {NEW_SENSOR: f"grocy_new_sensor"}
+        return new_device[device_type]
+
+
+# @callback
+# def add_entities(controller, async_add_entities, clients):
+#     """Add new sensor entities from the controller."""
+#     sensors = []
+
+#     for mac in clients:
+#         for sensor_class in (UniFiRxBandwidthSensor, UniFiTxBandwidthSensor):
+#             if mac in controller.entities[DOMAIN][sensor_class.TYPE]:
+#                 continue
+
+#             client = controller.api.clients[mac]
+#             sensors.append(sensor_class(client, controller))
+
+#     if sensors:
+#         async_add_entities(sensors)
 
 
 async def get_instance(hass, config) -> Grocy:

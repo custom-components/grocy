@@ -26,7 +26,6 @@ from .const import (
     VERSION,
 )
 
-from .helpers import MealPlanItem
 from .services import async_setup_services
 from .instance import GrocyInstance
 
@@ -90,7 +89,7 @@ def check_files(hass):
     return returnvalue
 
 
-async def async_remove_entry(hass, config_entry):
+async def async_unload_entry(hass, config_entry):
     """Handle removal of an entry."""
     try:
         await hass.config_entries.async_forward_entry_unload(config_entry, "sensor")

@@ -4,6 +4,9 @@ from homeassistant.components.binary_sensor import BinarySensorEntity
 from .const import (
     ATTRIBUTION,
     BINARY_SENSOR_TYPES,
+    EXPIRING_PRODUCTS_NAME,
+    EXPIRED_PRODUCTS_NAME,
+    MISSING_PRODUCTS_NAME,
     DEFAULT_CONF_NAME,
     DOMAIN,
     LOGGER,
@@ -19,8 +22,20 @@ async def async_setup_platform(
 
 async def async_setup_entry(hass, config_entry, async_add_devices):
     """Setup sensor platform."""
+    instance = hass.data[DOMAIN]["instance"]
     for binary_sensor in BINARY_SENSOR_TYPES:
-        async_add_devices([GrocyBinarySensor(hass, binary_sensor)], True)
+        if instance.option_allow_products and binary_sensor.startswith(
+            EXPIRING_PRODUCTS_NAME
+        ):
+            async_add_devices([GrocyBinarySensor(hass, binary_sensor)], True)
+        elif instance.option_allow_products and binary_sensor.startswith(
+            EXPIRED_PRODUCTS_NAME
+        ):
+            async_add_devices([GrocyBinarySensor(hass, binary_sensor)], True)
+        elif instance.option_allow_products and binary_sensor.startswith(
+            MISSING_PRODUCTS_NAME
+        ):
+            async_add_devices([GrocyBinarySensor(hass, binary_sensor)], True)
 
 
 class GrocyBinarySensor(BinarySensorEntity):
