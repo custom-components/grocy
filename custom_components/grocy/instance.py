@@ -17,7 +17,6 @@ from .const import (
     CONF_ALLOW_SHOPPING_LIST,
     CONF_ALLOW_STOCK,
     CONF_ALLOW_TASKS,
-    CONF_MASTER_INSTANCE,
     DEFAULT_CONF_ALLOW_CHORES,
     DEFAULT_CONF_ALLOW_MEAL_PLAN,
     DEFAULT_CONF_ALLOW_PRODUCTS,
@@ -77,11 +76,6 @@ class GrocyInstance:
         return self.config_entry.unique_id
 
     @property
-    def master(self) -> bool:
-        """Instance which is used with Grocy without defining id."""
-        return self.config_entry.options[CONF_MASTER_INSTANCE]
-
-    @property
     def option_allow_chores(self) -> bool:
         """Allow loading chores sensor from instance."""
         return self.config_entry.options.get(
@@ -123,18 +117,13 @@ class GrocyInstance:
         """Set up a Grocy instance."""
         LOGGER.debug("Setting up")
         try:
-            self.api = await get_instance(
-                self.hass,
-                self.config_entry.data,
-                # self.async_add_device_callback,
-                # self.async_connection_status_callback,
-            )
+            self.api = await get_instance(self.hass, self.config_entry.data)
 
         # except CannotConnect:
         #     raise ConfigEntryNotReady
 
         except Exception as err:  # pylint: disable=broad-except
-            LOGGER.error("Error connecting with deCONZ gateway: %s", err)
+            LOGGER.error("Error connecting with Grocy instance: %s", err)
             return False
 
         # for component in SUPPORTED_PLATFORMS:
@@ -154,7 +143,7 @@ class GrocyInstance:
 async def get_instance(hass, config) -> Grocy:
     """Create a gateway object and verify configuration."""
     # session = aiohttp_client.async_get_clientsession(hass)
-
+    LOGGER.debug("Getting Grocy instance.")
     url = config.get(CONF_URL)
     api_key = config.get(CONF_API_KEY)
     verify_ssl = config.get(CONF_VERIFY_SSL)
@@ -165,7 +154,8 @@ async def get_instance(hass, config) -> Grocy:
     hass.data[DOMAIN]["client"] = GrocyData(hass, grocy)
     hass.data[DOMAIN]["hash_key"] = hash_key
     hass.data[DOMAIN]["url"] = f"{url}:{port_number}"
-
+    # LOGGER.debug(hash_key)
+    # LOGGER.debug(hass.data[DOMAIN]["hash_key"])
     return grocy
     # try:
     #     with async_timeout.timeout(10):

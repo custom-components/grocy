@@ -40,7 +40,7 @@ class GrocySensor(Entity):
         self.sensor_type = sensor_type
         self.attr = {}
         self._state = None
-        self._hash_key = self.hass.data[DOMAIN]["hash_key"]
+        self._hash_key = self.hass.data[DOMAIN].get("hash_key")
         self._unique_id = "{}-{}".format(self._hash_key, self.sensor_type)
         self._name = "{}.{}".format(DEFAULT_CONF_NAME, self.sensor_type)
 
