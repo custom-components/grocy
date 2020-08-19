@@ -138,13 +138,17 @@ class GrocyInstance:
     async def options_updated(self):
         """Manage entities affected by config entry options."""
 
+        hash_key = self.hass.data[DOMAIN].get("hash_key")
+
         if self._current_option_allow_chores != self.option_allow_chores:
             self._current_option_allow_chores = self.option_allow_chores
             if self._current_option_allow_chores:
                 self.async_add_entity_callback(NEW_SENSOR, CHORES_NAME)
             else:
                 # remove sensor
-                self.async_remove_entity_callback(NEW_SENSOR, CHORES_NAME)
+                self.async_remove_entity_callback(
+                    NEW_SENSOR, "{}-{}".format(hash_key, CHORES_NAME)
+                )
 
         if self._current_option_allow_meal_plan != self.option_allow_meal_plan:
             self._current_option_allow_meal_plan = self.option_allow_meal_plan
@@ -180,6 +184,7 @@ class GrocyInstance:
     def async_remove_entity_callback(self, sensor_type, sensor) -> None:
         """Handle event of removing an entity."""
         LOGGER.debug("remove entity callback")
+        LOGGER.debug(sensor)
         if not isinstance(sensor, list):
             sensor = [sensor]
         async_dispatcher_send(self.hass, self.async_signal_remove(sensor_type), sensor)
@@ -187,6 +192,8 @@ class GrocyInstance:
     @callback
     def async_signal_remove(self, sensor_type) -> str:
         """Event to signal removal."""
+        LOGGER.debug("signal remove")
+
         return f"grocy-remove-{self.instanceid}"
 
     @callback

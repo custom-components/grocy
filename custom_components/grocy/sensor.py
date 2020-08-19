@@ -97,8 +97,11 @@ class GrocySensor(Entity):
             )
         )
 
-    async def remove_item(self, mac_addresses: set) -> None:
-        await self.async_remove()
+    async def remove_item(self, removal_ids) -> None:
+        LOGGER.debug(self._unique_id)
+        LOGGER.debug(removal_ids)
+        if self._unique_id in removal_ids:
+            await self.async_remove()
 
     async def async_update(self):
         """Update the sensor."""
