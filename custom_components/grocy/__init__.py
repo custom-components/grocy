@@ -27,7 +27,8 @@ from .const import (
 )
 
 from .services import async_setup_services
-from .instance import GrocyInstance
+from .instance import GrocyInstance, async_setup_api
+from .helpers import MealPlanItem
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
@@ -66,6 +67,9 @@ async def async_setup_entry(hass, config_entry):
 
     # Setup services
     await async_setup_services(hass)
+
+    # Setup http endpoint for proxying images from grocy
+    await async_setup_api(hass, config_entry.data)
 
     return True
 
