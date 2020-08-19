@@ -10,6 +10,7 @@ from .const import (
     DEFAULT_CONF_NAME,
     DOMAIN,
     LOGGER,
+    STOCK_NAME,
 )
 
 
@@ -17,33 +18,43 @@ async def async_setup_platform(
     hass, config, async_add_entities, discovery_info=None
 ):  # pylint: disable=unused-argument
     """Setup binary_sensor platform."""
-    async_add_entities([GrocyBinarySensor(hass, discovery_info)], True)
+    # async_add_entities([GrocyBinarySensor(hass, discovery_info)], True)
 
 
-async def async_setup_entry(hass, config_entry, async_add_devices):
+async def async_setup_entry(hass, config_entry, async_add_entities):
     """Setup sensor platform."""
     instance = hass.data[DOMAIN]["instance"]
     for binary_sensor in BINARY_SENSOR_TYPES:
-        if instance.option_allow_products and binary_sensor.startswith(
+        if instance.option_allow_stock and binary_sensor.startswith(
             EXPIRING_PRODUCTS_NAME
         ):
-            async_add_devices([GrocyBinarySensor(hass, binary_sensor)], True)
-        elif instance.option_allow_products and binary_sensor.startswith(
+            device_name = STOCK_NAME
+            async_add_entities(
+                [GrocyBinarySensor(hass, binary_sensor, device_name)], True
+            )
+        elif instance.option_allow_stock and binary_sensor.startswith(
             EXPIRED_PRODUCTS_NAME
         ):
-            async_add_devices([GrocyBinarySensor(hass, binary_sensor)], True)
-        elif instance.option_allow_products and binary_sensor.startswith(
+            device_name = STOCK_NAME
+            async_add_entities(
+                [GrocyBinarySensor(hass, binary_sensor, device_name)], True
+            )
+        elif instance.option_allow_stock and binary_sensor.startswith(
             MISSING_PRODUCTS_NAME
         ):
-            async_add_devices([GrocyBinarySensor(hass, binary_sensor)], True)
+            device_name = STOCK_NAME
+            async_add_entities(
+                [GrocyBinarySensor(hass, binary_sensor, device_name)], True
+            )
 
 
 class GrocyBinarySensor(BinarySensorEntity):
     """grocy binary_sensor class."""
 
-    def __init__(self, hass, sensor_type):
+    def __init__(self, hass, sensor_type, device_name):
         self.hass = hass
         self.sensor_type = sensor_type
+        self.device_name = device_name
         self.attr = {}
         self._status = False
         self._hash_key = self.hass.data[DOMAIN].get("hash_key")
@@ -60,7 +71,8 @@ class GrocyBinarySensor(BinarySensorEntity):
             x.as_dict() for x in self.hass.data[DOMAIN].get(self.sensor_type, [])
         ]
         self._status = len(self.attr["items"]) != 0
-        LOGGER.debug(self.attr)
+        # LOGGER.debug(self.attr)
+        LOGGER.debug(self.device_info)
 
     @property
     def unique_id(self):
@@ -70,9 +82,10 @@ class GrocyBinarySensor(BinarySensorEntity):
     @property
     def device_info(self):
         return {
-            "identifiers": {(DOMAIN, self.unique_id)},
-            "name": self._name,
+            "identifiers": {(DOMAIN, self.device_name)},
+            "name": self.device_name,
             "manufacturer": "Grocy",
+            "entry_type": "service",
         }
 
     @property

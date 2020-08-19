@@ -31,52 +31,59 @@ async def async_setup_platform(
 ):  # pylint: disable=unused-argument
     """Setup sensor platform."""
 
-    async_add_entities([GrocySensor(hass, discovery_info)], True)
+    # async_add_entities([GrocySensor(hass, discovery_info)], True)
 
 
-async def async_setup_entry(hass, config_entry, async_add_devices):
+async def async_setup_entry(hass, config_entry, async_add_entities):
     """Setup sensor platform."""
     instance = hass.data[DOMAIN]["instance"]
 
     @callback
-    def async_add_sensor(new=True):
+    def async_add_sensor(sensors):
         LOGGER.debug("Adding sensors")
         entities = []
 
-        for sensor in SENSOR_TYPES:
+        for sensor in sensors:
             if instance.option_allow_chores and sensor.startswith(CHORES_NAME):
                 LOGGER.debug("Adding chores sensor.")
-                async_add_devices([GrocySensor(hass, sensor)], True)
+                device_name = CHORES_NAME
+                async_add_entities([GrocySensor(hass, sensor, device_name)], True)
             elif instance.option_allow_meal_plan and sensor.startswith(MEAL_PLAN_NAME):
                 LOGGER.debug("Adding meal plan sensor.")
-                async_add_devices([GrocySensor(hass, sensor)], True)
+                device_name = MEAL_PLAN_NAME
+                async_add_entities([GrocySensor(hass, sensor, device_name)], True)
             elif instance.option_allow_shopping_list and sensor.startswith(
                 SHOPPING_LIST_NAME
             ):
                 LOGGER.debug("Adding shopping list sensor.")
-                async_add_devices([GrocySensor(hass, sensor)], True)
+                device_name = SHOPPING_LIST_NAME
+                async_add_entities([GrocySensor(hass, sensor, device_name)], True)
             elif instance.option_allow_stock and sensor.startswith(STOCK_NAME):
                 LOGGER.debug("Adding stock sensor.")
-                async_add_devices([GrocySensor(hass, sensor)], True)
+                device_name = STOCK_NAME
+                async_add_entities([GrocySensor(hass, sensor, device_name)], True)
             elif instance.option_allow_tasks and sensor.startswith(TASKS_NAME):
                 LOGGER.debug("Adding tasks sensor.")
-                async_add_devices([GrocySensor(hass, sensor)], True)
+                device_name = TASKS_NAME
+                async_add_entities([GrocySensor(hass, sensor, device_name)], True)
 
+    ## en listener per sensor?
     instance.listeners.append(
         async_dispatcher_connect(
-            hass, instance.async_signal_new_device(NEW_SENSOR), async_add_sensor
+            hass, instance.async_signal_new_entity(NEW_SENSOR), async_add_sensor
         )
     )
 
-    async_add_sensor()
+    async_add_sensor(SENSOR_TYPES)
 
 
 class GrocySensor(Entity):
-    """grocy Sensor class."""
+    """Grocy sensor class."""
 
-    def __init__(self, hass, sensor_type):
+    def __init__(self, hass, sensor_type, device_name):
         self.hass = hass
         self.sensor_type = sensor_type
+        self.device_name = device_name
         self.attr = {}
         self._state = None
         self._hash_key = self.hass.data[DOMAIN].get("hash_key")
@@ -93,6 +100,7 @@ class GrocySensor(Entity):
         ]
         self._state = len(self.attr["items"])
         # LOGGER.debug(self.attr)
+        LOGGER.debug(self.device_info)
 
     @property
     def unique_id(self):
@@ -102,9 +110,10 @@ class GrocySensor(Entity):
     @property
     def device_info(self):
         return {
-            "identifiers": {(DOMAIN, self.unique_id)},
-            "name": self._name,
+            "identifiers": {(DOMAIN, self.device_name)},
+            "name": self.device_name,
             "manufacturer": "Grocy",
+            "entry_type": "service",
         }
 
     @property

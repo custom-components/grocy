@@ -149,31 +149,31 @@ class GrocyInstance:
         """Manage entities affected by config entry options."""
         if self._current_option_allow_chores != self.option_allow_chores:
             self._current_option_allow_chores = self.option_allow_chores
-
             # New is true, add sensor
             if self._current_option_allow_chores:
-                self.async_add_device_callback(NEW_SENSOR, CHORES_NAME)
+                self.async_add_entity_callback(NEW_SENSOR, CHORES_NAME)
+
         if self._current_option_allow_tasks != self.option_allow_tasks:
             self._current_option_allow_tasks = self.option_allow_tasks
-
             # New is true, add sensor
             if self._current_option_allow_tasks:
-                self.async_add_device_callback(NEW_SENSOR, TASKS_NAME)
+                self.async_add_entity_callback(NEW_SENSOR, TASKS_NAME)
 
     @callback
-    def async_add_device_callback(self, device_type, device) -> None:
-        """Handle event of new device creation in deCONZ."""
-        if not isinstance(device, list):
-            device = [device]
+    def async_add_entity_callback(self, sensor_type, sensor) -> None:
+        """Handle event of new device creation in Grocy."""
+        if not isinstance(sensor, list):
+            sensor = [sensor]
         async_dispatcher_send(
-            self.hass, self.async_signal_new_device(device_type), device
+            self.hass, self.async_signal_new_entity(sensor_type), sensor
         )
 
+    ## testa lägga till specifikt sensor-namn här
     @callback
-    def async_signal_new_device(self, device_type) -> str:
-        """Gateway specific event to signal new device."""
-        new_device = {NEW_SENSOR: f"grocy_new_sensor"}
-        return new_device[device_type]
+    def async_signal_new_entity(self, sensor_type) -> str:
+        """Event to signal new device."""
+        new_sensor = {NEW_SENSOR: f"grocy_new_sensor"}
+        return new_sensor[sensor_type]
 
 
 # @callback
