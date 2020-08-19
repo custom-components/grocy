@@ -15,13 +15,11 @@ from .helpers import MealPlanItem
 from .const import (
     CONF_ALLOW_CHORES,
     CONF_ALLOW_MEAL_PLAN,
-    CONF_ALLOW_PRODUCTS,
     CONF_ALLOW_SHOPPING_LIST,
     CONF_ALLOW_STOCK,
     CONF_ALLOW_TASKS,
     DEFAULT_CONF_ALLOW_CHORES,
     DEFAULT_CONF_ALLOW_MEAL_PLAN,
-    DEFAULT_CONF_ALLOW_PRODUCTS,
     DEFAULT_CONF_ALLOW_SHOPPING_LIST,
     DEFAULT_CONF_ALLOW_STOCK,
     DEFAULT_CONF_ALLOW_TASKS,
@@ -61,7 +59,6 @@ class GrocyInstance:
 
         self._current_option_allow_chores = self.option_allow_chores
         self._current_option_allow_meal_plan = self.option_allow_meal_plan
-        self._current_option_allow_products = self.option_allow_products
         self._current_option_allow_shopping_list = self.option_allow_shopping_list
         self._current_option_allow_stock = self.option_allow_stock
         self._current_option_allow_tasks = self.option_allow_tasks
@@ -88,13 +85,6 @@ class GrocyInstance:
         """Allow loading meal plan sensor from instance."""
         return self.config_entry.options.get(
             CONF_ALLOW_MEAL_PLAN, DEFAULT_CONF_ALLOW_MEAL_PLAN
-        )
-
-    @property
-    def option_allow_products(self) -> bool:
-        """Allow loading products sensor from instance."""
-        return self.config_entry.options.get(
-            CONF_ALLOW_PRODUCTS, DEFAULT_CONF_ALLOW_PRODUCTS
         )
 
     @property
@@ -147,50 +137,78 @@ class GrocyInstance:
 
     async def options_updated(self):
         """Manage entities affected by config entry options."""
+
         if self._current_option_allow_chores != self.option_allow_chores:
             self._current_option_allow_chores = self.option_allow_chores
             # New is true, add sensor
             if self._current_option_allow_chores:
+                # todo: do same with binary
                 self.async_add_entity_callback(NEW_SENSOR, CHORES_NAME)
+            else:
+                # remove sensor
+                self.async_remove_entity_callback(NEW_SENSOR, CHORES_NAME)
+
+        if self._current_option_allow_meal_plan != self.option_allow_meal_plan:
+            self._current_option_allow_meal_plan = self.option_allow_meal_plan
+            if self._current_option_allow_meal_plan:
+                self.async_add_entity_callback(NEW_SENSOR, MEAL_PLAN_NAME)
+
+        if self._current_option_allow_shopping_list != self.option_allow_shopping_list:
+            self._current_option_allow_shopping_list = self.option_allow_shopping_list
+            if self._current_option_allow_shopping_list:
+                self.async_add_entity_callback(NEW_SENSOR, SHOPPING_LIST_NAME)
+
+        if self._current_option_allow_stock != self.option_allow_stock:
+            self._current_option_allow_stock = self.option_allow_stock
+            if self._current_option_allow_stock:
+                self.async_add_entity_callback(
+                    NEW_SENSOR, [STOCK_NAME],
+                )
+                self.async_add_entity_callback(
+                    NEW_BINARY_SENSOR,
+                    [
+                        EXPIRING_PRODUCTS_NAME,
+                        EXPIRED_PRODUCTS_NAME,
+                        MISSING_PRODUCTS_NAME,
+                    ],
+                )
 
         if self._current_option_allow_tasks != self.option_allow_tasks:
             self._current_option_allow_tasks = self.option_allow_tasks
-            # New is true, add sensor
             if self._current_option_allow_tasks:
                 self.async_add_entity_callback(NEW_SENSOR, TASKS_NAME)
 
     @callback
+    def async_remove_entity_callback(self, sensor_type, sensor) -> None:
+        """Handle event of removing an entity."""
+        LOGGER.debug("remove entity callback")
+        if not isinstance(sensor, list):
+            sensor = [sensor]
+        async_dispatcher_send(self.hass, self.async_signal_remove(sensor_type), sensor)
+
+    @callback
+    def async_signal_remove(self, sensor_type) -> str:
+        """Event to signal removal."""
+        return f"grocy-remove-{self.instanceid}"
+
+    @callback
     def async_add_entity_callback(self, sensor_type, sensor) -> None:
-        """Handle event of new device creation in Grocy."""
+        """Handle event of new entity creation."""
+        LOGGER.debug("add entity callback")
         if not isinstance(sensor, list):
             sensor = [sensor]
         async_dispatcher_send(
             self.hass, self.async_signal_new_entity(sensor_type), sensor
         )
 
-    ## testa lägga till specifikt sensor-namn här
     @callback
     def async_signal_new_entity(self, sensor_type) -> str:
-        """Event to signal new device."""
-        new_sensor = {NEW_SENSOR: f"grocy_new_sensor"}
+        """Event to signal new entity."""
+        new_sensor = {
+            NEW_SENSOR: f"grocy_new_sensor",
+            NEW_BINARY_SENSOR: f"grocy_new_binary_sensor",
+        }
         return new_sensor[sensor_type]
-
-
-# @callback
-# def add_entities(controller, async_add_entities, clients):
-#     """Add new sensor entities from the controller."""
-#     sensors = []
-
-#     for mac in clients:
-#         for sensor_class in (UniFiRxBandwidthSensor, UniFiTxBandwidthSensor):
-#             if mac in controller.entities[DOMAIN][sensor_class.TYPE]:
-#                 continue
-
-#             client = controller.api.clients[mac]
-#             sensors.append(sensor_class(client, controller))
-
-#     if sensors:
-#         async_add_entities(sensors)
 
 
 async def get_instance(hass, config) -> Grocy:

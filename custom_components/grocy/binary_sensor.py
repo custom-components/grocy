@@ -1,5 +1,10 @@
 """Binary sensor platform for grocy."""
 from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.helpers.dispatcher import (
+    async_dispatcher_connect,
+    async_dispatcher_send,
+)
+from homeassistant.core import callback
 
 from .const import (
     ATTRIBUTION,
@@ -11,6 +16,8 @@ from .const import (
     DOMAIN,
     LOGGER,
     STOCK_NAME,
+    NEW_BINARY_SENSOR,
+    NEW_SENSOR,
 )
 
 
@@ -24,28 +31,43 @@ async def async_setup_platform(
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Setup sensor platform."""
     instance = hass.data[DOMAIN]["instance"]
-    for binary_sensor in BINARY_SENSOR_TYPES:
-        if instance.option_allow_stock and binary_sensor.startswith(
-            EXPIRING_PRODUCTS_NAME
-        ):
-            device_name = STOCK_NAME
-            async_add_entities(
-                [GrocyBinarySensor(hass, binary_sensor, device_name)], True
-            )
-        elif instance.option_allow_stock and binary_sensor.startswith(
-            EXPIRED_PRODUCTS_NAME
-        ):
-            device_name = STOCK_NAME
-            async_add_entities(
-                [GrocyBinarySensor(hass, binary_sensor, device_name)], True
-            )
-        elif instance.option_allow_stock and binary_sensor.startswith(
-            MISSING_PRODUCTS_NAME
-        ):
-            device_name = STOCK_NAME
-            async_add_entities(
-                [GrocyBinarySensor(hass, binary_sensor, device_name)], True
-            )
+
+    @callback
+    def async_add_binary_sensor(binary_sensors):
+        LOGGER.debug("Adding binary sensors")
+        LOGGER.debug(binary_sensors)
+        for binary_sensor in binary_sensors:
+            if instance.option_allow_stock and binary_sensor.startswith(
+                EXPIRING_PRODUCTS_NAME
+            ):
+                device_name = STOCK_NAME
+                async_add_entities(
+                    [GrocyBinarySensor(hass, binary_sensor, device_name)], True
+                )
+            elif instance.option_allow_stock and binary_sensor.startswith(
+                EXPIRED_PRODUCTS_NAME
+            ):
+                device_name = STOCK_NAME
+                async_add_entities(
+                    [GrocyBinarySensor(hass, binary_sensor, device_name)], True
+                )
+            elif instance.option_allow_stock and binary_sensor.startswith(
+                MISSING_PRODUCTS_NAME
+            ):
+                device_name = STOCK_NAME
+                async_add_entities(
+                    [GrocyBinarySensor(hass, binary_sensor, device_name)], True
+                )
+
+    instance.listeners.append(
+        async_dispatcher_connect(
+            hass,
+            instance.async_signal_new_entity(NEW_BINARY_SENSOR),
+            async_add_binary_sensor,
+        )
+    )
+
+    async_add_binary_sensor(BINARY_SENSOR_TYPES)
 
 
 class GrocyBinarySensor(BinarySensorEntity):

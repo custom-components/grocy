@@ -10,13 +10,11 @@ from .const import (
     DOMAIN,
     CONF_ALLOW_CHORES,
     CONF_ALLOW_MEAL_PLAN,
-    CONF_ALLOW_PRODUCTS,
     CONF_ALLOW_SHOPPING_LIST,
     CONF_ALLOW_STOCK,
     CONF_ALLOW_TASKS,
     DEFAULT_CONF_ALLOW_CHORES,
     DEFAULT_CONF_ALLOW_MEAL_PLAN,
-    DEFAULT_CONF_ALLOW_PRODUCTS,
     DEFAULT_CONF_ALLOW_SHOPPING_LIST,
     DEFAULT_CONF_ALLOW_STOCK,
     DEFAULT_CONF_ALLOW_TASKS,
@@ -133,7 +131,6 @@ class GrocyOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             self.options[CONF_ALLOW_CHORES] = user_input[CONF_ALLOW_CHORES]
             self.options[CONF_ALLOW_MEAL_PLAN] = user_input[CONF_ALLOW_MEAL_PLAN]
-            self.options[CONF_ALLOW_PRODUCTS] = user_input[CONF_ALLOW_PRODUCTS]
             self.options[CONF_ALLOW_SHOPPING_LIST] = user_input[
                 CONF_ALLOW_SHOPPING_LIST
             ]
@@ -155,12 +152,6 @@ class GrocyOptionsFlowHandler(config_entries.OptionsFlow):
                         CONF_ALLOW_MEAL_PLAN,
                         default=self.config_entry.options.get(
                             CONF_ALLOW_MEAL_PLAN, DEFAULT_CONF_ALLOW_MEAL_PLAN
-                        ),
-                    ): bool,
-                    vol.Optional(
-                        CONF_ALLOW_PRODUCTS,
-                        default=self.config_entry.options.get(
-                            CONF_ALLOW_PRODUCTS, DEFAULT_CONF_ALLOW_PRODUCTS
                         ),
                     ): bool,
                     vol.Optional(

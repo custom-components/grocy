@@ -41,7 +41,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     @callback
     def async_add_sensor(sensors):
         LOGGER.debug("Adding sensors")
-        entities = []
+        LOGGER.debug(sensors)
 
         for sensor in sensors:
             if instance.option_allow_chores and sensor.startswith(CHORES_NAME):
@@ -67,7 +67,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                 device_name = TASKS_NAME
                 async_add_entities([GrocySensor(hass, sensor, device_name)], True)
 
-    ## en listener per sensor?
     instance.listeners.append(
         async_dispatcher_connect(
             hass, instance.async_signal_new_entity(NEW_SENSOR), async_add_sensor
@@ -89,6 +88,17 @@ class GrocySensor(Entity):
         self._hash_key = self.hass.data[DOMAIN].get("hash_key")
         self._unique_id = "{}-{}".format(self._hash_key, self.sensor_type)
         self._name = "{}.{}".format(DEFAULT_CONF_NAME, self.sensor_type)
+
+    async def async_added_to_hass(self) -> None:
+        instance = self.hass.data[DOMAIN]["instance"]
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, instance.async_signal_remove, self.remove_item
+            )
+        )
+
+    async def remove_item(self, mac_addresses: set) -> None:
+        await self.async_remove()
 
     async def async_update(self):
         """Update the sensor."""
