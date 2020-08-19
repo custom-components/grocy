@@ -140,9 +140,7 @@ class GrocyInstance:
 
         if self._current_option_allow_chores != self.option_allow_chores:
             self._current_option_allow_chores = self.option_allow_chores
-            # New is true, add sensor
             if self._current_option_allow_chores:
-                # todo: do same with binary
                 self.async_add_entity_callback(NEW_SENSOR, CHORES_NAME)
             else:
                 # remove sensor
