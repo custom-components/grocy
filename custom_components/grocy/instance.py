@@ -1,7 +1,9 @@
 """ Representation of a Grocy instance """
 import asyncio
 import hashlib
+import aiohttp
 
+from aiohttp import hdrs, web
 from datetime import timedelta
 from pygrocy import Grocy, TransactionType
 
@@ -10,6 +12,8 @@ from homeassistant.core import callback
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.const import CONF_API_KEY, CONF_PORT, CONF_URL, CONF_VERIFY_SSL
 from homeassistant.util import Throttle
+from homeassistant.components.http import HomeAssistantView
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .helpers import MealPlanItem
 from .const import (
@@ -44,6 +48,40 @@ from .const import (
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
+class GrocyPictureView(HomeAssistantView):
+    """View to render pictures from grocy without auth."""
+
+    requires_auth = False
+    url = '/api/grocy/{picture_type}/{filename}'
+    name = "api:grocy:picture"
+
+    def __init__(self, session, base_url, api_key):
+        self._session = session
+        self._base_url = base_url
+        self._api_key = api_key
+
+    async def get(self, request, picture_type: str, filename: str) -> web.Response:
+        width = request.query.get('width', 400)
+        url = f"{self._base_url}/api/files/{picture_type}/{filename}"
+        url = f"{url}?force_serve_as=picture&best_fit_width={int(width)}"
+        headers = {'GROCY-API-KEY': self._api_key, 'accept': '*/*'}
+
+        async with self._session.get(url, headers=headers) as resp:
+            resp.raise_for_status()
+
+            response_headers = {}
+            for name, value in resp.headers.items():
+                if name in (
+                    hdrs.CACHE_CONTROL,
+                    hdrs.CONTENT_DISPOSITION,
+                    hdrs.CONTENT_LENGTH,
+                    hdrs.CONTENT_TYPE,
+                    hdrs.CONTENT_ENCODING,
+                ):
+                    response_headers[name] = value
+
+            body = await resp.read()
+            return web.Response(body=body, headers=response_headers)
 
 class GrocyInstance:
     """ Manages a single Grocy instance """
@@ -348,10 +386,17 @@ class GrocyData:
         # This is where the main logic to update platform data goes.
         def wrapper():
             meal_plan = self.client.meal_plan(True)
-            base_url = self.hass.data[DOMAIN]["url"]
-            return [MealPlanItem(item, base_url) for item in meal_plan]
+            return [MealPlanItem(item) for item in meal_plan]
 
         self.hass.data[DOMAIN][MEAL_PLAN_NAME] = await self.hass.async_add_executor_job(
             wrapper
         )
 
+async def async_setup_api(hass, config):
+    session = async_get_clientsession(hass)
+
+    url = config.get(CONF_URL)
+    api_key = config.get(CONF_API_KEY)
+    port_number = config.get(CONF_PORT)
+    base_url = f"{url}:{port_number}"
+    hass.http.register_view(GrocyPictureView(session, base_url, api_key))

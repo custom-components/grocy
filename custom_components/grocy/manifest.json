@@ -2,7 +2,7 @@
   "domain": "grocy",
   "name": "Grocy",
   "documentation": "https://github.com/custom-components/grocy",
-  "dependencies": [],
+  "dependencies": ["http"],
   "config_flow": true,
   "codeowners": [
     "@SebRut",
