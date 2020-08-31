@@ -4,7 +4,7 @@ import hashlib
 import aiohttp
 
 from aiohttp import hdrs, web
-from datetime import timedelta
+from datetime import timedelta, datetime
 from pygrocy import Grocy, TransactionType
 
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -386,7 +386,10 @@ class GrocyData:
         # This is where the main logic to update platform data goes.
         def wrapper():
             meal_plan = self.client.meal_plan(True)
-            return [MealPlanItem(item) for item in meal_plan]
+            today = datetime.today().date()
+            date_format = '%Y-%m-%d %H:%M:%S.%f'
+            plan = [MealPlanItem(item) for item in meal_plan if item.day.date() >= today]
+            return sorted(plan, key=lambda item: item.day)
 
         self.hass.data[DOMAIN][MEAL_PLAN_NAME] = await self.hass.async_add_executor_job(
             wrapper
