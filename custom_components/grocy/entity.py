@@ -1,5 +1,4 @@
 """GrocyEntity class"""
-from homeassistant.helpers import entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # pylint: disable=relative-beyond-top-level
