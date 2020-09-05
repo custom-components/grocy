@@ -60,5 +60,13 @@ class GrocyEntityIcon(str, Enum):
 
     DEFAULT = "mdi:format-quote-close"
 
-    TASKS = "mdi:checkbox-marked-circle-outline"
+    CHORES = "mdi:broom"
+    EXPIRED_PRODUCTS = "mdi:clock-end"
+    EXPIRING_PRODUCTS = "mdi:clock-fast"
+    MEAL_PLAN = "mdi:silverware-variant"
     MISSING_PRODUCTS = "mdi:flask-round-bottom-empty-outline"
+    PRODUCTS = "mdi:food-fork-drink"
+    SHOPPING_LIST = "mdi:cart-outline"
+    STOCK = "mdi:fridge-outline"
+    TASKS = "mdi:checkbox-marked-circle-outline"
+

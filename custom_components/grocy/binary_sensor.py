@@ -42,3 +42,7 @@ class GrocyBinarySensor(GrocyEntity, BinarySensorDevice):
 
         elif self.entity_type == GrocyEntityType.MISSING_PRODUCTS:
             return len(self.entity_data) > 0
+        elif self.entity_type == GrocyEntityType.EXPIRING_PRODUCTS:
+            return len(self.entity_data) > 0
+        elif self.entity_type == GrocyEntityType.EXPIRED_PRODUCTS:
+            return len(self.entity_data) > 0

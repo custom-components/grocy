@@ -59,12 +59,12 @@ class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Show the configuration form to edit the data."""
         data_schema = OrderedDict()
         # TODO remove
-        data_schema[vol.Required(CONF_URL, default="http://192.168.2.145")] = str
+        data_schema[vol.Required(CONF_URL, default="http://192.168.1.78")] = str
         # TODO remove
         data_schema[
             vol.Required(
                 CONF_API_KEY,
-                default="EV4qJ2FwsxbW43H8eHbMCYHj68O28N0DXBqbOUyzSnSq8EHaI0",
+                default="uZlwmnzzCnF1hpvNHNXbcCG0tmFB06h12bMZC4ggLxGja5Yg9X",
             )
         ] = str
         data_schema[vol.Optional(CONF_PORT, default=DEFAULT_PORT)] = int
@@ -72,9 +72,7 @@ class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         _LOGGER.debug("config form")
 
         return self.async_show_form(
-            step_id="user",
-            data_schema=vol.Schema(data_schema),
-            errors=self._errors,
+            step_id="user", data_schema=vol.Schema(data_schema), errors=self._errors,
         )
 
     async def _test_credentials(self, url, api_key, port, verify_ssl):

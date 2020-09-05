@@ -69,9 +69,21 @@ class GrocyEntity(CoordinatorEntity):
         """Return the state attributes."""
         if not self.entity_data:
             return
-
-        elif self.entity_type == GrocyEntityType.TASKS:
-            return {"tasks": [x.as_dict() for x in self.entity_data]}
-
+        elif self.entity_type == GrocyEntityType.CHORES:
+            return {"chores": [x.as_dict() for x in self.entity_data]}
+        elif self.entity_type == GrocyEntityType.EXPIRED_PRODUCTS:
+            return {"expired": [x.as_dict() for x in self.entity_data]}
+        elif self.entity_type == GrocyEntityType.EXPIRING_PRODUCTS:
+            return {"expiring": [x.as_dict() for x in self.entity_data]}
+        elif self.entity_type == GrocyEntityType.MEAL_PLAN:
+            return {"meals": [x.as_dict() for x in self.entity_data]}
         elif self.entity_type == GrocyEntityType.MISSING_PRODUCTS:
             return {"missing": [x.as_dict() for x in self.entity_data]}
+        elif self.entity_type == GrocyEntityType.PRODUCTS:
+            return {"products": [x.as_dict() for x in self.entity_data]}
+        elif self.entity_type == GrocyEntityType.SHOPPING_LIST:
+            return {"products": [x.as_dict() for x in self.entity_data]}
+        elif self.entity_type == GrocyEntityType.STOCK:
+            return {"products": [x.as_dict() for x in self.entity_data]}
+        elif self.entity_type == GrocyEntityType.TASKS:
+            return {"tasks": [x.as_dict() for x in self.entity_data]}

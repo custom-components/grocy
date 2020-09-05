@@ -37,6 +37,15 @@ class GrocySensor(GrocyEntity):
         """Return the state of the sensor."""
         if not self.entity_data:
             return
-
+        elif self.entity_type == GrocyEntityType.CHORES:
+            return len(self.entity_data)
+        elif self.entity_type == GrocyEntityType.MEAL_PLAN:
+            return len(self.entity_data)
+        elif self.entity_type == GrocyEntityType.PRODUCTS:
+            return len(self.entity_data)
+        elif self.entity_type == GrocyEntityType.SHOPPING_LIST:
+            return len(self.entity_data)
+        elif self.entity_type == GrocyEntityType.STOCK:
+            return len(self.entity_data)
         elif self.entity_type == GrocyEntityType.TASKS:
             return len(self.entity_data)
