@@ -127,20 +127,22 @@ class GrocyDataUpdateCoordinator(DataUpdateCoordinator):
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Handle removal of an entry."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-    unloaded = all(
-        await asyncio.gather(
-            *[
-                hass.config_entries.async_forward_entry_unload(entry, platform)
-                for platform in PLATFORMS
-                if platform in coordinator.platforms
-            ]
-        )
-    )
-    if unloaded:
-        hass.data[DOMAIN].pop(entry.entry_id)
-    _LOGGER.debug("Successfully unloaded %s", unloaded)
-    return unloaded
+    _LOGGER.debug("Unloading with state %s", entry.state)
+    if entry.state == "loaded":
+        try:
+            unloaded = all(
+                await asyncio.gather(
+                    *[
+                        hass.config_entries.async_forward_entry_unload(entry, platform)
+                        for platform in PLATFORMS
+                    ]
+                )
+            )
+            _LOGGER.debug("Unloaded? %s", unloaded)
+            return unloaded
+
+        except ValueError:
+            pass
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry):
