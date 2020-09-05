@@ -1,15 +1,15 @@
-// See https://aka.ms/vscode-remote/devcontainer.json for format details.
 {
 	"image": "ludeeus/container:integration",
 	"context": "..",
 	"appPort": [
 		"9123:8123"
 	],
-	"postCreateCommand": "container install",
+	"postCreateCommand": "apk add jq && for req in $(jq -c -r '.requirements | .[]' custom_components/grocy/manifest.json); do python -m pip install '$req'; done && container install",
 	"extensions": [
 		"ms-python.python",
 		"github.vscode-pull-request-github",
-		"tabnine.tabnine-vscode"
+		"tabnine.tabnine-vscode",
+		"ms-python.vscode-pylance"
 	],
 	"settings": {
 		"files.eol": "\n",
