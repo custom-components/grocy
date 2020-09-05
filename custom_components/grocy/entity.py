@@ -1,59 +1,78 @@
 """GrocyEntity class"""
 from homeassistant.helpers import entity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # pylint: disable=relative-beyond-top-level
-from .const import DOMAIN, NAME, VERSION
+from .const import (
+    DOMAIN,
+    GrocyEntityIcon,
+    GrocyEntityType,
+    GrocyEntityUnit,
+    NAME,
+    VERSION,
+)
 
 
-class GrocyEntity(entity.Entity):
-    def __init__(self, coordinator, config_entry, device_name, sensor_type):
+class GrocyEntity(CoordinatorEntity):
+    def __init__(self, coordinator, config_entry, entity_type):
+        super().__init__(coordinator)
         self.coordinator = coordinator
         self.config_entry = config_entry
-        self.device_name = device_name
-        self.sensor_type = sensor_type
-
-        self._unique_id = "{}-{}".format(self.coordinator.hash_key, self.sensor_type)
-
-    @property
-    def should_poll(self):
-        """No need to poll. Coordinator notifies entity of updates."""
-        return False
-
-    @property
-    def available(self):
-        """Return if entity is available."""
-        return self.coordinator.last_update_success
+        self.entity_type = entity_type
 
     @property
     def unique_id(self):
         """Return a unique ID to use for this entity."""
-        return self._unique_id
+        return f"{self.config_entry.entry_id}{self.entity_type.lower()}"
+
+    @property
+    def name(self):
+        """Return the name of the binary_sensor."""
+        return f"{NAME} {self.entity_type.lower().replace('_', ' ')}"
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added to the entity registry."""
+        return False
+
+    @property
+    def enity_data(self):
+        """Return the enity_data of the entity."""
+        return self.coordinator.data.get(self.entity_type)
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit the value is expressed in."""
+        if GrocyEntityType(self.entity_type).name in [x.name for x in GrocyEntityUnit]:
+            return GrocyEntityUnit[GrocyEntityType(self.entity_type).name]
+
+    @property
+    def icon(self):
+        """Return the icon of the entity."""
+        if GrocyEntityType(self.entity_type).name in [x.name for x in GrocyEntityIcon]:
+            return GrocyEntityIcon[GrocyEntityType(self.entity_type).name]
+
+        return GrocyEntityIcon.DEFAULT
 
     @property
     def device_info(self):
         return {
             # "identifiers": {(DOMAIN, self.unique_id)},
-            "identifiers": {(DOMAIN, self.device_name)},
-            "name": self.device_name,
+            "identifiers": {(DOMAIN, self.config_entry.entry_id)},
+            "name": NAME,
             "model": VERSION,
             "manufacturer": NAME,
             "entry_type": "service",
         }
 
-    # @property
-    # def device_state_attributes(self):
-    #     """Return the state attributes."""
-    #     return {
-    #         "time": str(self.coordinator.data.get("time")),
-    #         "static": self.coordinator.data.get("static"),
-    #     }
+    @property
+    def device_state_attributes(self):
+        """Return the state attributes."""
+        if not self.enity_data:
+            return
 
-    async def async_added_to_hass(self):
-        """Connect to dispatcher listening for entity data notifications."""
-        self.async_on_remove(
-            self.coordinator.async_add_listener(self.async_write_ha_state)
-        )
+        elif self.entity_type == GrocyEntityType.TASKS:
+            return {"tasks": [x.as_dict() for x in self.enity_data]}
 
-    async def async_update(self):
-        """Update Grocy entity."""
-        await self.coordinator.async_request_refresh()
+        elif self.entity_type == GrocyEntityType.MISSING_PRODUCTS:
+            return {"missing": [x.as_dict() for x in self.enity_data]}

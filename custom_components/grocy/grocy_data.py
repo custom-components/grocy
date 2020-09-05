@@ -1,33 +1,14 @@
 from aiohttp import hdrs, web
 from datetime import timedelta, datetime
 
-from homeassistant.util import Throttle
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
-    CONF_ALLOW_CHORES,
-    CONF_ALLOW_MEAL_PLAN,
-    CONF_ALLOW_SHOPPING_LIST,
-    CONF_ALLOW_STOCK,
-    CONF_ALLOW_TASKS,
     CONF_API_KEY,
     CONF_URL,
     CONF_PORT,
-    DEFAULT_CONF_ALLOW_CHORES,
-    DEFAULT_CONF_ALLOW_MEAL_PLAN,
-    DEFAULT_CONF_ALLOW_SHOPPING_LIST,
-    DEFAULT_CONF_ALLOW_STOCK,
-    DEFAULT_CONF_ALLOW_TASKS,
-    CHORES_NAME,
-    TASKS_NAME,
-    DOMAIN,
-    EXPIRED_PRODUCTS_NAME,
-    EXPIRING_PRODUCTS_NAME,
-    MISSING_PRODUCTS_NAME,
-    MEAL_PLAN_NAME,
-    SHOPPING_LIST_NAME,
-    STOCK_NAME,
+    GrocyEntityType,
 )
 from .helpers import MealPlanItem
 
@@ -42,24 +23,24 @@ class GrocyData:
         self.hass = hass
         self.client = client
         self.sensor_types_dict = {
-            STOCK_NAME: self.async_update_stock,
-            CHORES_NAME: self.async_update_chores,
-            TASKS_NAME: self.async_update_tasks,
-            SHOPPING_LIST_NAME: self.async_update_shopping_list,
-            EXPIRING_PRODUCTS_NAME: self.async_update_expiring_products,
-            EXPIRED_PRODUCTS_NAME: self.async_update_expired_products,
-            MISSING_PRODUCTS_NAME: self.async_update_missing_products,
-            MEAL_PLAN_NAME: self.async_update_meal_plan,
+            GrocyEntityType.STOCK: self.async_update_stock,
+            GrocyEntityType.CHORES: self.async_update_chores,
+            GrocyEntityType.TASKS: self.async_update_tasks,
+            GrocyEntityType.SHOPPING_LIST: self.async_update_shopping_list,
+            GrocyEntityType.EXPIRING_PRODUCTS: self.async_update_expiring_products,
+            GrocyEntityType.EXPIRED_PRODUCTS: self.async_update_expired_products,
+            GrocyEntityType.MISSING_PRODUCTS: self.async_update_missing_products,
+            GrocyEntityType.MEAL_PLAN: self.async_update_meal_plan,
         }
         self.sensor_update_dict = {
-            STOCK_NAME: None,
-            CHORES_NAME: None,
-            TASKS_NAME: None,
-            SHOPPING_LIST_NAME: None,
-            EXPIRING_PRODUCTS_NAME: None,
-            EXPIRED_PRODUCTS_NAME: None,
-            MISSING_PRODUCTS_NAME: None,
-            MEAL_PLAN_NAME: None,
+            GrocyEntityType.STOCK: None,
+            GrocyEntityType.CHORES: None,
+            GrocyEntityType.TASKS: None,
+            GrocyEntityType.SHOPPING_LIST: None,
+            GrocyEntityType.EXPIRING_PRODUCTS: None,
+            GrocyEntityType.EXPIRED_PRODUCTS: None,
+            GrocyEntityType.MISSING_PRODUCTS: None,
+            GrocyEntityType.MEAL_PLAN: None,
         }
 
     async def async_update_data(self, sensor_type):
@@ -72,15 +53,12 @@ class GrocyData:
             self.sensor_update_dict[sensor_type] = db_changed
             if sensor_type in self.sensor_types_dict:
                 # This is where the main logic to update platform data goes.
-                self.hass.async_create_task(self.sensor_types_dict[sensor_type]())
+                return await self.sensor_types_dict[sensor_type]()
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update_stock(self):
         """Update data."""
         # This is where the main logic to update platform data goes.
-        self.hass.data[DOMAIN][STOCK_NAME] = await self.hass.async_add_executor_job(
-            self.client.stock
-        )
+        return await self.hass.async_add_executor_job(self.client.stock)
 
     async def async_update_chores(self):
         """Update data."""
@@ -88,17 +66,12 @@ class GrocyData:
         def wrapper():
             return self.client.chores(True)
 
-        self.hass.data[DOMAIN][CHORES_NAME] = await self.hass.async_add_executor_job(
-            wrapper
-        )
+        return await self.hass.async_add_executor_job(wrapper)
 
     async def async_update_tasks(self):
         """Update data."""
         # This is where the main logic to update platform data goes.
-
-        self.hass.data[DOMAIN][TASKS_NAME] = await self.hass.async_add_executor_job(
-            self.client.tasks
-        )
+        return await self.hass.async_add_executor_job(self.client.tasks)
 
     async def async_update_shopping_list(self):
         """Update data."""
@@ -106,59 +79,44 @@ class GrocyData:
         def wrapper():
             return self.client.shopping_list(True)
 
-        self.hass.data[DOMAIN][
-            SHOPPING_LIST_NAME
-        ] = await self.hass.async_add_executor_job(wrapper)
+        return await self.hass.async_add_executor_job(wrapper)
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update_expiring_products(self):
         """Update data."""
         # This is where the main logic to update platform data goes.
         def wrapper():
             return self.client.expiring_products(True)
 
-        self.hass.data[DOMAIN][
-            EXPIRING_PRODUCTS_NAME
-        ] = await self.hass.async_add_executor_job(wrapper)
+        return await self.hass.async_add_executor_job(wrapper)
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update_expired_products(self):
         """Update data."""
         # This is where the main logic to update platform data goes.
         def wrapper():
             return self.client.expired_products(True)
 
-        self.hass.data[DOMAIN][
-            EXPIRED_PRODUCTS_NAME
-        ] = await self.hass.async_add_executor_job(wrapper)
+        return await self.hass.async_add_executor_job(wrapper)
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update_missing_products(self):
         """Update data."""
         # This is where the main logic to update platform data goes.
         def wrapper():
             return self.client.missing_products(True)
 
-        self.hass.data[DOMAIN][
-            MISSING_PRODUCTS_NAME
-        ] = await self.hass.async_add_executor_job(wrapper)
+        return await self.hass.async_add_executor_job(wrapper)
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update_meal_plan(self):
         """Update data."""
         # This is where the main logic to update platform data goes.
         def wrapper():
             meal_plan = self.client.meal_plan(True)
             today = datetime.today().date()
-            date_format = "%Y-%m-%d %H:%M:%S.%f"
             plan = [
                 MealPlanItem(item) for item in meal_plan if item.day.date() >= today
             ]
             return sorted(plan, key=lambda item: item.day)
 
-        self.hass.data[DOMAIN][MEAL_PLAN_NAME] = await self.hass.async_add_executor_job(
-            wrapper
-        )
+        return await self.hass.async_add_executor_job(wrapper)
 
 
 async def async_setup_image_api(hass, config):
