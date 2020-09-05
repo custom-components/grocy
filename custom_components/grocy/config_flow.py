@@ -58,15 +58,8 @@ class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def _show_config_form(self, user_input):  # pylint: disable=unused-argument
         """Show the configuration form to edit the data."""
         data_schema = OrderedDict()
-        # TODO remove
-        data_schema[vol.Required(CONF_URL, default="http://192.168.1.78")] = str
-        # TODO remove
-        data_schema[
-            vol.Required(
-                CONF_API_KEY,
-                default="uZlwmnzzCnF1hpvNHNXbcCG0tmFB06h12bMZC4ggLxGja5Yg9X",
-            )
-        ] = str
+        data_schema[vol.Required(CONF_URL, default="")] = str
+        data_schema[vol.Required(CONF_API_KEY, default="",)] = str
         data_schema[vol.Optional(CONF_PORT, default=DEFAULT_PORT)] = int
         data_schema[vol.Optional(CONF_VERIFY_SSL, default=False)] = bool
         _LOGGER.debug("config form")
