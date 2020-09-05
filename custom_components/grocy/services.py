@@ -8,11 +8,9 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_component
 
 from pygrocy import TransactionType
-from datetime import timedelta, datetime
+from datetime import datetime
 
 from .const import DOMAIN
-
-_LOGGER = logging.getLogger(__name__)
 
 GROCY_SERVICES = "grocy_services"
 
@@ -68,20 +66,26 @@ SERVICE_EXECUTE_CHORE_SCHEMA = vol.All(
 
 SERVICE_COMPLETE_TASK_SCHEMA = vol.All(
     vol.Schema(
-        {vol.Required(SERVICE_TASK_ID): int, vol.Optional(SERVICE_DONE_TIME): str,}
+        {
+            vol.Required(SERVICE_TASK_ID): int,
+            vol.Optional(SERVICE_DONE_TIME): str,
+        }
     )
 )
 
 SERVICE_ADD_GENERIC_SCHEMA = vol.All(
     vol.Schema(
-        {vol.Required(SERVICE_ENTITY_TYPE): str, vol.Required(SERVICE_DATA): object,}
+        {
+            vol.Required(SERVICE_ENTITY_TYPE): str,
+            vol.Required(SERVICE_DATA): object,
+        }
     )
 )
 
 
 async def async_setup_services(hass, entry):
     """Set up services for Grocy integration."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = hass.data[DOMAIN]
     if hass.data.get(GROCY_SERVICES, False):
         return
 

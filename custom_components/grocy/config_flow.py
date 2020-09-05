@@ -1,32 +1,19 @@
 """Adds config flow for Grocy."""
-from homeassistant import config_entries
-from homeassistant.core import callback
-from pygrocy import Grocy
-import voluptuous as vol
-from collections import OrderedDict
 import logging
+from collections import OrderedDict
 
-from .const import (  # pylint: disable=unused-import
-    NAME,
-    DOMAIN,
-    PLATFORMS,
-    DEFAULT_PORT,
-    CONF_URL,
-    CONF_PORT,
+import voluptuous as vol
+from homeassistant import config_entries
+from pygrocy import Grocy
+
+from .const import (
     CONF_API_KEY,
+    CONF_PORT,  # pylint: disable=unused-import
+    CONF_URL,
     CONF_VERIFY_SSL,
-    CONF_ALLOW_CHORES,
-    CONF_ALLOW_MEAL_PLAN,
-    CONF_ALLOW_PRODUCTS,
-    CONF_ALLOW_SHOPPING_LIST,
-    CONF_ALLOW_STOCK,
-    CONF_ALLOW_TASKS,
-    DEFAULT_CONF_PORT_NUMBER,
-    DEFAULT_CONF_ALLOW_CHORES,
-    DEFAULT_CONF_ALLOW_MEAL_PLAN,
-    DEFAULT_CONF_ALLOW_SHOPPING_LIST,
-    DEFAULT_CONF_ALLOW_STOCK,
-    DEFAULT_CONF_ALLOW_TASKS,
+    DEFAULT_PORT,
+    DOMAIN,
+    NAME,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -42,9 +29,7 @@ class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Initialize."""
         self._errors = {}
 
-    async def async_step_user(
-        self, user_input=None  # pylint: disable=bad-continuation
-    ):
+    async def async_step_user(self, user_input=None):
         """Handle a flow initialized by the user."""
         self._errors = {}
         _LOGGER.debug("Step user")
@@ -70,21 +55,16 @@ class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self._show_config_form(user_input)
 
-    @staticmethod
-    @callback
-    def async_get_options_flow(config_entry):
-        return GrocyOptionsFlowHandler(config_entry)
-
     async def _show_config_form(self, user_input):  # pylint: disable=unused-argument
         """Show the configuration form to edit the data."""
         data_schema = OrderedDict()
         # TODO remove
-        data_schema[vol.Required(CONF_URL, default="http://192.168.1.78")] = str
+        data_schema[vol.Required(CONF_URL, default="http://192.168.2.145")] = str
         # TODO remove
         data_schema[
             vol.Required(
                 CONF_API_KEY,
-                default="uZlwmnzzCnF1hpvNHNXbcCG0tmFB06h12bMZC4ggLxGja5Yg9X",
+                default="EV4qJ2FwsxbW43H8eHbMCYHj68O28N0DXBqbOUyzSnSq8EHaI0",
             )
         ] = str
         data_schema[vol.Optional(CONF_PORT, default=DEFAULT_PORT)] = int
@@ -92,7 +72,9 @@ class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         _LOGGER.debug("config form")
 
         return self.async_show_form(
-            step_id="user", data_schema=vol.Schema(data_schema), errors=self._errors,
+            step_id="user",
+            data_schema=vol.Schema(data_schema),
+            errors=self._errors,
         )
 
     async def _test_credentials(self, url, api_key, port, verify_ssl):
@@ -112,66 +94,3 @@ class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             _LOGGER.error(e)
             pass
         return False
-
-
-class GrocyOptionsFlowHandler(config_entries.OptionsFlow):
-    """Grocy config flow options handler."""
-
-    def __init__(self, config_entry):
-        """Initialize Grocy options flow."""
-        self.config_entry = config_entry
-        self.options = dict(config_entry.options)
-
-    async def async_step_init(self, user_input=None):  # pylint: disable=unused-argument
-        """Manage the options."""
-        return await self.async_step_user()
-
-    async def async_step_user(self, user_input=None):
-        """Handle a flow initialized by the user."""
-        if user_input is not None:
-            self.options.update(user_input)
-            return await self._update_options()
-
-        return self.async_show_form(
-            step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(
-                        CONF_ALLOW_CHORES,
-                        default=self.config_entry.options.get(
-                            CONF_ALLOW_CHORES, DEFAULT_CONF_ALLOW_CHORES
-                        ),
-                    ): bool,
-                    vol.Optional(
-                        CONF_ALLOW_MEAL_PLAN,
-                        default=self.config_entry.options.get(
-                            CONF_ALLOW_MEAL_PLAN, DEFAULT_CONF_ALLOW_MEAL_PLAN
-                        ),
-                    ): bool,
-                    vol.Optional(
-                        CONF_ALLOW_SHOPPING_LIST,
-                        default=self.config_entry.options.get(
-                            CONF_ALLOW_SHOPPING_LIST, DEFAULT_CONF_ALLOW_SHOPPING_LIST
-                        ),
-                    ): bool,
-                    vol.Optional(
-                        CONF_ALLOW_STOCK,
-                        default=self.config_entry.options.get(
-                            CONF_ALLOW_STOCK, DEFAULT_CONF_ALLOW_STOCK
-                        ),
-                    ): bool,
-                    vol.Optional(
-                        CONF_ALLOW_TASKS,
-                        default=self.config_entry.options.get(
-                            CONF_ALLOW_TASKS, DEFAULT_CONF_ALLOW_TASKS
-                        ),
-                    ): bool,
-                }
-            ),
-        )
-
-    async def _update_options(self):
-        """Update config entry options."""
-        return self.async_create_entry(
-            title=self.config_entry.data.get(NAME), data=self.options
-        )
