@@ -1,66 +1,61 @@
-"""Binary sensor platform for grocy."""
+"""Binary sensor platform for blueprint."""
 import logging
-from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.binary_sensor import BinarySensorDevice
 
-from .const import ATTRIBUTION, BINARY_SENSOR_TYPES, DEFAULT_NAME, DOMAIN, DOMAIN_DATA
+# pylint: disable=relative-beyond-top-level
+from .const import (
+    BINARY_SENSOR,
+    DEFAULT_NAME,
+    DOMAIN,
+    BINARY_SENSOR_TYPES,
+    CONF_ALLOW_STOCK,
+    DEFAULT_CONF_ALLOW_STOCK,
+    EXPIRING_PRODUCTS_NAME,
+    EXPIRED_PRODUCTS_NAME,
+    MISSING_PRODUCTS_NAME,
+    STOCK_NAME,
+)
+from .entity import GrocyEntity
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_platform(
-    hass, config, async_add_entities, discovery_info=None
-):  # pylint: disable=unused-argument
+async def async_setup_entry(hass, entry, async_add_entities):
     """Setup binary_sensor platform."""
-    async_add_entities([GrocyBinarySensor(hass, discovery_info)], True)
+    coordinator = hass.data[DOMAIN][entry.entry_id]
 
-
-async def async_setup_entry(hass, config_entry, async_add_devices):
-    """Setup sensor platform."""
+    options_allow_stock = entry.options.get(CONF_ALLOW_STOCK, DEFAULT_CONF_ALLOW_STOCK)
     for binary_sensor in BINARY_SENSOR_TYPES:
-        async_add_devices([GrocyBinarySensor(hass, binary_sensor)], True)
+        if options_allow_stock and binary_sensor.startswith(EXPIRING_PRODUCTS_NAME):
+            _LOGGER.debug("Adding expiring products binary sensor")
+            device_name = STOCK_NAME
+            async_add_entities(
+                [GrocyBinarySensor(coordinator, entry, device_name, binary_sensor)],
+                True,
+            )
+        elif options_allow_stock and binary_sensor.startswith(EXPIRED_PRODUCTS_NAME):
+            _LOGGER.debug("Adding expired products binary sensor")
+            device_name = STOCK_NAME
+            async_add_entities(
+                [GrocyBinarySensor(coordinator, entry, device_name, binary_sensor)],
+                True,
+            )
+        elif options_allow_stock and binary_sensor.startswith(MISSING_PRODUCTS_NAME):
+            _LOGGER.debug("Adding missing products binary sensor")
+            device_name = STOCK_NAME
+            async_add_entities(
+                [GrocyBinarySensor(coordinator, entry, device_name, binary_sensor)],
+                True,
+            )
 
 
-class GrocyBinarySensor(BinarySensorEntity):
-    """grocy binary_sensor class."""
-
-    def __init__(self, hass, sensor_type):
-        self.hass = hass
-        self.sensor_type = sensor_type
-        self.attr = {}
-        self._status = False
-        self._hash_key = self.hass.data[DOMAIN_DATA]["hash_key"]
-        self._unique_id = "{}-{}".format(self._hash_key, self.sensor_type)
-        self._name = "{}.{}".format(DEFAULT_NAME, self.sensor_type)
-        self._client = self.hass.data[DOMAIN_DATA]["client"]
-
-    async def async_update(self):
-        """Update the binary_sensor."""
-        # Send update "signal" to the component
-        await self._client.async_update_data(self.sensor_type)
-
-        self.attr["items"] = [
-            x.as_dict() for x in self.hass.data[DOMAIN_DATA].get(self.sensor_type, [])
-        ]
-        self._status = len(self.attr["items"]) != 0
-        _LOGGER.debug(self.attr)
-
-    @property
-    def unique_id(self):
-        """Return a unique ID to use for this binary_sensor."""
-        return self._unique_id
-
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {(DOMAIN, self.unique_id)},
-            "name": self._name,
-            "manufacturer": "Grocy",
-        }
+class GrocyBinarySensor(GrocyEntity, BinarySensorDevice):
+    """Grocy binary_sensor class."""
 
     @property
     def name(self):
         """Return the name of the binary_sensor."""
-        return self._name
+        return f"{DEFAULT_NAME}_{BINARY_SENSOR}"
 
     @property
     def device_class(self):
@@ -70,10 +65,5 @@ class GrocyBinarySensor(BinarySensorEntity):
     @property
     def is_on(self):
         """Return true if the binary_sensor is on."""
-        return self._status
-
-    @property
-    def device_state_attributes(self):
-        """Return the state attributes."""
-        return self.attr
-
+        return True
+        # return self.coordinator.data.get("bool_on", False)

@@ -1,104 +1,98 @@
-"""Sensor platform for grocy."""
-import logging
-from homeassistant.helpers.entity import Entity
+"""Sensor platform for Grocy."""
 
+import logging
+
+# pylint: disable=relative-beyond-top-level
 from .const import (
-    ATTRIBUTION,
-    CHORES_NAME,
-    TASKS_NAME,
-    MEAL_PLAN_NAME,
     DEFAULT_NAME,
     DOMAIN,
-    DOMAIN_DATA,
     ICON,
-    SENSOR_CHORES_UNIT_OF_MEASUREMENT,
-    SENSOR_TASKS_UNIT_OF_MEASUREMENT,
-    SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT,
-    SENSOR_MEALS_UNIT_OF_MEASUREMENT,
+    SENSOR,
     SENSOR_TYPES,
+    CHORES_NAME,
+    MEAL_PLAN_NAME,
+    SHOPPING_LIST_NAME,
+    STOCK_NAME,
+    TASKS_NAME,
+    CONF_ALLOW_CHORES,
+    CONF_ALLOW_MEAL_PLAN,
+    CONF_ALLOW_SHOPPING_LIST,
+    CONF_ALLOW_STOCK,
+    CONF_ALLOW_TASKS,
+    DEFAULT_CONF_ALLOW_CHORES,
+    DEFAULT_CONF_ALLOW_MEAL_PLAN,
+    DEFAULT_CONF_ALLOW_SHOPPING_LIST,
+    DEFAULT_CONF_ALLOW_STOCK,
+    DEFAULT_CONF_ALLOW_TASKS,
 )
+from .entity import GrocyEntity
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_platform(
-    hass, config, async_add_entities, discovery_info=None
-):  # pylint: disable=unused-argument
+async def async_setup_entry(hass, entry, async_add_entities):
     """Setup sensor platform."""
+    coordinator = hass.data[DOMAIN][entry.entry_id]
 
-    async_add_entities([GrocySensor(hass, discovery_info)], True)
+    options_allow_chores = entry.options.get(
+        CONF_ALLOW_CHORES, DEFAULT_CONF_ALLOW_CHORES
+    )
+    options_allow_meal_plan = entry.options.get(
+        CONF_ALLOW_MEAL_PLAN, DEFAULT_CONF_ALLOW_MEAL_PLAN
+    )
+    options_allow_shopping_list = entry.options.get(
+        CONF_ALLOW_SHOPPING_LIST, DEFAULT_CONF_ALLOW_SHOPPING_LIST
+    )
+    options_allow_stock = entry.options.get(CONF_ALLOW_STOCK, DEFAULT_CONF_ALLOW_STOCK)
+    options_allow_tasks = entry.options.get(CONF_ALLOW_TASKS, DEFAULT_CONF_ALLOW_TASKS)
 
-
-async def async_setup_entry(hass, config_entry, async_add_devices):
-    """Setup sensor platform."""
     for sensor in SENSOR_TYPES:
-        async_add_devices([GrocySensor(hass, sensor)], True)
+        if options_allow_chores and sensor.startswith(CHORES_NAME):
+            _LOGGER.debug("Adding chores sensor")
+            device_name = CHORES_NAME
+            async_add_entities(
+                [GrocySensor(coordinator, entry, device_name, sensor)], True
+            )
+        elif options_allow_meal_plan and sensor.startswith(MEAL_PLAN_NAME):
+            _LOGGER.debug("Adding meal plan sensor")
+            device_name = MEAL_PLAN_NAME
+            async_add_entities(
+                [GrocySensor(coordinator, entry, device_name, sensor)], True
+            )
+        elif options_allow_shopping_list and sensor.startswith(SHOPPING_LIST_NAME):
+            _LOGGER.debug("Adding shopping list sensor")
+            device_name = SHOPPING_LIST_NAME
+            async_add_entities(
+                [GrocySensor(coordinator, entry, device_name, sensor)], True
+            )
+        elif options_allow_stock and sensor.startswith(STOCK_NAME):
+            _LOGGER.debug("Adding stock sensor")
+            device_name = STOCK_NAME
+            async_add_entities(
+                [GrocySensor(coordinator, entry, device_name, sensor)], True
+            )
+        elif options_allow_tasks and sensor.startswith(TASKS_NAME):
+            _LOGGER.debug("Adding tasks sensor")
+            device_name = TASKS_NAME
+            async_add_entities(
+                [GrocySensor(coordinator, entry, device_name, sensor)], True
+            )
 
 
-class GrocySensor(Entity):
-    """grocy Sensor class."""
-
-    def __init__(self, hass, sensor_type):
-        self.hass = hass
-        self.sensor_type = sensor_type
-        self.attr = {}
-        self._state = None
-        self._hash_key = self.hass.data[DOMAIN_DATA]["hash_key"]
-        self._unique_id = "{}-{}".format(self._hash_key, self.sensor_type)
-        self._name = "{}.{}".format(DEFAULT_NAME, self.sensor_type)
-
-    async def async_update(self):
-        """Update the sensor."""
-        # Send update "signal" to the component
-        await self.hass.data[DOMAIN_DATA]["client"].async_update_data(self.sensor_type)
-
-        self.attr["items"] = [
-            x.as_dict() for x in self.hass.data[DOMAIN_DATA].get(self.sensor_type, [])
-        ]
-        self._state = len(self.attr["items"])
-        _LOGGER.debug(self.attr)
-
-    @property
-    def unique_id(self):
-        """Return a unique ID to use for this sensor."""
-        return self._unique_id
-
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {(DOMAIN, self.unique_id)},
-            "name": self._name,
-            "manufacturer": "Grocy",
-        }
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-        return self._state
+class GrocySensor(GrocyEntity):
+    """Grocy Sensor class."""
 
     @property
     def name(self):
         """Return the name of the sensor."""
-        return self._name
+        return f"{DEFAULT_NAME}_{SENSOR}"
+
+    # @property
+    # def state(self):
+    #     """Return the state of the sensor."""
+    #     return self.coordinator.data.get("static")
 
     @property
     def icon(self):
         """Return the icon of the sensor."""
         return ICON
-
-    @property
-    def unit_of_measurement(self):
-        if self.sensor_type == CHORES_NAME:
-            return SENSOR_CHORES_UNIT_OF_MEASUREMENT
-        elif self.sensor_type == TASKS_NAME:
-            return SENSOR_TASKS_UNIT_OF_MEASUREMENT
-        elif self.sensor_type == MEAL_PLAN_NAME:
-            return SENSOR_MEALS_UNIT_OF_MEASUREMENT
-        else:
-            return SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT
-
-    @property
-    def device_state_attributes(self):
-        """Return the state attributes."""
-        return self.attr
-
