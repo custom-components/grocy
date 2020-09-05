@@ -14,7 +14,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Config, HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from pygrocy import Grocy, TransactionType
+from pygrocy import Grocy
 
 from .const import (
     DOMAIN,
@@ -24,7 +24,6 @@ from .const import (
     CONF_API_KEY,
     CONF_PORT,
     CONF_VERIFY_SSL,
-    ALL_ENTITY_TYPES,
     REQUIRED_FILES,
 )
 from .grocy_data import GrocyData, async_setup_image_api
@@ -65,11 +64,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     hass.data[DOMAIN][config_entry.entry_id] = coordinator
 
     for platform in PLATFORMS:
-        if config_entry.options.get(platform, True):
-            coordinator.platforms.append(platform)
-            hass.async_add_job(
-                hass.config_entries.async_forward_entry_setup(config_entry, platform)
-            )
+        hass.async_add_job(
+            hass.config_entries.async_forward_entry_setup(config_entry, platform)
+        )
 
     await async_setup_services(hass, config_entry)
 
