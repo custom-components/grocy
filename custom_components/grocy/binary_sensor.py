@@ -37,8 +37,8 @@ class GrocyBinarySensor(GrocyEntity, BinarySensorDevice):
     @property
     def is_on(self):
         """Return true if the binary_sensor is on."""
-        if not self.enity_data:
+        if not self.entity_data:
             return
 
         elif self.entity_type == GrocyEntityType.MISSING_PRODUCTS:
-            return len(self.enity_data) > 0
+            return len(self.entity_data) > 0

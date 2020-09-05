@@ -36,8 +36,8 @@ class GrocyEntity(CoordinatorEntity):
         return False
 
     @property
-    def enity_data(self):
-        """Return the enity_data of the entity."""
+    def entity_data(self):
+        """Return the entity_data of the entity."""
         return self.coordinator.data.get(self.entity_type)
 
     @property
@@ -68,11 +68,11 @@ class GrocyEntity(CoordinatorEntity):
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
-        if not self.enity_data:
+        if not self.entity_data:
             return
 
         elif self.entity_type == GrocyEntityType.TASKS:
-            return {"tasks": [x.as_dict() for x in self.enity_data]}
+            return {"tasks": [x.as_dict() for x in self.entity_data]}
 
         elif self.entity_type == GrocyEntityType.MISSING_PRODUCTS:
-            return {"missing": [x.as_dict() for x in self.enity_data]}
+            return {"missing": [x.as_dict() for x in self.entity_data]}

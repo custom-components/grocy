@@ -35,8 +35,8 @@ class GrocySensor(GrocyEntity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        if not self.enity_data:
+        if not self.entity_data:
             return
 
         elif self.entity_type == GrocyEntityType.TASKS:
-            return len(self.enity_data)
+            return len(self.entity_data)
