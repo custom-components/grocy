@@ -28,7 +28,7 @@ from .const import (
 from .grocy_data import GrocyData, async_setup_image_api
 from .services import async_setup_services, async_unload_services
 
-SCAN_INTERVAL = timedelta(seconds=10)
+SCAN_INTERVAL = timedelta(seconds=30)
 
 _LOGGER = logging.getLogger(__name__)
 
