@@ -7,6 +7,7 @@ https://github.com/custom-components/grocy
 import asyncio
 import logging
 from datetime import timedelta
+from typing import List
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Config, HomeAssistant
@@ -20,6 +21,7 @@ from .const import (
     CONF_URL,
     CONF_VERIFY_SSL,
     DOMAIN,
+    GrocyEntityType,
     PLATFORMS,
     STARTUP_MESSAGE,
 )
@@ -85,14 +87,42 @@ class GrocyDataUpdateCoordinator(DataUpdateCoordinator):
         data = {}
         try:
             grocy_data = GrocyData(self.hass, self.api)
+            features = await async_supported_features(grocy_data)
             for entity in self.entities:
-                if entity.enabled:
+                if entity.enabled and entity.entity_type in features:
                     data[entity.entity_type] = await grocy_data.async_update_data(
                         entity.entity_type
                     )
             return data
         except Exception as exception:
             raise UpdateFailed(exception)
+
+
+async def async_supported_features(grocy_data) -> List[str]:
+    """Return a list of supported features."""
+    features = []
+    config = await grocy_data.async_get_config()
+    if config:
+        if config["FEATURE_FLAG_STOCK"]:
+            features.append(GrocyEntityType.STOCK)
+            features.append(GrocyEntityType.PRODUCTS)
+            features.append(GrocyEntityType.MISSING_PRODUCTS)
+            features.append(GrocyEntityType.EXPIRED_PRODUCTS)
+            features.append(GrocyEntityType.EXPIRING_PRODUCTS)
+
+        if config["FEATURE_FLAG_SHOPPINGLIST"]:
+            features.append(GrocyEntityType.SHOPPING_LIST)
+
+        if config["FEATURE_FLAG_TASKS"]:
+            features.append(GrocyEntityType.TASKS)
+
+        if config["FEATURE_FLAG_CHORES"]:
+            features.append(GrocyEntityType.CHORES)
+
+        if config["FEATURE_FLAG_RECIPES"]:
+            features.append(GrocyEntityType.MEAL_PLAN)
+
+    return features
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
