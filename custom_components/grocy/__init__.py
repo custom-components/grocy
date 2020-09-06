@@ -84,18 +84,27 @@ class GrocyDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         """Update data via library."""
+        grocy_data = GrocyData(self.hass, self.api)
         data = {}
+        features = []
         try:
-            grocy_data = GrocyData(self.hass, self.api)
             features = await async_supported_features(grocy_data)
-            for entity in self.entities:
-                if entity.enabled and entity.entity_type in features:
+            if not features:
+                raise UpdateFailed("No features enabled")
+        except Exception as exception:
+            raise UpdateFailed(exception)
+
+        for entity in self.entities:
+            if entity.enabled and entity.entity_type in features:
+                try:
                     data[entity.entity_type] = await grocy_data.async_update_data(
                         entity.entity_type
                     )
-            return data
-        except Exception as exception:
-            raise UpdateFailed(exception)
+                except Exception as exception:
+                    raise UpdateFailed(
+                        f"Update of {entity.entity_type} failed with {exception}"
+                    )
+        return data
 
 
 async def async_supported_features(grocy_data) -> List[str]:
