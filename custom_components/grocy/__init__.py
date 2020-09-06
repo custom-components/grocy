@@ -84,18 +84,31 @@ class GrocyDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         """Update data via library."""
+        grocy_data = GrocyData(self.hass, self.api)
         data = {}
+        features = []
         try:
-            grocy_data = GrocyData(self.hass, self.api)
             features = await async_supported_features(grocy_data)
-            for entity in self.entities:
-                if entity.enabled and entity.entity_type in features:
+            if not features:
+                raise UpdateFailed("No features enabled")
+        except Exception as exception:
+            raise UpdateFailed(exception)
+
+        for entity in self.entities:
+            if entity.enabled and entity.entity_type in features:
+                try:
                     data[entity.entity_type] = await grocy_data.async_update_data(
                         entity.entity_type
                     )
-            return data
-        except Exception as exception:
-            raise UpdateFailed(exception)
+                except Exception as exception:
+                    _LOGGER.error(
+                        f"Update of {entity.entity_type} failed with {exception}"
+                    )
+            elif entity.entity_type not in features:
+                _LOGGER.warning(
+                    f"You have enabled the entity for {entity.name}, but this feature is not enabled in Grocy",
+                )
+        return data
 
 
 async def async_supported_features(grocy_data) -> List[str]:
@@ -103,23 +116,23 @@ async def async_supported_features(grocy_data) -> List[str]:
     features = []
     config = await grocy_data.async_get_config()
     if config:
-        if config["FEATURE_FLAG_STOCK"]:
+        if config["FEATURE_FLAG_STOCK"] != "0":
             features.append(GrocyEntityType.STOCK)
             features.append(GrocyEntityType.PRODUCTS)
             features.append(GrocyEntityType.MISSING_PRODUCTS)
             features.append(GrocyEntityType.EXPIRED_PRODUCTS)
             features.append(GrocyEntityType.EXPIRING_PRODUCTS)
 
-        if config["FEATURE_FLAG_SHOPPINGLIST"]:
+        if config["FEATURE_FLAG_SHOPPINGLIST"] != "0":
             features.append(GrocyEntityType.SHOPPING_LIST)
 
-        if config["FEATURE_FLAG_TASKS"]:
+        if config["FEATURE_FLAG_TASKS"] != "0":
             features.append(GrocyEntityType.TASKS)
 
-        if config["FEATURE_FLAG_CHORES"]:
+        if config["FEATURE_FLAG_CHORES"] != "0":
             features.append(GrocyEntityType.CHORES)
 
-        if config["FEATURE_FLAG_RECIPES"]:
+        if config["FEATURE_FLAG_RECIPES"] != "0":
             features.append(GrocyEntityType.MEAL_PLAN)
 
     return features
