@@ -11,7 +11,7 @@
 7. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Grocy"
 8. You will now have a new integration for Grocy. Some or all of the entities might be disabled from the start.
 
-(This component will not currently work if you have an install where you don't use a port, due to [this](https://github.com/SebRut/pygrocy/issues/121).)
+(This component will not currently work if you have an install where you don't use a port, due to [this issue](https://github.com/SebRut/pygrocy/issues/121).)
 
 
 ## Additional installation instructions for Hass.io users
@@ -28,3 +28,9 @@ The configuration is slightly different for users that use Hass.io and the [offi
 8. Copy resulting API key
 9. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Grocy"
 10. You will now have a new integration for Grocy. Some or all of the entities might be disabled from the start.
+
+
+# Entities
+This component creates eight entities. Some or all of the entities might be disabled from the start.
+You get a sensor each for chores, meal plan, shopping list, stock and tasks.
+You get a binary sensor each for expired, expiring and missing products.
