@@ -2,17 +2,15 @@
 import asyncio
 import voluptuous as vol
 import iso8601
+import logging
 
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_component
 
 from pygrocy import TransactionType
-from datetime import timedelta, datetime
+from datetime import datetime
 
-from .const import (
-    DOMAIN,
-    LOGGER,
-)
+from .const import DOMAIN
 
 GROCY_SERVICES = "grocy_services"
 
@@ -68,19 +66,26 @@ SERVICE_EXECUTE_CHORE_SCHEMA = vol.All(
 
 SERVICE_COMPLETE_TASK_SCHEMA = vol.All(
     vol.Schema(
-        {vol.Required(SERVICE_TASK_ID): int, vol.Optional(SERVICE_DONE_TIME): str,}
+        {
+            vol.Required(SERVICE_TASK_ID): int,
+            vol.Optional(SERVICE_DONE_TIME): str,
+        }
     )
 )
 
 SERVICE_ADD_GENERIC_SCHEMA = vol.All(
     vol.Schema(
-        {vol.Required(SERVICE_ENTITY_TYPE): str, vol.Required(SERVICE_DATA): object,}
+        {
+            vol.Required(SERVICE_ENTITY_TYPE): str,
+            vol.Required(SERVICE_DATA): object,
+        }
     )
 )
 
 
-async def async_setup_services(hass):
+async def async_setup_services(hass, entry):
     """Set up services for Grocy integration."""
+    coordinator = hass.data[DOMAIN]
     if hass.data.get(GROCY_SERVICES, False):
         return
 
@@ -92,19 +97,19 @@ async def async_setup_services(hass):
         service_data = service_call.data
 
         if service == SERVICE_ADD_PRODUCT:
-            await async_add_product_service(hass, service_data)
+            await async_add_product_service(hass, coordinator, service_data)
 
         elif service == SERVICE_CONSUME_PRODUCT:
-            await async_consume_product_service(hass, service_data)
+            await async_consume_product_service(hass, coordinator, service_data)
 
         elif service == SERVICE_EXECUTE_CHORE:
-            await async_execute_chore_service(hass, service_data)
+            await async_execute_chore_service(hass, coordinator, service_data)
 
         elif service == SERVICE_COMPLETE_TASK:
-            await async_complete_task_service(hass, service_data)
+            await async_complete_task_service(hass, coordinator, service_data)
 
         elif service == SERVICE_ADD_GENERIC:
-            await async_add_generic_service(hass, service_data)
+            await async_add_generic_service(hass, coordinator, service_data)
 
     hass.services.async_register(
         DOMAIN,
@@ -155,21 +160,17 @@ async def async_unload_services(hass):
     hass.services.async_remove(DOMAIN, SERVICE_COMPLETE_TASK)
 
 
-async def async_add_product_service(hass, data):
+async def async_add_product_service(hass, coordinator, data):
     """Add a product in Grocy."""
-    grocy = hass.data[DOMAIN]["instance"]
-
     product_id = data[SERVICE_PRODUCT_ID]
     amount = data[SERVICE_AMOUNT]
     price = data.get(SERVICE_PRICE, "")
 
-    grocy.add_product(product_id, amount, price)
+    coordinator.api.add_product(product_id, amount, price)
 
 
-async def async_consume_product_service(hass, data):
+async def async_consume_product_service(hass, coordinator, data):
     """Consume a product in Grocy."""
-    grocy = hass.data[DOMAIN]["instance"]
-
     product_id = data[SERVICE_PRODUCT_ID]
     amount = data[SERVICE_AMOUNT]
     spoiled = data.get(SERVICE_SPOILED, False)
@@ -179,15 +180,13 @@ async def async_consume_product_service(hass, data):
 
     if transaction_type_raw is not None:
         transaction_type = TransactionType[transaction_type_raw]
-    grocy.consume_product(
+    coordinator.api.consume_product(
         product_id, amount, spoiled=spoiled, transaction_type=transaction_type
     )
 
 
-async def async_execute_chore_service(hass, data):
+async def async_execute_chore_service(hass, coordinator, data):
     """Execute a chore in Grocy."""
-    grocy = hass.data[DOMAIN]["instance"]
-
     chore_id = data[SERVICE_CHORE_ID]
     done_by = data.get(SERVICE_DONE_BY, "")
     tracked_time_str = data.get(SERVICE_TRACKED_TIME, "")
@@ -196,16 +195,14 @@ async def async_execute_chore_service(hass, data):
     if tracked_time_str is not None and tracked_time_str != "":
         tracked_time = iso8601.parse_date(tracked_time_str)
 
-    grocy.execute_chore(chore_id, done_by, tracked_time)
+    coordinator.api.execute_chore(chore_id, done_by, tracked_time)
     asyncio.run_coroutine_threadsafe(
         entity_component.async_update_entity(hass, "sensor.grocy_chores"), hass.loop
     )
 
 
-async def async_complete_task_service(hass, data):
+async def async_complete_task_service(hass, coordinator, data):
     """Complete a task in Grocy."""
-    grocy = hass.data[DOMAIN]["instance"]
-
     task_id = data[SERVICE_TASK_ID]
     done_time_str = data.get(SERVICE_DONE_TIME, None)
 
@@ -213,17 +210,15 @@ async def async_complete_task_service(hass, data):
     if done_time_str is not None and done_time_str != "":
         done_time = iso8601.parse_date(done_time_str)
 
-    grocy.complete_task(task_id, done_time)
+    coordinator.api.complete_task(task_id, done_time)
     asyncio.run_coroutine_threadsafe(
         entity_component.async_update_entity(hass, "sensor.grocy_tasks"), hass.loop
     )
 
 
-async def async_add_generic_service(hass, data):
+async def async_add_generic_service(hass, coordinator, data):
     """Add a generic entity in Grocy."""
-    grocy = hass.data[DOMAIN]["instance"]
-
     entity_type = data[SERVICE_ENTITY_TYPE]
     data = data[SERVICE_DATA]
 
-    grocy.add_generic(entity_type, data)
+    coordinator.api.add_generic(entity_type, data)

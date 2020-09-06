@@ -1,111 +1,122 @@
 """
-The integration for grocy.
+Custom integration to integrate Grocy with Home Assistant.
+
+For more details about this integration, please refer to
+https://github.com/custom-components/grocy
 """
 import asyncio
-import hashlib
-import os
+import logging
 from datetime import timedelta
 
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
-from homeassistant import config_entries
-from homeassistant.const import CONF_API_KEY, CONF_PORT, CONF_URL, CONF_VERIFY_SSL
-from homeassistant.core import callback
-from homeassistant.helpers import discovery, entity_component
-from homeassistant.util import Throttle
-from integrationhelper.const import CC_STARTUP_VERSION
-from datetime import datetime
-import iso8601
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import Config, HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from pygrocy import Grocy
 
 from .const import (
-    LOGGER,
+    CONF_API_KEY,
+    CONF_PORT,
+    CONF_URL,
+    CONF_VERIFY_SSL,
     DOMAIN,
-    ISSUE_URL,
-    REQUIRED_FILES,
-    STARTUP,
-    VERSION,
+    PLATFORMS,
+    STARTUP_MESSAGE,
 )
+from .grocy_data import GrocyData, async_setup_image_api
+from .services import async_setup_services, async_unload_services
 
-from .services import async_setup_services
-from .instance import GrocyInstance, async_setup_api
-from .helpers import MealPlanItem
+SCAN_INTERVAL = timedelta(seconds=30)
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
+_LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup(hass, config):
-    """Old setup way."""
+async def async_setup(_hass: HomeAssistant, _config: Config):
+    """Set up this integration using YAML is not supported."""
     return True
 
 
-async def async_setup_entry(hass, config_entry):
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Set up this integration using UI."""
+    hass.data.setdefault(DOMAIN, {})
+    _LOGGER.info(STARTUP_MESSAGE)
 
-    conf = hass.data.get(DOMAIN)
-    if config_entry.source == config_entries.SOURCE_IMPORT:
-        if conf is None:
-            hass.async_create_task(
-                hass.config_entries.async_remove(config_entry.entry_id)
-            )
-        return False
-
-    # Print startup message
-    LOGGER.info(
-        CC_STARTUP_VERSION.format(name=DOMAIN, version=VERSION, issue_link=ISSUE_URL)
+    coordinator = GrocyDataUpdateCoordinator(
+        hass,
+        config_entry.data[CONF_URL],
+        config_entry.data[CONF_API_KEY],
+        config_entry.data[CONF_PORT],
+        config_entry.data[CONF_VERIFY_SSL],
     )
 
-    if not await hass.async_add_executor_job(check_files, hass):
-        return False
+    await coordinator.async_refresh()
 
-    hass.data[DOMAIN] = {}
+    if not coordinator.last_update_success:
+        raise ConfigEntryNotReady
 
-    instance = GrocyInstance(hass, config_entry)
-    hass.data[DOMAIN]["instance"] = instance
+    hass.data[DOMAIN] = coordinator
 
-    if not await instance.async_setup():
-        return False
+    for platform in PLATFORMS:
+        hass.async_add_job(
+            hass.config_entries.async_forward_entry_setup(config_entry, platform)
+        )
 
-    # Setup services
-    await async_setup_services(hass)
+    await async_setup_services(hass, config_entry)
 
     # Setup http endpoint for proxying images from grocy
-    await async_setup_api(hass, config_entry.data)
+    await async_setup_image_api(hass, config_entry.data)
 
+    config_entry.add_update_listener(async_reload_entry)
     return True
 
 
-def check_files(hass):
-    """Return bool that indicates if all files are present."""
-    # Verify that the user downloaded all files.
-    base = "{}/custom_components/{}/".format(hass.config.path(), DOMAIN)
-    missing = []
-    for file in REQUIRED_FILES:
-        fullpath = "{}{}".format(base, file)
-        if not os.path.exists(fullpath):
-            missing.append(file)
+class GrocyDataUpdateCoordinator(DataUpdateCoordinator):
+    """Class to manage fetching data from the API."""
 
-    if missing:
-        LOGGER.critical("The following files are missing: %s", str(missing))
-        returnvalue = False
-    else:
-        returnvalue = True
+    def __init__(self, hass, url, api_key, port_number, verify_ssl):
+        """Initialize."""
+        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=SCAN_INTERVAL)
+        self.api = Grocy(url, api_key, port_number, verify_ssl)
+        self.entities = []
+        self.data = {}
 
-    return returnvalue
+    async def _async_update_data(self):
+        """Update data via library."""
+        data = {}
+        try:
+            grocy_data = GrocyData(self.hass, self.api)
+            for entity in self.entities:
+                if entity.enabled:
+                    data[entity.entity_type] = await grocy_data.async_update_data(
+                        entity.entity_type
+                    )
+            return data
+        except Exception as exception:
+            raise UpdateFailed(exception)
 
 
-async def async_unload_entry(hass, config_entry):
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Handle removal of an entry."""
-    try:
-        await hass.config_entries.async_forward_entry_unload(config_entry, "sensor")
-        LOGGER.info("Successfully removed sensor from the grocy integration")
-    except ValueError as error:
-        LOGGER.exception(error)
-        pass
-    try:
-        await hass.config_entries.async_forward_entry_unload(
-            config_entry, "binary_sensor"
+    _LOGGER.debug("Unloading with state %s", entry.state)
+    if entry.state == "loaded":
+        unloaded = all(
+            await asyncio.gather(
+                *[
+                    hass.config_entries.async_forward_entry_unload(entry, platform)
+                    for platform in PLATFORMS
+                ]
+            )
         )
-        LOGGER.info("Successfully removed sensor from the grocy integration")
-    except ValueError as error:
-        LOGGER.exception(error)
-        pass
+        _LOGGER.debug("Unloaded? %s", unloaded)
+        del hass.data[DOMAIN]
+        return unloaded
+    return False
+
+
+async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Reload config entry."""
+    unloaded = await async_unload_entry(hass, entry)
+    _LOGGER.error("Unloaded successfully: %s", unloaded)
+    if unloaded:
+        await async_setup_entry(hass, entry)
+        await async_unload_services(hass)
