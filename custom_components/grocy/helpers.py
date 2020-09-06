@@ -1,6 +1,5 @@
 import base64
 
-
 class MealPlanItem(object):
     def __init__(self, data):
         self.day = data.day

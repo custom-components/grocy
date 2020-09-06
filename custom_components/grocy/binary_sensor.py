@@ -1,4 +1,4 @@
-"""Binary sensor platform for blueprint."""
+"""Binary sensor platform for Grocy."""
 import logging
 from homeassistant.components.binary_sensor import BinarySensorDevice
 

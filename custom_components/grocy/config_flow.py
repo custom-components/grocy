@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow for Blueprint."""
+    """Config flow for Grocy."""
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
