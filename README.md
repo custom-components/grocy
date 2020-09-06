@@ -38,4 +38,4 @@ You get a binary sensor each for expired, expiring and missing products.
 
 
 # <a name="screenshot"></a>Add-on port configuration
-![alt text](https://github.com/custom-components/grocy/raw/master/grocy-addon-config.png)
+![alt text](grocy-addon-config.png)
