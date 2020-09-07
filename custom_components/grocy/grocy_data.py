@@ -1,5 +1,7 @@
 from aiohttp import hdrs, web
 from datetime import timedelta, datetime
+import logging
+import pytz
 
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -13,6 +15,9 @@ from .const import (
 from .helpers import MealPlanItem
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
+_LOGGER = logging.getLogger(__name__)
+
+utc = pytz.UTC
 
 
 class GrocyData:
@@ -31,6 +36,8 @@ class GrocyData:
             GrocyEntityType.EXPIRED_PRODUCTS: self.async_update_expired_products,
             GrocyEntityType.MISSING_PRODUCTS: self.async_update_missing_products,
             GrocyEntityType.MEAL_PLAN: self.async_update_meal_plan,
+            GrocyEntityType.OVERDUE_CHORES: self.async_update_overdue_chores,
+            GrocyEntityType.OVERDUE_TASKS: self.async_update_overdue_tasks,
         }
         self.sensor_update_dict = {
             GrocyEntityType.STOCK: None,
@@ -41,6 +48,8 @@ class GrocyData:
             GrocyEntityType.EXPIRED_PRODUCTS: None,
             GrocyEntityType.MISSING_PRODUCTS: None,
             GrocyEntityType.MEAL_PLAN: None,
+            GrocyEntityType.OVERDUE_CHORES: None,
+            GrocyEntityType.OVERDUE_TASKS: None,
         }
 
     async def async_update_data(self, sensor_type):
@@ -68,6 +77,22 @@ class GrocyData:
 
         return await self.hass.async_add_executor_job(wrapper)
 
+    async def async_update_overdue_chores(self):
+        """Update data."""
+        # This is where the main logic to update platform data goes.
+        def wrapper():
+            return self.client.chores(True)
+
+        chores = await self.hass.async_add_executor_job(wrapper)
+        overdue_chores = []
+        for chore in chores:
+            if chore.next_estimated_execution_time:
+                now = datetime.now().replace(tzinfo=utc)
+                due = chore.next_estimated_execution_time.replace(tzinfo=utc)
+                if due < now:
+                    overdue_chores.append(chore)
+        return overdue_chores
+
     async def async_get_config(self):
         """Get the configuration from Grocy."""
 
@@ -80,6 +105,20 @@ class GrocyData:
         """Update data."""
         # This is where the main logic to update platform data goes.
         return await self.hass.async_add_executor_job(self.client.tasks)
+
+    async def async_update_overdue_tasks(self):
+        """Update data."""
+        # This is where the main logic to update platform data goes.
+        tasks = await self.hass.async_add_executor_job(self.client.tasks)
+
+        overdue_tasks = []
+        for task in tasks:
+            if task.due_date:
+                now = datetime.now().replace(tzinfo=utc)
+                due = task.due_date.replace(tzinfo=utc)
+                if due < now:
+                    overdue_tasks.append(task)
+        return overdue_tasks
 
     async def async_update_shopping_list(self):
         """Update data."""

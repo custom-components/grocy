@@ -121,6 +121,10 @@ class GrocyEntity(GrocyCoordinatorEntity):
             return {"meals": [x.as_dict() for x in self.entity_data]}
         elif self.entity_type == GrocyEntityType.MISSING_PRODUCTS:
             return {"missing": [x.as_dict() for x in self.entity_data]}
+        elif self.entity_type == GrocyEntityType.OVERDUE_CHORES:
+            return {"chores": [x.as_dict() for x in self.entity_data]}
+        elif self.entity_type == GrocyEntityType.OVERDUE_TASKS:
+            return {"tasks": [x.as_dict() for x in self.entity_data]}
         elif self.entity_type == GrocyEntityType.PRODUCTS:
             return {"products": [x.as_dict() for x in self.entity_data]}
         elif self.entity_type == GrocyEntityType.SHOPPING_LIST:
