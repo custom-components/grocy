@@ -14,6 +14,8 @@ BINARY_SENSOR_TYPES = [
     GrocyEntityType.EXPIRED_PRODUCTS,
     GrocyEntityType.EXPIRING_PRODUCTS,
     GrocyEntityType.MISSING_PRODUCTS,
+    GrocyEntityType.OVERDUE_CHORES,
+    GrocyEntityType.OVERDUE_TASKS,
 ]
 
 

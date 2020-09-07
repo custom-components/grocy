@@ -128,9 +128,11 @@ async def async_supported_features(grocy_data) -> List[str]:
 
         if config["FEATURE_FLAG_TASKS"] != "0":
             features.append(GrocyEntityType.TASKS)
+            features.append(GrocyEntityType.OVERDUE_TASKS)
 
         if config["FEATURE_FLAG_CHORES"] != "0":
             features.append(GrocyEntityType.CHORES)
+            features.append(GrocyEntityType.OVERDUE_CHORES)
 
         if config["FEATURE_FLAG_RECIPES"] != "0":
             features.append(GrocyEntityType.MEAL_PLAN)
