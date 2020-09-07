@@ -1,6 +1,16 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
-# Installation instructions
-## for Grocy add-on
+# Installation
+
+
+---
+**INFO**
+
+You have to have the Grocy software already installed, this integration only communicates with an existing installation of Grocy.
+
+---
+
+
+## <a name="addon"></a>for Grocy add-on
 
 The configuration is slightly different for those who use the [official Grocy addon](https://github.com/hassio-addons/addon-grocy) from the add-on store.
 
@@ -16,7 +26,7 @@ The configuration is slightly different for those who use the [official Grocy ad
 10. You will now have a new integration for Grocy. Some or all of the entities might be disabled from the start.
 
 
-## for existing external Grocy install
+## <a name="external"></a> for existing external Grocy install
 
 1. Install [HACS](https://hacs.xyz/)
 2. Go to Community > Store > Grocy
@@ -35,6 +45,23 @@ The configuration is slightly different for those who use the [official Grocy ad
 Some or all of the entities might be disabled from the start.
 You get a sensor each for chores, meal plan, shopping list, stock and tasks.
 You get a binary sensor each for expired, expiring and missing products.
+
+
+# Troubleshooting
+
+If you have problems with the integration you can add debug prints to the log.
+
+```yaml
+logger:
+  default: info
+  logs:
+    pygrocy: debug
+    custom_components.grocy: debug
+```
+
+If you are having issues and want to report a problem, always start with making sure that you're on the latest version of the integration, Grocy and Home Assistant.
+
+You can ask for help [in the forums](https://community.home-assistant.io/t/grocy-custom-component-and-card-s/218978), or [make an issue with all of the relevant information here](https://github.com/custom-components/grocy/issues/new?assignees=&labels=&template=bug_report.md&title=).
 
 
 # <a name="screenshot"></a>Add-on port configuration
