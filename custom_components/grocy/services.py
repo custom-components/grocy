@@ -2,14 +2,13 @@
 import asyncio
 import voluptuous as vol
 import iso8601
-import logging
-
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_component
 
 from pygrocy import TransactionType
 from datetime import datetime
 
+# pylint: disable=relative-beyond-top-level
 from .const import DOMAIN
 
 GROCY_SERVICES = "grocy_services"
@@ -66,19 +65,13 @@ SERVICE_EXECUTE_CHORE_SCHEMA = vol.All(
 
 SERVICE_COMPLETE_TASK_SCHEMA = vol.All(
     vol.Schema(
-        {
-            vol.Required(SERVICE_TASK_ID): int,
-            vol.Optional(SERVICE_DONE_TIME): str,
-        }
+        {vol.Required(SERVICE_TASK_ID): int, vol.Optional(SERVICE_DONE_TIME): str,}
     )
 )
 
 SERVICE_ADD_GENERIC_SCHEMA = vol.All(
     vol.Schema(
-        {
-            vol.Required(SERVICE_ENTITY_TYPE): str,
-            vol.Required(SERVICE_DATA): object,
-        }
+        {vol.Required(SERVICE_ENTITY_TYPE): str, vol.Required(SERVICE_DATA): object,}
     )
 )
 
