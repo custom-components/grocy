@@ -1,0 +1,39 @@
+{
+    "config": {
+        "title": "Grocy",
+        "step": {
+            "user": {
+                "title": "Grocy",
+                "description": "Ukoliko je potrebna pomoć s konfiguracijom, pogledaj ovdje: https://github.com/custom-components/grocy",
+                "data": {
+                    "url": "Grocy API URL (e.g. \"http://yourgrocyurl.com\")",
+                    "api_key": "Grocy API ključ",
+                    "port": "Bro porta (9192)",
+                    "verify_ssl": "Provjeri SSL certifikat"
+                }
+            }
+        },
+        "error": {
+            "auth": "Nešto je pošlo po zlu."
+        },
+        "abort": {
+            "single_instance_allowed": "Samo jedna Grocy konfiguracija je dozvoljena."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "data": {
+                    "binary_sensor": "Binarni senzor omogućen",
+                    "sensor": "Senzor omogućen",
+                    "switch": "Prekidač omogućen",
+                    "allow_chores": "Poslovi omogućeni",
+                    "allow_meal_plan": "Plan obroka omogućen",
+                    "allow_shopping_list": "List za kupovinu omogućena",
+                    "allow_stock": "Zaliha omogućena",
+                    "allow_tasks": "Zadatci omogućeni"
+                }
+            }
+        }
+    }
+}
