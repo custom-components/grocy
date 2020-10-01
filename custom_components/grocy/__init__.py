@@ -1,361 +1,167 @@
 """
-The integration for grocy.
+Custom integration to integrate Grocy with Home Assistant.
+
+For more details about this integration, please refer to
+https://github.com/custom-components/grocy
 """
 import asyncio
-import hashlib
 import logging
-import os
 from datetime import timedelta
+from typing import List
 
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
-from homeassistant import config_entries
-from homeassistant.const import CONF_API_KEY, CONF_PORT, CONF_URL, CONF_VERIFY_SSL
-from homeassistant.core import callback
-from homeassistant.helpers import discovery, entity_component
-from homeassistant.util import Throttle
-from integrationhelper.const import CC_STARTUP_VERSION
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import Config, HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from pygrocy import Grocy
 
 from .const import (
-    CHORES_NAME,
-    TASKS_NAME,
-    CONF_BINARY_SENSOR,
-    CONF_ENABLED,
-    CONF_NAME,
-    CONF_SENSOR,
-    DEFAULT_NAME,
-    DEFAULT_PORT_NUMBER,
+    CONF_API_KEY,
+    CONF_PORT,
+    CONF_URL,
+    CONF_VERIFY_SSL,
     DOMAIN,
-    DOMAIN_DATA,
-    EXPIRED_PRODUCTS_NAME,
-    EXPIRING_PRODUCTS_NAME,
-    ISSUE_URL,
-    MISSING_PRODUCTS_NAME,
-    MEAL_PLAN_NAME,
+    GrocyEntityType,
     PLATFORMS,
-    REQUIRED_FILES,
-    SHOPPING_LIST_NAME,
-    STARTUP,
-    STOCK_NAME,
-    VERSION,
+    STARTUP_MESSAGE,
 )
+from .grocy_data import GrocyData, async_setup_image_api
+from .services import async_setup_services, async_unload_services
 
-from .helpers import MealPlanItem
-
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
+SCAN_INTERVAL = timedelta(seconds=30)
 
 _LOGGER = logging.getLogger(__name__)
 
-SENSOR_SCHEMA = vol.Schema(
-    {
-        vol.Optional(CONF_ENABLED, default=True): cv.boolean,
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-    }
-)
 
-BINARY_SENSOR_SCHEMA = vol.Schema(
-    {
-        vol.Optional(CONF_ENABLED, default=True): cv.boolean,
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-    }
-)
-
-CONFIG_SCHEMA = vol.Schema(
-    {
-        DOMAIN: vol.Schema(
-            {
-                vol.Required(CONF_URL): cv.string,
-                vol.Required(CONF_API_KEY): cv.string,
-                vol.Optional(CONF_PORT, default=DEFAULT_PORT_NUMBER): cv.port,
-                vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
-                vol.Optional(CONF_SENSOR): vol.All(cv.ensure_list, [SENSOR_SCHEMA]),
-                vol.Optional(CONF_BINARY_SENSOR): vol.All(
-                    cv.ensure_list, [BINARY_SENSOR_SCHEMA]
-                ),
-            }
-        )
-    },
-    extra=vol.ALLOW_EXTRA,
-)
-
-
-async def async_setup(hass, config):
-    """Set up this component."""
+async def async_setup(_hass: HomeAssistant, _config: Config):
+    """Set up this integration using YAML is not supported."""
     return True
 
 
-async def async_setup_entry(hass, config_entry):
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Set up this integration using UI."""
-    from pygrocy import Grocy, TransactionType
-    from datetime import datetime
-    import iso8601
+    hass.data.setdefault(DOMAIN, {})
+    _LOGGER.info(STARTUP_MESSAGE)
 
-    conf = hass.data.get(DOMAIN_DATA)
-    if config_entry.source == config_entries.SOURCE_IMPORT:
-        if conf is None:
-            hass.async_create_task(
-                hass.config_entries.async_remove(config_entry.entry_id)
-            )
-        return False
-
-    # Print startup message
-    _LOGGER.info(
-        CC_STARTUP_VERSION.format(name=DOMAIN, version=VERSION, issue_link=ISSUE_URL)
+    coordinator = GrocyDataUpdateCoordinator(
+        hass,
+        config_entry.data[CONF_URL],
+        config_entry.data[CONF_API_KEY],
+        config_entry.data[CONF_PORT],
+        config_entry.data[CONF_VERIFY_SSL],
     )
 
-    # Check that all required files are present
-    if not await hass.async_add_executor_job(check_files, hass):
-        return False
+    await coordinator.async_refresh()
 
-    # Create DATA dict
-    hass.data[DOMAIN_DATA] = {}
+    if not coordinator.last_update_success:
+        raise ConfigEntryNotReady
 
-    # Get "global" configuration.
-    url = config_entry.data.get(CONF_URL)
-    api_key = config_entry.data.get(CONF_API_KEY)
-    verify_ssl = config_entry.data.get(CONF_VERIFY_SSL)
-    port_number = config_entry.data.get(CONF_PORT)
-    hash_key = hashlib.md5(api_key.encode("utf-8") + url.encode("utf-8")).hexdigest()
+    hass.data[DOMAIN] = coordinator
 
-    # Configure the client.
-    grocy = Grocy(url, api_key, port_number, verify_ssl)
-    hass.data[DOMAIN_DATA]["client"] = GrocyData(hass, grocy)
-    hass.data[DOMAIN_DATA]["hash_key"] = hash_key
-    hass.data[DOMAIN_DATA]["url"] = f"{url}:{port_number}"
-
-    # Add sensor
-    hass.async_add_job(
-        hass.config_entries.async_forward_entry_setup(config_entry, "sensor")
-    )
-    # Add sensor
-    hass.async_add_job(
-        hass.config_entries.async_forward_entry_setup(config_entry, "binary_sensor")
-    )
-
-    @callback
-    def handle_add_product(call):
-        product_id = call.data["product_id"]
-        amount = call.data.get("amount", 0)
-        price = call.data.get("price", None)
-        grocy.add_product(product_id, amount, price)
-
-    hass.services.async_register(DOMAIN, "add_product", handle_add_product)
-
-    @callback
-    def handle_consume_product(call):
-        product_id = call.data["product_id"]
-        amount = call.data.get("amount", 0)
-        spoiled = call.data.get("spoiled", False)
-
-        transaction_type_raw = call.data.get("transaction_type", None)
-        transaction_type = TransactionType.CONSUME
-
-        if transaction_type_raw is not None:
-            transaction_type = TransactionType[transaction_type_raw]
-        grocy.consume_product(
-            product_id, amount, spoiled=spoiled, transaction_type=transaction_type
+    for platform in PLATFORMS:
+        hass.async_add_job(
+            hass.config_entries.async_forward_entry_setup(config_entry, platform)
         )
 
-    hass.services.async_register(DOMAIN, "consume_product", handle_consume_product)
+    await async_setup_services(hass, config_entry)
 
-    @callback
-    def handle_execute_chore(call):
-        chore_id = call.data["chore_id"]
-        done_by = call.data.get("done_by", None)
-        tracked_time_str = call.data.get("tracked_time", None)
+    # Setup http endpoint for proxying images from grocy
+    await async_setup_image_api(hass, config_entry.data)
 
-        tracked_time = datetime.now()
-        if tracked_time_str is not None:
-            tracked_time = iso8601.parse_date(tracked_time_str)
-        grocy.execute_chore(chore_id, done_by, tracked_time)
-        asyncio.run_coroutine_threadsafe(
-            entity_component.async_update_entity(hass, "sensor.grocy_chores"), hass.loop
-        )
-
-    hass.services.async_register(DOMAIN, "execute_chore", handle_execute_chore)
-
-    @callback
-    def handle_complete_task(call):
-        task_id = call.data["task_id"]
-        done_time_str = call.data.get("done_time", None)
-
-        done_time = datetime.now()
-        if done_time_str is not None:
-            done_time = iso8601.parse_date(done_time_str)
-        grocy.complete_task(task_id, done_time)
-        asyncio.run_coroutine_threadsafe(
-            entity_component.async_update_entity(hass, "sensor.grocy_tasks"), hass.loop
-        )
-
-    hass.services.async_register(DOMAIN, "complete_task", handle_complete_task)
-
-    @callback
-    def handle_add_generic(call):
-        entity_type = call.data["entity_type"]
-        data = call.data["data"]
-
-        grocy.add_generic(entity_type, data)
-
-    hass.services.async_register(DOMAIN, "add_generic", handle_add_generic)
-
+    config_entry.add_update_listener(async_reload_entry)
     return True
 
 
-class GrocyData:
-    """This class handle communication and stores the data."""
+class GrocyDataUpdateCoordinator(DataUpdateCoordinator):
+    """Class to manage fetching data from the API."""
 
-    def __init__(self, hass, client):
-        """Initialize the class."""
-        self.hass = hass
-        self.client = client
-        self.sensor_types_dict = {
-            STOCK_NAME: self.async_update_stock,
-            CHORES_NAME: self.async_update_chores,
-            TASKS_NAME: self.async_update_tasks,
-            SHOPPING_LIST_NAME: self.async_update_shopping_list,
-            EXPIRING_PRODUCTS_NAME: self.async_update_expiring_products,
-            EXPIRED_PRODUCTS_NAME: self.async_update_expired_products,
-            MISSING_PRODUCTS_NAME: self.async_update_missing_products,
-            MEAL_PLAN_NAME : self.async_update_meal_plan,
-        }
-        self.sensor_update_dict = {
-            STOCK_NAME: None,
-            CHORES_NAME: None,
-            TASKS_NAME: None,
-            SHOPPING_LIST_NAME: None,
-            EXPIRING_PRODUCTS_NAME: None,
-            EXPIRED_PRODUCTS_NAME: None,
-            MISSING_PRODUCTS_NAME: None,
-            MEAL_PLAN_NAME : None,
-        }
+    def __init__(self, hass, url, api_key, port_number, verify_ssl):
+        """Initialize."""
+        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=SCAN_INTERVAL)
+        self.api = Grocy(url, api_key, port_number, verify_ssl)
+        self.entities = []
+        self.data = {}
 
-    async def async_update_data(self, sensor_type):
-        """Update data."""
-        sensor_update = self.sensor_update_dict[sensor_type]
-        db_changed = await self.hass.async_add_executor_job(
-            self.client.get_last_db_changed
-        )
-        if db_changed != sensor_update:
-            self.sensor_update_dict[sensor_type] = db_changed
-            if sensor_type in self.sensor_types_dict:
-                # This is where the main logic to update platform data goes.
-                self.hass.async_create_task(self.sensor_types_dict[sensor_type]())
+    async def _async_update_data(self):
+        """Update data via library."""
+        grocy_data = GrocyData(self.hass, self.api)
+        data = {}
+        features = []
+        try:
+            features = await async_supported_features(grocy_data)
+            if not features:
+                raise UpdateFailed("No features enabled")
+        except Exception as exception:
+            raise UpdateFailed(exception)
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    async def async_update_stock(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
-        self.hass.data[DOMAIN_DATA][
-            STOCK_NAME
-        ] = await self.hass.async_add_executor_job(self.client.stock)
-
-    async def async_update_chores(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
-        def wrapper():
-            return self.client.chores(True)
-
-        self.hass.data[DOMAIN_DATA][
-            CHORES_NAME
-        ] = await self.hass.async_add_executor_job(wrapper)
-
-    async def async_update_tasks(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
-
-        self.hass.data[DOMAIN_DATA][
-            TASKS_NAME
-        ] = await self.hass.async_add_executor_job(self.client.tasks)
-
-    async def async_update_shopping_list(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
-        def wrapper():
-            return self.client.shopping_list(True)
-
-        self.hass.data[DOMAIN_DATA][
-            SHOPPING_LIST_NAME
-        ] = await self.hass.async_add_executor_job(wrapper)
-
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    async def async_update_expiring_products(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
-        def wrapper():
-            return self.client.expiring_products(True)
-
-        self.hass.data[DOMAIN_DATA][
-            EXPIRING_PRODUCTS_NAME
-        ] = await self.hass.async_add_executor_job(wrapper)
-
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    async def async_update_expired_products(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
-        def wrapper():
-            return self.client.expired_products(True)
-
-        self.hass.data[DOMAIN_DATA][
-            EXPIRED_PRODUCTS_NAME
-        ] = await self.hass.async_add_executor_job(wrapper)
-
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    async def async_update_missing_products(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
-        def wrapper():
-            return self.client.missing_products(True)
-
-        self.hass.data[DOMAIN_DATA][
-            MISSING_PRODUCTS_NAME
-        ] = await self.hass.async_add_executor_job(wrapper)
-
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    async def async_update_meal_plan(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
-        def wrapper():
-            meal_plan = self.client.meal_plan(True)
-            base_url = self.hass.data[DOMAIN_DATA]["url"]
-            return [MealPlanItem(item, base_url) for item in meal_plan]
-
-        self.hass.data[DOMAIN_DATA][
-            MEAL_PLAN_NAME
-        ] = await self.hass.async_add_executor_job(wrapper)
+        for entity in self.entities:
+            if entity.enabled and entity.entity_type in features:
+                try:
+                    data[entity.entity_type] = await grocy_data.async_update_data(
+                        entity.entity_type
+                    )
+                except Exception as exception:
+                    _LOGGER.error(
+                        f"Update of {entity.entity_type} failed with {exception}"
+                    )
+            elif entity.entity_type not in features:
+                _LOGGER.warning(
+                    f"You have enabled the entity for {entity.name}, but this feature is not enabled in Grocy",
+                )
+        return data
 
 
-def check_files(hass):
-    """Return bool that indicates if all files are present."""
-    # Verify that the user downloaded all files.
-    base = "{}/custom_components/{}/".format(hass.config.path(), DOMAIN)
-    missing = []
-    for file in REQUIRED_FILES:
-        fullpath = "{}{}".format(base, file)
-        if not os.path.exists(fullpath):
-            missing.append(file)
+async def async_supported_features(grocy_data) -> List[str]:
+    """Return a list of supported features."""
+    features = []
+    config = await grocy_data.async_get_config()
+    if config:
+        if config["FEATURE_FLAG_STOCK"] != "0":
+            features.append(GrocyEntityType.STOCK)
+            features.append(GrocyEntityType.PRODUCTS)
+            features.append(GrocyEntityType.MISSING_PRODUCTS)
+            features.append(GrocyEntityType.EXPIRED_PRODUCTS)
+            features.append(GrocyEntityType.EXPIRING_PRODUCTS)
 
-    if missing:
-        _LOGGER.critical("The following files are missing: %s", str(missing))
-        returnvalue = False
-    else:
-        returnvalue = True
+        if config["FEATURE_FLAG_SHOPPINGLIST"] != "0":
+            features.append(GrocyEntityType.SHOPPING_LIST)
 
-    return returnvalue
+        if config["FEATURE_FLAG_TASKS"] != "0":
+            features.append(GrocyEntityType.TASKS)
+            features.append(GrocyEntityType.OVERDUE_TASKS)
+
+        if config["FEATURE_FLAG_CHORES"] != "0":
+            features.append(GrocyEntityType.CHORES)
+            features.append(GrocyEntityType.OVERDUE_CHORES)
+
+        if config["FEATURE_FLAG_RECIPES"] != "0":
+            features.append(GrocyEntityType.MEAL_PLAN)
+
+    return features
 
 
-async def async_remove_entry(hass, config_entry):
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Handle removal of an entry."""
-    try:
-        await hass.config_entries.async_forward_entry_unload(config_entry, "sensor")
-        _LOGGER.info("Successfully removed sensor from the grocy integration")
-    except ValueError as error:
-        _LOGGER.exception(error)
-        pass
-    try:
-        await hass.config_entries.async_forward_entry_unload(
-            config_entry, "binary_sensor"
+    _LOGGER.debug("Unloading with state %s", entry.state)
+    if entry.state == "loaded":
+        unloaded = all(
+            await asyncio.gather(
+                *[
+                    hass.config_entries.async_forward_entry_unload(entry, platform)
+                    for platform in PLATFORMS
+                ]
+            )
         )
-        _LOGGER.info("Successfully removed sensor from the grocy integration")
-    except ValueError as error:
-        _LOGGER.exception(error)
-        pass
+        _LOGGER.debug("Unloaded? %s", unloaded)
+        del hass.data[DOMAIN]
+        return unloaded
+    return False
+
+
+async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Reload config entry."""
+    unloaded = await async_unload_entry(hass, entry)
+    _LOGGER.error("Unloaded successfully: %s", unloaded)
+    if unloaded:
+        await async_setup_entry(hass, entry)
+        await async_unload_services(hass)

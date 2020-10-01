@@ -1,59 +1,76 @@
-"""Constants for grocy."""
+"""Constants for Grocy."""
+from enum import Enum
+
 # Base component constants
+NAME = "Grocy"
 DOMAIN = "grocy"
-DOMAIN_DATA = "{}_data".format(DOMAIN)
-VERSION = "0.4.0"
-PLATFORMS = ["sensor", "binary_sensor"]
-REQUIRED_FILES = [
-    "const.py",
-    "manifest.json",
-    "sensor.py",
-    "binary_sensor.py",
-    "config_flow.py",
-    "translations/en.json",
-]
+VERSION = "2.0.0"
+
 ISSUE_URL = "https://github.com/custom-components/grocy/issues"
-ATTRIBUTION = "Data from this is provided by grocy."
-STARTUP = """
+
+
+# Platforms
+PLATFORMS = ["binary_sensor", "sensor"]
+
+# Configuration and options
+CONF_NAME = "name"
+
+DEFAULT_PORT = 9192
+CONF_URL = "url"
+CONF_PORT = "port"
+CONF_API_KEY = "api_key"
+CONF_VERIFY_SSL = "verify_ssl"
+
+STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------
-{name}
-Version: {version}
-This is a custom component
+{NAME}
+Version: {VERSION}
+This is a custom integration!
 If you have any issues with this you need to open an issue here:
-{issueurl}
+{ISSUE_URL}
 -------------------------------------------------------------------
 """
 
-# Icons
-ICON = "mdi:format-quote-close"
 
-# Device classes
-SENSOR_PRODUCTS_UNIT_OF_MEASUREMENT = "Product(s)"
-SENSOR_CHORES_UNIT_OF_MEASUREMENT = "Chore(s)"
-SENSOR_TASKS_UNIT_OF_MEASUREMENT = "Task(s)"
-SENSOR_MEALS_UNIT_OF_MEASUREMENT = "Meal(s)"
-STOCK_NAME = "stock"
-CHORES_NAME = "chores"
-TASKS_NAME = "tasks"
-SHOPPING_LIST_NAME = "shopping_list"
-EXPIRING_PRODUCTS_NAME = "expiring_products"
-EXPIRED_PRODUCTS_NAME = "expired_products"
-MISSING_PRODUCTS_NAME = "missing_products"
-MEAL_PLAN_NAME = "meal_plan"
+class GrocyEntityType(str, Enum):
+    """Entity type for Grocy entities."""
 
-SENSOR_TYPES = [STOCK_NAME, CHORES_NAME, TASKS_NAME, SHOPPING_LIST_NAME, MEAL_PLAN_NAME]
-BINARY_SENSOR_TYPES = [
-    EXPIRING_PRODUCTS_NAME,
-    EXPIRED_PRODUCTS_NAME,
-    MISSING_PRODUCTS_NAME,
-]
+    CHORES = "Chores"
+    EXPIRED_PRODUCTS = "Expired_products"
+    EXPIRING_PRODUCTS = "Expiring_products"
+    MEAL_PLAN = "Meal_plan"
+    MISSING_PRODUCTS = "Missing_products"
+    OVERDUE_CHORES = "Overdue_chores"
+    OVERDUE_TASKS = "Overdue_tasks"
+    PRODUCTS = "Products"
+    SHOPPING_LIST = "Shopping_list"
+    STOCK = "Stock"
+    TASKS = "Tasks"
 
-# Configuration
-CONF_SENSOR = "sensor"
-CONF_BINARY_SENSOR = "binary_sensor"
-CONF_ENABLED = "enabled"
-CONF_NAME = "name"
 
-# Defaults
-DEFAULT_NAME = DOMAIN
-DEFAULT_PORT_NUMBER = 9192
+class GrocyEntityUnit(str, Enum):
+    """Unit of measurement for Grocy entities."""
+
+    CHORES = "Chore(s)"
+    MEALS = "Meal(s)"
+    PRODUCTS = "Product(s)"
+    TASKS = "Task(s)"
+
+
+class GrocyEntityIcon(str, Enum):
+    """Icon for a Grocy entity."""
+
+    DEFAULT = "mdi:format-quote-close"
+
+    CHORES = "mdi:broom"
+    EXPIRED_PRODUCTS = "mdi:delete-alert-outline"
+    EXPIRING_PRODUCTS = "mdi:clock-fast"
+    MEAL_PLAN = "mdi:silverware-variant"
+    MISSING_PRODUCTS = "mdi:flask-round-bottom-empty-outline"
+    OVERDUE_CHORES = "mdi:alert-circle-check-outline"
+    OVERDUE_TASKS = "mdi:alert-circle-check-outline"
+    PRODUCTS = "mdi:food-fork-drink"
+    SHOPPING_LIST = "mdi:cart-outline"
+    STOCK = "mdi:fridge-outline"
+    TASKS = "mdi:checkbox-marked-circle-outline"
+
