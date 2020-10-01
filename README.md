@@ -44,8 +44,10 @@ The configuration is slightly different for those who use the [official Grocy ad
 # Entities
 Some or all of the entities might be disabled from the start.
 You get a sensor each for chores, meal plan, shopping list, stock and tasks.
-You get a binary sensor each for expired, expiring and missing products.
+You get a binary sensor each for expired, expiring and missing products and overdue tasks and chores.
 
+# Translation
+Translations are done via [Lokalise](https://app.lokalise.com/public/260939135f7593a05f2b79.75475372/). If you want to translate into your native language, please [join the team](https://app.lokalise.com/public/260939135f7593a05f2b79.75475372/).
 
 # Troubleshooting
 
