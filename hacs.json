@@ -5,6 +5,9 @@
     "binary_sensor"
   ],
   "render_readme": true,
+  "zip_release": true,
+  "hide_default_branch": true,
   "iot_class": "Cloud Polling",
-  "homeassistant": "0.109.0"
+  "homeassistant": "0.109.0",
+  "filename": "grocy.zip"
 }
