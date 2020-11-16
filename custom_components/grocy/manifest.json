@@ -12,7 +12,7 @@
   ],
   "requirements": [
     "sampleclient",
-    "pygrocy==0.23.0",
+    "pygrocy==0.24.1",
     "iso8601==0.1.12",
     "integrationhelper"
   ]
