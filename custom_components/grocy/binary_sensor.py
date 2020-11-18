@@ -1,11 +1,6 @@
 """Binary sensor platform for Grocy."""
 import logging
-try:
-    from homeassistant.components.binary_sensor import BinarySensorEntity
-except ImportError:
-    from homeassistant.components.binary_sensor import (
-        BinarySensorDevice as BinarySensorEntity,
-    )
+from homeassistant.components.binary_sensor import BinarySensorDevice
 
 # pylint: disable=relative-beyond-top-level
 from .const import (
@@ -38,7 +33,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async_add_entities(entities, True)
 
 
-class GrocyBinarySensor(GrocyEntity, BinarySensorEntity):
+class GrocyBinarySensor(GrocyEntity, BinarySensorDevice):
     """Grocy binary_sensor class."""
 
     @property
