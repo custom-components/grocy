@@ -3,6 +3,13 @@
 
 
 ---
+**WARNING**
+
+Only tested with Grocy v.2.x. Not yet tested with 3.x, can't promise compatibility at this time.
+
+---
+
+---
 **INFO**
 
 You have to have the Grocy software already installed, this integration only communicates with an existing installation of Grocy.
