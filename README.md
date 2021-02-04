@@ -5,7 +5,7 @@
 ---
 **WARNING**
 
-Only tested with Grocy v.2.x. Not yet tested with 3.x, can't promise compatibility at this time.
+Only tested with Grocy v.2.x. Not yet tested with 3.x, can't promise compatibility at this time. (For the add-on Grocy 3 was introduced in add-on version 0.10.0.)
 
 ---
 
