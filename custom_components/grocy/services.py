@@ -65,13 +65,19 @@ SERVICE_EXECUTE_CHORE_SCHEMA = vol.All(
 
 SERVICE_COMPLETE_TASK_SCHEMA = vol.All(
     vol.Schema(
-        {vol.Required(SERVICE_TASK_ID): int, vol.Optional(SERVICE_DONE_TIME): str,}
+        {
+            vol.Required(SERVICE_TASK_ID): int,
+            vol.Optional(SERVICE_DONE_TIME): str,
+        }
     )
 )
 
 SERVICE_ADD_GENERIC_SCHEMA = vol.All(
     vol.Schema(
-        {vol.Required(SERVICE_ENTITY_TYPE): str, vol.Required(SERVICE_DATA): object,}
+        {
+            vol.Required(SERVICE_ENTITY_TYPE): str,
+            vol.Required(SERVICE_DATA): object,
+        }
     )
 )
 
@@ -159,7 +165,10 @@ async def async_add_product_service(hass, coordinator, data):
     amount = data[SERVICE_AMOUNT]
     price = data.get(SERVICE_PRICE, "")
 
-    coordinator.api.add_product(product_id, amount, price)
+    def wrapper():
+        coordinator.api.add_product(product_id, amount, price)
+
+    await hass.async_add_executor_job(wrapper)
 
 
 async def async_consume_product_service(hass, coordinator, data):
@@ -173,9 +182,13 @@ async def async_consume_product_service(hass, coordinator, data):
 
     if transaction_type_raw is not None:
         transaction_type = TransactionType[transaction_type_raw]
-    coordinator.api.consume_product(
-        product_id, amount, spoiled=spoiled, transaction_type=transaction_type
-    )
+
+    def wrapper():
+        coordinator.api.consume_product(
+            product_id, amount, spoiled=spoiled, transaction_type=transaction_type
+        )
+
+    await hass.async_add_executor_job(wrapper)
 
 
 async def async_execute_chore_service(hass, coordinator, data):
@@ -188,7 +201,11 @@ async def async_execute_chore_service(hass, coordinator, data):
     if tracked_time_str is not None and tracked_time_str != "":
         tracked_time = iso8601.parse_date(tracked_time_str)
 
-    coordinator.api.execute_chore(chore_id, done_by, tracked_time)
+    def wrapper():
+        coordinator.api.execute_chore(chore_id, done_by, tracked_time)
+
+    await hass.async_add_executor_job(wrapper)
+
     asyncio.run_coroutine_threadsafe(
         entity_component.async_update_entity(hass, "sensor.grocy_chores"), hass.loop
     )
@@ -203,7 +220,11 @@ async def async_complete_task_service(hass, coordinator, data):
     if done_time_str is not None and done_time_str != "":
         done_time = iso8601.parse_date(done_time_str)
 
-    coordinator.api.complete_task(task_id, done_time)
+    def wrapper():
+        coordinator.api.complete_task(task_id, done_time)
+
+    await hass.async_add_executor_job(wrapper)
+
     asyncio.run_coroutine_threadsafe(
         entity_component.async_update_entity(hass, "sensor.grocy_tasks"), hass.loop
     )
@@ -214,4 +235,7 @@ async def async_add_generic_service(hass, coordinator, data):
     entity_type = data[SERVICE_ENTITY_TYPE]
     data = data[SERVICE_DATA]
 
-    coordinator.api.add_generic(entity_type, data)
+    def wrapper():
+        coordinator.api.add_generic(entity_type, data)
+
+    await hass.async_add_executor_job(wrapper)

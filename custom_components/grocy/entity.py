@@ -1,4 +1,5 @@
 """GrocyEntity class"""
+import json
 from homeassistant.helpers import entity
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -11,6 +12,7 @@ from .const import (
     NAME,
     VERSION,
 )
+from .json_encode import GrocyJSONEncoder
 
 
 class GrocyCoordinatorEntity(entity.Entity):
@@ -111,25 +113,30 @@ class GrocyEntity(GrocyCoordinatorEntity):
         """Return the state attributes."""
         if not self.entity_data:
             return
-        elif self.entity_type == GrocyEntityType.CHORES:
-            return {"chores": [x.as_dict() for x in self.entity_data]}
+
+        data = {}
+
+        if self.entity_type == GrocyEntityType.CHORES:
+            data = {"chores": [x.as_dict() for x in self.entity_data]}
         elif self.entity_type == GrocyEntityType.EXPIRED_PRODUCTS:
-            return {"expired": [x.as_dict() for x in self.entity_data]}
+            data = {"expired": [x.as_dict() for x in self.entity_data]}
         elif self.entity_type == GrocyEntityType.EXPIRING_PRODUCTS:
-            return {"expiring": [x.as_dict() for x in self.entity_data]}
+            data = {"expiring": [x.as_dict() for x in self.entity_data]}
         elif self.entity_type == GrocyEntityType.MEAL_PLAN:
-            return {"meals": [x.as_dict() for x in self.entity_data]}
+            data = {"meals": [x.as_dict() for x in self.entity_data]}
         elif self.entity_type == GrocyEntityType.MISSING_PRODUCTS:
-            return {"missing": [x.as_dict() for x in self.entity_data]}
+            data = {"missing": [x.as_dict() for x in self.entity_data]}
         elif self.entity_type == GrocyEntityType.OVERDUE_CHORES:
-            return {"chores": [x.as_dict() for x in self.entity_data]}
+            data = {"chores": [x.as_dict() for x in self.entity_data]}
         elif self.entity_type == GrocyEntityType.OVERDUE_TASKS:
-            return {"tasks": [x.as_dict() for x in self.entity_data]}
+            data = {"tasks": [x.as_dict() for x in self.entity_data]}
         elif self.entity_type == GrocyEntityType.PRODUCTS:
-            return {"products": [x.as_dict() for x in self.entity_data]}
+            data = {"products": [x.as_dict() for x in self.entity_data]}
         elif self.entity_type == GrocyEntityType.SHOPPING_LIST:
-            return {"products": [x.as_dict() for x in self.entity_data]}
+            data = {"products": [x.as_dict() for x in self.entity_data]}
         elif self.entity_type == GrocyEntityType.STOCK:
-            return {"products": [x.as_dict() for x in self.entity_data]}
+            data = {"products": [x.as_dict() for x in self.entity_data]}
         elif self.entity_type == GrocyEntityType.TASKS:
-            return {"tasks": [x.as_dict() for x in self.entity_data]}
+            data = {"tasks": [x.as_dict() for x in self.entity_data]}
+
+        return json.dumps(data, cls=GrocyJSONEncoder)
