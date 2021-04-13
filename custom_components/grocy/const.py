@@ -52,7 +52,7 @@ class GrocyEntityUnit(str, Enum):
     """Unit of measurement for Grocy entities."""
 
     CHORES = "Chore(s)"
-    MEALS = "Meal(s)"
+    MEAL_PLAN = "Meal(s)"
     PRODUCTS = "Product(s)"
     TASKS = "Task(s)"
 
