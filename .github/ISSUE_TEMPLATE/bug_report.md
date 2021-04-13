@@ -21,6 +21,8 @@ Steps to reproduce the behavior:
 3. Scroll down to '....'
 4. See error
 
+### General information to help debugging:
+**What sensors do you have enabled? Are they working and/or what state are they in? Do you have the corresponding functions enabled in Grocy?**
 
 **What is your installed versions of Home Assistant, Grocy and this integration?**
 
