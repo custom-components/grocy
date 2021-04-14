@@ -127,7 +127,7 @@ class GrocyEntity(GrocyCoordinatorEntity):
         elif self.entity_type == GrocyEntityType.MISSING_PRODUCTS:
             data = {"missing": [x.as_dict() for x in self.entity_data]}
         elif self.entity_type == GrocyEntityType.OVERDUE_CHORES:
-            data = {"chores": [x.as_dict() for x in self.entity_data]}
+            data = {"chores": [x.as_dict() for x in self.entity_data], "count":len(self.entity_data)}
         elif self.entity_type == GrocyEntityType.OVERDUE_TASKS:
             data = {"tasks": [x.as_dict() for x in self.entity_data]}
         elif self.entity_type == GrocyEntityType.PRODUCTS:
