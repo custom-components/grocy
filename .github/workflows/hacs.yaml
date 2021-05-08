@@ -11,7 +11,7 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v2"
-      - uses: "hacs/integration/action@main"
+      - name: HACS Action
+        uses: "hacs/action@main"
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CATEGORY: "integration"
+          category: "integration"
