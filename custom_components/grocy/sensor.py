@@ -35,6 +35,9 @@ class GrocySensor(GrocyEntity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        if not self.entity_data:
+        _LOGGER.debug("Data for {}: {}".format(self.entity_id, self.entity_data))
+        if self.entity_data is None:
             return
+        if not self.entity_data:
+            return 0
         return len(self.entity_data)
