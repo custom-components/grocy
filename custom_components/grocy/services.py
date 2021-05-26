@@ -6,6 +6,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_component
 
 from pygrocy import TransactionType
+from pygrocy import EntityType
 from datetime import datetime
 
 # pylint: disable=relative-beyond-top-level
@@ -232,7 +233,12 @@ async def async_complete_task_service(hass, coordinator, data):
 
 async def async_add_generic_service(hass, coordinator, data):
     """Add a generic entity in Grocy."""
-    entity_type = data[SERVICE_ENTITY_TYPE]
+    entity_type_raw = data.get(SERVICE_ENTITY_TYPE, None)
+    entity_type = EntityType.TASKS
+
+    if entity_type_raw is not None:
+        entity_type = EntityType(entity_type_raw)
+
     data = data[SERVICE_DATA]
 
     def wrapper():
