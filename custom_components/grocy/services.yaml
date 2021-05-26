@@ -1,59 +1,153 @@
 add_product_to_stock:
+  name: Add Product To Stock
   description: Adds a given amount of a product to the stock
   fields:
     product_id:
+      name: Product Id
       example: '3'
+      required: true
       description: The id of the product to add to stock
+      selector:
+        text:
     amount:
+      name: Amount
       description: The amount to add to stock
-      example: 3.0
+      required: true
+      example: 3
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 1000
+          mode: box
     price:
+      name: Price
       example: 1.99
       description: The purchase price per purchase quantity unit of the added product
+      selector:
+        text:
 consume_product_from_stock:
+  name: Consume Product From Stock
   description: Consumes a given amount of a product to the stock
   fields:
     product_id:
+      name: Product Id
       example: '3'
+      required: true
       description: The id of the product to consume
+      selector:
+        text:
     amount:
-      example: 3.0
+      name: Amount
+      example: 3
+      required: true
       description: The amount to consume
+      selector:
+        number:
+          min: 1
+          max: 1000
+          mode: box
     spoiled:
+      name: Spoiled
+      description: If the product was removed because of spoilage
       example: false
-      description: if the product was removed because of spoilage
+      default: false
+      selector:
+        boolean:
     transaction_type:
+      name: Transaction Type
+      description: The type of the transaction.
+      required: true
       example: "CONSUME"
-      description: The type of the transaction. One of "CONSUME", "PURCHASE", "INVENTORY_CORRECTION" or "PRODUCT_OPENED"
+      default: "CONSUME"
+      selector:
+        select:
+          options:
+            - "CONSUME"
+            - "PURCHASE"
+            - "INVENTORY_CORRECTION"
+            - "PRODUCT_OPENED"
 execute_chore:
+  name: Execute Chore
   description: Executes the given chore with an optional timestamp and executor
   fields:
     chore_id:
+      name: Chore Id
       example: '3'
+      required: true
       description: The id of the chore to execute
+      selector:
+        text:
+    done_by:
+      name: User Id
+      example: '0'
+      required: true
+      description: The id of the user who executed the chore
+      selector:
+        text:
     tracked_time:
+      name: Tracked time
       example: '2019-06-18T19:00:00.251Z'
       description: The timestamp at when the chore got executed as ISO8601
-    done_by:
-      example: '0'
-      description: The id of the user who executed the chore
+      selector:
+        text:
 
 complete_task:
+  name: Complete Task
   description: Completes the given task
   fields:
     task_id:
+      name: Task Id
       example: '3'
+      required: true
       description: The id of the task to complete
+      selector:
+        text:
     done_time:
+      name: Done Time
       example: '2019-06-18T19:00:00.251Z'
       description: The timestamp at when the task got completed as ISO8601
+      selector:
+        text:
 
 add_generic:
+  name: Add Generic
   description: Adds a single object of the given entity type
   fields:
     entity_type:
+      name: Entity Type
+      description: The type of entity you like to add.
+      required: true
       example: 'tasks'
-      description: Entity type is the type of entity you like to add. See Grocy api documentation on "Generic entity interactions" for more information.
+      default: 'tasks'
+      selector:
+        select:
+          options:
+            - "products"
+            - "chores"
+            - "product_barcodes"
+            - "batteries"
+            - "locations"
+            - "quantity_units"
+            - "quantity_unit_conversions"
+            - "shopping_list"
+            - "shopping_lists"
+            - "shopping_locations"
+            - "recipes"
+            - "recipes_pos"
+            - "recipes_nestings"
+            - "tasks"
+            - "task_categories"
+            - "product_groups"
+            - "equipment"
+            - "userfields"
+            - "userentities"
+            - "userobjects"
+            - "meal_plan"
     data:
-      example: '{"name": "This is a task"}'
-      description: Data is a json object with what data you want to add.
+      name: Data
+      description: "JSON object with what data you want to add (yaml format also works). See Grocy api documentation on Generic entity interactions: https://demo.grocy.info/api"
+      required: true
+      default: {"name": "Task name", "due_date": "2021-05-21"}
+      selector:
+        object:
