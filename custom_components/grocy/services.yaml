@@ -85,12 +85,6 @@ execute_chore:
       description: The id of the user who executed the chore
       selector:
         text:
-    tracked_time:
-      name: Tracked time
-      example: '2019-06-18T19:00:00.251Z'
-      description: The timestamp at when the chore got executed as ISO8601
-      selector:
-        text:
 
 complete_task:
   name: Complete Task
@@ -101,12 +95,6 @@ complete_task:
       example: '3'
       required: true
       description: The id of the task to complete
-      selector:
-        text:
-    done_time:
-      name: Done Time
-      example: '2019-06-18T19:00:00.251Z'
-      description: The timestamp at when the task got completed as ISO8601
       selector:
         text:
 
