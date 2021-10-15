@@ -57,7 +57,7 @@ If you have problems with the integration you can add debug prints to the log.
 logger:
   default: info
   logs:
-    pygrocy: debug
+    pygrocy.grocy_api_client: debug
     custom_components.grocy: debug
 ```
 
