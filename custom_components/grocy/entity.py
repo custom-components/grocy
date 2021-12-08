@@ -1,6 +1,7 @@
 """GrocyEntity class"""
 import json
 from homeassistant.helpers import entity
+from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 # pylint: disable=relative-beyond-top-level
@@ -105,7 +106,7 @@ class GrocyEntity(GrocyCoordinatorEntity):
             "name": NAME,
             "model": VERSION,
             "manufacturer": NAME,
-            "entry_type": "service",
+            "entry_type": DeviceEntryType.SERVICE,
         }
 
     @property
