@@ -140,4 +140,7 @@ class GrocyEntity(GrocyCoordinatorEntity):
         elif self.entity_type == GrocyEntityType.TASKS:
             data = {"tasks": [x.as_dict() for x in self.entity_data]}
 
+        if data:
+            data["count"] = sum(len(entry) for entry in data.values())
+
         return json.loads(json.dumps(data, cls=GrocyJSONEncoder))
