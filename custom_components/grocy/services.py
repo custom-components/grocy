@@ -34,8 +34,8 @@ SERVICE_ADD_GENERIC = "add_generic"
 SERVICE_ADD_PRODUCT_SCHEMA = vol.All(
     vol.Schema(
         {
-            vol.Required(SERVICE_PRODUCT_ID): int,
-            vol.Required(SERVICE_AMOUNT): int,
+            vol.Required(SERVICE_PRODUCT_ID): vol.Coerce(int),
+            vol.Required(SERVICE_AMOUNT): vol.Coerce(int),
             vol.Optional(SERVICE_PRICE): str,
         }
     )
@@ -44,8 +44,8 @@ SERVICE_ADD_PRODUCT_SCHEMA = vol.All(
 SERVICE_CONSUME_PRODUCT_SCHEMA = vol.All(
     vol.Schema(
         {
-            vol.Required(SERVICE_PRODUCT_ID): int,
-            vol.Required(SERVICE_AMOUNT): int,
+            vol.Required(SERVICE_PRODUCT_ID): vol.Coerce(int),
+            vol.Required(SERVICE_AMOUNT): vol.Coerce(int),
             vol.Optional(SERVICE_SPOILED): bool,
             vol.Optional(SERVICE_TRANSACTION_TYPE): str,
         }
@@ -55,8 +55,8 @@ SERVICE_CONSUME_PRODUCT_SCHEMA = vol.All(
 SERVICE_EXECUTE_CHORE_SCHEMA = vol.All(
     vol.Schema(
         {
-            vol.Required(SERVICE_CHORE_ID): int,
-            vol.Optional(SERVICE_DONE_BY): int,
+            vol.Required(SERVICE_CHORE_ID): vol.Coerce(int),
+            vol.Optional(SERVICE_DONE_BY): vol.Coerce(int),
         }
     )
 )
@@ -64,7 +64,7 @@ SERVICE_EXECUTE_CHORE_SCHEMA = vol.All(
 SERVICE_COMPLETE_TASK_SCHEMA = vol.All(
     vol.Schema(
         {
-            vol.Required(SERVICE_TASK_ID): int,
+            vol.Required(SERVICE_TASK_ID): vol.Coerce(int),
         }
     )
 )
