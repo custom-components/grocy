@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from pygrocy.data_models.product import ProductBarcode
+from pygrocy.grocy_api_client import ProductBarcodeData
 
 
 class GrocyJSONEncoder(json.JSONEncoder):
@@ -13,6 +14,8 @@ class GrocyJSONEncoder(json.JSONEncoder):
         """Convert special objects."""
 
         if isinstance(o, ProductBarcode):
+            return o.barcode
+        if isinstance(o, ProductBarcodeData):
             return o.barcode
         if isinstance(o, datetime):
             return o.isoformat()
