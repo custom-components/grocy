@@ -158,9 +158,7 @@ class GrocyData:
         def wrapper():
             meal_plan = self.client.meal_plan(True)
             today = datetime.today().date()
-            plan = [
-                MealPlanItem(item) for item in meal_plan if item.day.date() >= today
-            ]
+            plan = [MealPlanItem(item) for item in meal_plan if item.day >= today]
             return sorted(plan, key=lambda item: item.day)
 
         return await self.hass.async_add_executor_job(wrapper)
