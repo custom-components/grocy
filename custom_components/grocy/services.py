@@ -35,7 +35,7 @@ SERVICE_ADD_PRODUCT_SCHEMA = vol.All(
     vol.Schema(
         {
             vol.Required(SERVICE_PRODUCT_ID): vol.Coerce(int),
-            vol.Required(SERVICE_AMOUNT): vol.Coerce(int),
+            vol.Required(SERVICE_AMOUNT): vol.Coerce(float),
             vol.Optional(SERVICE_PRICE): str,
         }
     )
@@ -45,7 +45,7 @@ SERVICE_CONSUME_PRODUCT_SCHEMA = vol.All(
     vol.Schema(
         {
             vol.Required(SERVICE_PRODUCT_ID): vol.Coerce(int),
-            vol.Required(SERVICE_AMOUNT): vol.Coerce(int),
+            vol.Required(SERVICE_AMOUNT): vol.Coerce(float),
             vol.Optional(SERVICE_SPOILED): bool,
             vol.Optional(SERVICE_TRANSACTION_TYPE): str,
         }
