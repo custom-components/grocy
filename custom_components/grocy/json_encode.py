@@ -25,6 +25,6 @@ class GrocyJSONEncoder(json.JSONEncoder):
             return o.as_dict()
 
         try:
-            json.JSONEncoder.default(self, o)
+            return json.JSONEncoder.default(self, o)
         except TypeError:
             return {"__type": str(type(o)), "repr": repr(o), "str": str(o)}
