@@ -82,6 +82,8 @@ class GrocyEntity(GrocyCoordinatorEntity):
     @property
     def entity_data(self):
         """Return the entity_data of the entity."""
+        if self.coordinator.data is None:
+            return None
         return self.coordinator.data.get(self.entity_type)
 
     @property
