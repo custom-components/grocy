@@ -13,9 +13,7 @@ class GrocyJSONEncoder(json.JSONEncoder):
     def default(self, o: Any) -> Any:
         """Convert special objects."""
 
-        if isinstance(o, ProductBarcode):
-            return o.barcode
-        if isinstance(o, ProductBarcodeData):
+        if isinstance(o, (ProductBarcode, ProductBarcodeData)):
             return o.barcode
         if isinstance(o, datetime):
             return o.isoformat()
@@ -26,4 +24,7 @@ class GrocyJSONEncoder(json.JSONEncoder):
         if hasattr(o, "as_dict"):
             return o.as_dict()
 
-        return json.JSONEncoder.default(self, o)
+        try:
+            json.JSONEncoder.default(self, o)
+        except TypeError:
+            return {"__type": str(type(o)), "repr": repr(o), "str": str(o)}
