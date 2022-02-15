@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +17,8 @@ class GrocyJSONEncoder(json.JSONEncoder):
         if isinstance(o, (ProductBarcode, ProductBarcodeData)):
             return o.barcode
         if isinstance(o, datetime):
+            return o.isoformat()
+        if isinstance(o, date):
             return o.isoformat()
         if isinstance(o, set):
             return list(o)
