@@ -15,7 +15,7 @@ class GrocyJSONEncoder(json.JSONEncoder):
 
         if isinstance(o, (ProductBarcode, ProductBarcodeData)):
             return o.barcode
-        if isinstance(o, datetime):
+        if isinstance(o, (datetime.datetime, datetime.date, datetime.time)):
             return o.isoformat()
         if isinstance(o, set):
             return list(o)
