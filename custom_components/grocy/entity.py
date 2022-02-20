@@ -1,7 +1,8 @@
 """GrocyEntity class"""
 import json
+
+from homeassistant.const import MAJOR_VERSION, MINOR_VERSION
 from homeassistant.helpers import entity
-from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 # pylint: disable=relative-beyond-top-level
@@ -102,14 +103,22 @@ class GrocyEntity(GrocyCoordinatorEntity):
 
     @property
     def device_info(self):
-        return {
+        info = {
             # "identifiers": {(DOMAIN, self.unique_id)},
             "identifiers": {(DOMAIN, self.config_entry.entry_id)},
             "name": NAME,
             "model": VERSION,
             "manufacturer": NAME,
-            "entry_type": DeviceEntryType.SERVICE,
         }
+        # LEGACY can be removed when min HA version is 2021.12
+        if MAJOR_VERSION >= 2021 and MINOR_VERSION >= 12:
+            # pylint: disable=import-outside-toplevel
+            from homeassistant.helpers.device_registry import DeviceEntryType
+
+            info["entry_type"] = DeviceEntryType.SERVICE
+        else:
+            info["entry_type"] = "service"
+        return info
 
     @property
     def device_state_attributes(self):
