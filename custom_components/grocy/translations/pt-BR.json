@@ -1,0 +1,39 @@
+{
+    "config": {
+        "title": "Grocy",
+        "step": {
+            "user": {
+                "title": "Grocy",
+                "description": "Se precisar de ajuda com a configuração, dê uma olhada aqui: https://github.com/custom-components/grocy",
+                "data": {
+                    "url": "URL da API do Grocy (por exemplo, \"http://yourgrocyurl.com\")",
+                    "api_key": "Chave de API do Grocy",
+                    "port": "Número da porta (9192)",
+                    "verify_ssl": "Verificar certificado SSL"
+                }
+            }
+        },
+        "error": {
+            "auth": "Algo deu errado."
+        },
+        "abort": {
+            "single_instance_allowed": "Apenas uma única configuração do Grocy é permitida."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "data": {
+                    "binary_sensor": "Sensor binário ativado",
+                    "sensor": "Sensor ativado",
+                    "switch": "Interruptor ativado",
+                    "allow_chores": "Tarefas ativadas",
+                    "allow_meal_plan": "Plano de refeições ativado",
+                    "allow_shopping_list": "Lista de compras ativada",
+                    "allow_stock": "Estoque ativado",
+                    "allow_tasks": "Tarefas ativadas"
+                }
+            }
+        }
+    }
+}
