@@ -2,7 +2,11 @@ name: Validate with HACS
 
 on:
   push:
+    branches:
+      - master
   pull_request:
+    branches:
+      - master
   schedule:
     - cron: "0 0 * * *"
 
