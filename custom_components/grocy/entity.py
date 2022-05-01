@@ -111,7 +111,7 @@ class GrocyEntity(GrocyCoordinatorEntity):
             "manufacturer": NAME,
         }
         # LEGACY can be removed when min HA version is 2021.12
-        if MAJOR_VERSION >= 2021 and MINOR_VERSION >= 12:
+        if (MAJOR_VERSION > 2021) or (MAJOR_VERSION == 2021 and MINOR_VERSION >= 12):
             # pylint: disable=import-outside-toplevel
             from homeassistant.helpers.device_registry import DeviceEntryType
 
