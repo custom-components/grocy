@@ -114,9 +114,9 @@ class GrocyData:
         overdue_tasks = []
         for task in tasks:
             if task.due_date:
-                now = datetime.now().replace(tzinfo=utc)
-                due = task.due_date.replace(tzinfo=utc)
-                if due < now:
+                current_date = datetime.now().date()
+                due_date = task.due_date
+                if due_date < current_date:
                     overdue_tasks.append(task)
         return overdue_tasks
 
