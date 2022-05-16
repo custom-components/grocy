@@ -78,7 +78,7 @@ class GrocyDataUpdateCoordinator(DataUpdateCoordinator):
     def __init__(self, hass, url, api_key, port_number, verify_ssl):
         """Initialize."""
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=SCAN_INTERVAL)
-        self.api = Grocy(url, api_key, port_number, verify_ssl)
+        self.api = Grocy(url, api_key, port_number, verify_ssl=verify_ssl)
         self.entities = []
         self.data = {}
 
