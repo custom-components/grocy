@@ -71,7 +71,7 @@ class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def _test_credentials(self, url, api_key, port, verify_ssl):
         """Return true if credentials is valid."""
         try:
-            client = Grocy(url, api_key, port, verify_ssl)
+            client = Grocy(url, api_key, port, verify_ssl=verify_ssl)
 
             _LOGGER.debug("Testing credentials")
 
