@@ -1,4 +1,12 @@
 import base64
+from urllib.parse import urlparse
+from typing import Tuple
+
+
+def extract_base_url_and_path(url: str) -> Tuple[str, str]:
+    """Extract the base url and path from a given URL."""
+    parsed_url = urlparse(url)
+    return (f"{parsed_url.scheme}://{parsed_url.netloc}", parsed_url.path.strip("/"))
 
 
 class MealPlanItem(object):

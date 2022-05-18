@@ -97,7 +97,7 @@ class GrocyData:
         """Get the configuration from Grocy."""
 
         def wrapper():
-            return self.client._api_client._do_get_request("/api/system/config")
+            return self.client._api_client._do_get_request("system/config")
 
         return await self.hass.async_add_executor_job(wrapper)
 
