@@ -6,6 +6,8 @@ import voluptuous as vol
 from homeassistant import config_entries
 from pygrocy import Grocy
 
+from .helpers import extract_base_url_and_path
+
 from .const import (
     CONF_API_KEY,
     CONF_PORT,  # pylint: disable=unused-import
@@ -59,25 +61,35 @@ class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Show the configuration form to edit the data."""
         data_schema = OrderedDict()
         data_schema[vol.Required(CONF_URL, default="")] = str
-        data_schema[vol.Required(CONF_API_KEY, default="",)] = str
+        data_schema[
+            vol.Required(
+                CONF_API_KEY,
+                default="",
+            )
+        ] = str
         data_schema[vol.Optional(CONF_PORT, default=DEFAULT_PORT)] = int
         data_schema[vol.Optional(CONF_VERIFY_SSL, default=False)] = bool
         _LOGGER.debug("config form")
 
         return self.async_show_form(
-            step_id="user", data_schema=vol.Schema(data_schema), errors=self._errors,
+            step_id="user",
+            data_schema=vol.Schema(data_schema),
+            errors=self._errors,
         )
 
     async def _test_credentials(self, url, api_key, port, verify_ssl):
         """Return true if credentials is valid."""
         try:
-            client = Grocy(url, api_key, port, verify_ssl=verify_ssl)
+            (base_url, path) = extract_base_url_and_path(url)
+            client = Grocy(
+                base_url, api_key, port=port, path=path, verify_ssl=verify_ssl
+            )
 
             _LOGGER.debug("Testing credentials")
 
             def system_info():
                 """Get system information from Grocy."""
-                client._api_client._do_get_request("/api/system/info")
+                client._api_client._do_get_request("system/info")
 
             await self.hass.async_add_executor_job(system_info)
             return True

@@ -15,6 +15,8 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pygrocy import Grocy
 
+from .helpers import extract_base_url_and_path
+
 from .const import (
     CONF_API_KEY,
     CONF_PORT,
@@ -78,7 +80,10 @@ class GrocyDataUpdateCoordinator(DataUpdateCoordinator):
     def __init__(self, hass, url, api_key, port_number, verify_ssl):
         """Initialize."""
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=SCAN_INTERVAL)
-        self.api = Grocy(url, api_key, port_number, verify_ssl=verify_ssl)
+        (base_url, path) = extract_base_url_and_path(url)
+        self.api = Grocy(
+            base_url, api_key, path=path, port=port_number, verify_ssl=verify_ssl
+        )
         self.entities = []
         self.data = {}
 
