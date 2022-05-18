@@ -7,7 +7,7 @@ https://github.com/custom-components/grocy
 import asyncio
 import logging
 from datetime import timedelta
-from typing import List
+from typing import Any, List
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Config, HomeAssistant
@@ -91,58 +91,69 @@ class GrocyDataUpdateCoordinator(DataUpdateCoordinator):
         """Update data via library."""
         grocy_data = GrocyData(self.hass, self.api)
         data = {}
-        features = []
-        try:
-            features = await async_supported_features(grocy_data)
-            if not features:
-                raise UpdateFailed("No features enabled")
-        except Exception as exception:
-            raise UpdateFailed(exception)
+        features = await async_supported_features(grocy_data)
+        if not features:
+            raise UpdateFailed("No features enabled")
 
         for entity in self.entities:
-            if entity.enabled and entity.entity_type in features:
-                try:
-                    data[entity.entity_type] = await grocy_data.async_update_data(
-                        entity.entity_type
-                    )
-                except Exception as exception:
-                    _LOGGER.error(
-                        f"Update of {entity.entity_type} failed with {exception}"
-                    )
-            elif entity.entity_type not in features:
-                _LOGGER.warning(
-                    f"You have enabled the entity for {entity.name}, but this feature is not enabled in Grocy",
+            if not entity.enabled:
+                continue
+            if not entity.entity_type in features:
+                _LOGGER.debug(
+                    "You have enabled the entity for '%s', but this feature is not enabled in Grocy",
+                    entity.name,
+                )
+                continue
+
+            try:
+                data[entity.entity_type] = await grocy_data.async_update_data(
+                    entity.entity_type
+                )
+            except Exception as exception:  # pylint: disable=broad-except
+                _LOGGER.error(
+                    "Update of %s failed with %s",
+                    entity.entity_type,
+                    exception,
                 )
         return data
 
 
-async def async_supported_features(grocy_data) -> List[str]:
+async def async_supported_features(grocy_data: GrocyData) -> List[str]:
     """Return a list of supported features."""
     features = []
     config = await grocy_data.async_get_config()
     if config:
-        if config["FEATURE_FLAG_STOCK"] != "0":
+        if is_enabled_grocy_feature(config, "FEATURE_FLAG_STOCK"):
             features.append(GrocyEntityType.STOCK)
             features.append(GrocyEntityType.PRODUCTS)
             features.append(GrocyEntityType.MISSING_PRODUCTS)
             features.append(GrocyEntityType.EXPIRED_PRODUCTS)
             features.append(GrocyEntityType.EXPIRING_PRODUCTS)
 
-        if config["FEATURE_FLAG_SHOPPINGLIST"] != "0":
+        if is_enabled_grocy_feature(config, "FEATURE_FLAG_SHOPPINGLIST"):
             features.append(GrocyEntityType.SHOPPING_LIST)
 
-        if config["FEATURE_FLAG_TASKS"] != "0":
+        if is_enabled_grocy_feature(config, "FEATURE_FLAG_TASKS"):
             features.append(GrocyEntityType.TASKS)
             features.append(GrocyEntityType.OVERDUE_TASKS)
 
-        if config["FEATURE_FLAG_CHORES"] != "0":
+        if is_enabled_grocy_feature(config, "FEATURE_FLAG_CHORES"):
             features.append(GrocyEntityType.CHORES)
             features.append(GrocyEntityType.OVERDUE_CHORES)
 
-        if config["FEATURE_FLAG_RECIPES"] != "0":
+        if is_enabled_grocy_feature(config, "FEATURE_FLAG_RECIPES"):
             features.append(GrocyEntityType.MEAL_PLAN)
 
     return features
+
+
+def is_enabled_grocy_feature(grocy_config: Any, feature_setting_key: str) -> bool:
+    """
+    Return whether the Grocy feature is enabled or not, default is enabled.
+    Setting value received from Grocy can be a str or bool.
+    """
+    feature_setting_value = grocy_config[feature_setting_key]
+    return feature_setting_value not in (False, "0")
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
