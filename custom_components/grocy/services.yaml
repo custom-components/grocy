@@ -54,6 +54,13 @@ consume_product_from_stock:
       default: false
       selector:
         boolean:
+    allow_subproduct_substitution:
+      name: Subproduct substitution
+      description: If subproduct substitution is allowed
+      example: false
+      default: false
+      selector:
+        boolean:
     transaction_type:
       name: Transaction Type
       description: The type of the transaction.
