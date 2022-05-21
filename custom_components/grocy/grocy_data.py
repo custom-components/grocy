@@ -12,7 +12,7 @@ from .const import (
     CONF_PORT,
     GrocyEntityType,
 )
-from .helpers import MealPlanItem
+from .helpers import MealPlanItem, extract_base_url_and_path
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 _LOGGER = logging.getLogger(__name__)
@@ -165,13 +165,20 @@ class GrocyData:
 
 
 async def async_setup_image_api(hass, config):
+    """Setup and register the image api for grocy images with HA."""
     session = async_get_clientsession(hass)
 
     url = config.get(CONF_URL)
+    (grocy_base_url, grocy_path) = extract_base_url_and_path(url)
     api_key = config.get(CONF_API_KEY)
     port_number = config.get(CONF_PORT)
-    base_url = f"{url}:{port_number}"
-    hass.http.register_view(GrocyPictureView(session, base_url, api_key))
+    if grocy_path:
+        grocy_full_url = f"{grocy_base_url}:{port_number}/{grocy_path}"
+    else:
+        grocy_full_url = f"{grocy_base_url}:{port_number}"
+
+    _LOGGER.debug("Generated image api url to grocy: '%s'", grocy_full_url)
+    hass.http.register_view(GrocyPictureView(session, grocy_full_url, api_key))
 
 
 class GrocyPictureView(HomeAssistantView):
