@@ -70,7 +70,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     # Setup http endpoint for proxying images from grocy
     await async_setup_image_api(hass, config_entry.data)
 
-    config_entry.add_update_listener(async_reload_entry)
     return True
 
 
@@ -156,28 +155,10 @@ def is_enabled_grocy_feature(grocy_config: Any, feature_setting_key: str) -> boo
     return feature_setting_value not in (False, "0")
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Handle removal of an entry."""
-    _LOGGER.debug("Unloading with state %s", entry.state)
-    if entry.state == "loaded":
-        unloaded = all(
-            await asyncio.gather(
-                *[
-                    hass.config_entries.async_forward_entry_unload(entry, platform)
-                    for platform in PLATFORMS
-                ]
-            )
-        )
-        _LOGGER.debug("Unloaded? %s", unloaded)
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    await async_unload_services(hass)
+    if unloaded := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         del hass.data[DOMAIN]
-        return unloaded
-    return False
 
-
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Reload config entry."""
-    unloaded = await async_unload_entry(hass, entry)
-    _LOGGER.error("Unloaded successfully: %s", unloaded)
-    if unloaded:
-        await async_setup_entry(hass, entry)
-        await async_unload_services(hass)
+    return unloaded
