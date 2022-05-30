@@ -1,7 +1,11 @@
 """Grocy services."""
+from __future__ import annotations
+
 import asyncio
 import voluptuous as vol
 import iso8601
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_component
 
@@ -11,8 +15,6 @@ from datetime import datetime
 
 # pylint: disable=relative-beyond-top-level
 from .const import DOMAIN
-
-GROCY_SERVICES = "grocy_services"
 
 SERVICE_PRODUCT_ID = "product_id"
 SERVICE_AMOUNT = "amount"
@@ -80,16 +82,22 @@ SERVICE_ADD_GENERIC_SCHEMA = vol.All(
     )
 )
 
+SERVICES_WITH_ACCOMPANYING_SCHEMA: list[tuple[str, vol.Schema]] = [
+    (SERVICE_ADD_PRODUCT, SERVICE_ADD_PRODUCT_SCHEMA),
+    (SERVICE_CONSUME_PRODUCT, SERVICE_CONSUME_PRODUCT_SCHEMA),
+    (SERVICE_EXECUTE_CHORE, SERVICE_EXECUTE_CHORE_SCHEMA),
+    (SERVICE_COMPLETE_TASK, SERVICE_COMPLETE_TASK_SCHEMA),
+    (SERVICE_ADD_GENERIC, SERVICE_ADD_GENERIC_SCHEMA),
+]
 
-async def async_setup_services(hass, entry):
+
+async def async_setup_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Set up services for Grocy integration."""
     coordinator = hass.data[DOMAIN]
-    if hass.data.get(GROCY_SERVICES, False):
+    if hass.services.async_services().get(DOMAIN):
         return
 
-    hass.data[GROCY_SERVICES] = True
-
-    async def async_call_grocy_service(service_call):
+    async def async_call_grocy_service(service_call: ServiceCall) -> None:
         """Call correct Grocy service."""
         service = service_call.service
         service_data = service_call.data
@@ -109,53 +117,17 @@ async def async_setup_services(hass, entry):
         elif service == SERVICE_ADD_GENERIC:
             await async_add_generic_service(hass, coordinator, service_data)
 
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_ADD_PRODUCT,
-        async_call_grocy_service,
-        schema=SERVICE_ADD_PRODUCT_SCHEMA,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_CONSUME_PRODUCT,
-        async_call_grocy_service,
-        schema=SERVICE_CONSUME_PRODUCT_SCHEMA,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_EXECUTE_CHORE,
-        async_call_grocy_service,
-        schema=SERVICE_EXECUTE_CHORE_SCHEMA,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_COMPLETE_TASK,
-        async_call_grocy_service,
-        schema=SERVICE_COMPLETE_TASK_SCHEMA,
-    )
-
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_ADD_GENERIC,
-        async_call_grocy_service,
-        schema=SERVICE_ADD_GENERIC_SCHEMA,
-    )
+    for service, schema in SERVICES_WITH_ACCOMPANYING_SCHEMA:
+        hass.services.async_register(DOMAIN, service, async_call_grocy_service, schema)
 
 
-async def async_unload_services(hass):
+async def async_unload_services(hass: HomeAssistant) -> None:
     """Unload Grocy services."""
-    if not hass.data.get(GROCY_SERVICES):
+    if not hass.services.async_services().get(DOMAIN):
         return
 
-    hass.data[GROCY_SERVICES] = False
-
-    hass.services.async_remove(DOMAIN, SERVICE_ADD_PRODUCT)
-    hass.services.async_remove(DOMAIN, SERVICE_CONSUME_PRODUCT)
-    hass.services.async_remove(DOMAIN, SERVICE_EXECUTE_CHORE)
-    hass.services.async_remove(DOMAIN, SERVICE_COMPLETE_TASK)
+    for service, _ in SERVICES_WITH_ACCOMPANYING_SCHEMA:
+        hass.services.async_remove(DOMAIN, service)
 
 
 async def async_add_product_service(hass, coordinator, data):
