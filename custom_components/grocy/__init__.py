@@ -4,14 +4,12 @@ Custom integration to integrate Grocy with Home Assistant.
 For more details about this integration, please refer to
 https://github.com/custom-components/grocy
 """
-import asyncio
 import logging
 from datetime import timedelta
 from typing import Any, List
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Config, HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pygrocy import Grocy
 
@@ -35,11 +33,6 @@ SCAN_INTERVAL = timedelta(seconds=30)
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup(_hass: HomeAssistant, _config: Config):
-    """Set up this integration using YAML is not supported."""
-    return True
-
-
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Set up this integration using UI."""
     hass.data.setdefault(DOMAIN, {})
@@ -53,10 +46,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         config_entry.data[CONF_VERIFY_SSL],
     )
 
-    await coordinator.async_refresh()
-
-    if not coordinator.last_update_success:
-        raise ConfigEntryNotReady
+    await coordinator.async_config_entry_first_refresh()
 
     hass.data[DOMAIN] = coordinator
 
