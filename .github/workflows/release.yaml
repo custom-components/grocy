@@ -6,17 +6,19 @@ on:
 
 jobs:
   release_zip_file:
-    name: Prepare release asset
+    name: Prepare and upload release asset
     runs-on: ubuntu-latest
+    env:
+      GROCY_ROOT_DIR: "${{ github.workspace }}/custom_components/grocy"
     steps:
       - name: Check out repository
         uses: actions/checkout@v1
 
-      # Get updated translations
       - name: Download Lokalise CLI
         run: |
           curl -sfL https://raw.githubusercontent.com/lokalise/lokalise-cli-2-go/master/install.sh | sh
-      - name: Downloading translations
+
+      - name: Download latest translations with Lokalise
         run: |
           ./bin/lokalise2 \
             --token "${{ secrets.lokalise_token }}"\
@@ -28,20 +30,21 @@ jobs:
             --export-sort a_z \
             --original-filenames=false  \
             --bundle-structure %LANG_ISO%.%FORMAT%
-      - name: Move new  translations
-        run: |
-          mkdir -p "${{ github.workspace }}/custom_components/grocy/translations/"
-          cp /tmp/lokalise/* "${{ github.workspace }}/custom_components/grocy/translations/"
-      - name: "Set version numbmer"
-        run: |
-          sed -i '/VERSION = /c\VERSION = "${{ github.ref }}"' "${{ github.workspace }}/custom_components/grocy/const.py"
-          sed -i 's|refs/heads/||' "${{ github.workspace }}/custom_components/grocy/const.py"
-          sed -i 's|refs/tags/||' "${{ github.workspace }}/custom_components/grocy/const.py"
 
-      # Pack the Grocy dir as a zip and upload to the release
-      - name: ZIP Grocy Dir
+      - name: Move downloaded translations
         run: |
-          cd "${{ github.workspace }}/custom_components/grocy"
+          mkdir -p "${{ env.GROCY_ROOT_DIR }}/translations/"
+          cp /tmp/lokalise/* "${{ env.GROCY_ROOT_DIR }}/translations/"
+
+      - name: Set release version number in files
+        run: |
+          sed -i '/VERSION = /c\VERSION = "${{ github.ref_name }}"' "${{ env.GROCY_ROOT_DIR }}/const.py"
+          (jq '.version = "${{ github.ref_name }}"' "${{ env.GROCY_ROOT_DIR }}/manifest.json") > "${{ env.GROCY_ROOT_DIR }}/manifest.json.tmp"
+          mv "${{ env.GROCY_ROOT_DIR }}/manifest.json.tmp" "${{ env.GROCY_ROOT_DIR }}/manifest.json"
+
+      - name: Add Grocy folder to zip archive
+        run: |
+          cd "${{ env.GROCY_ROOT_DIR }}"
           zip grocy.zip -r ./
 
       - name: Upload release asset
@@ -50,6 +53,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: "${{ github.workspace }}/custom_components/grocy/grocy.zip"
+          asset_path: "${{ env.GROCY_ROOT_DIR }}/grocy.zip"
           asset_name: grocy.zip
           asset_content_type: application/zip

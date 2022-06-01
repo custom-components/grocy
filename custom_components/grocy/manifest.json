@@ -16,6 +16,6 @@
     "iso8601==0.1.12",
     "integrationhelper==0.2.2"
   ],
-  "version": "v3.0.1",
+  "version": "0.0.0",
   "iot_class": "local_polling"
 }

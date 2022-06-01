@@ -4,7 +4,7 @@ from enum import Enum
 # Base component constants
 NAME = "Grocy"
 DOMAIN = "grocy"
-VERSION = "v3.2.0"
+VERSION = "0.0.0"
 
 ISSUE_URL = "https://github.com/custom-components/grocy/issues"
 
@@ -73,4 +73,3 @@ class GrocyEntityIcon(str, Enum):
     SHOPPING_LIST = "mdi:cart-outline"
     STOCK = "mdi:fridge-outline"
     TASKS = "mdi:checkbox-marked-circle-outline"
-
