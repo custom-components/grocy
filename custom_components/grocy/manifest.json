@@ -12,9 +12,7 @@
     "@isabellaalstrom"
   ],
   "requirements": [
-    "pygrocy==1.2.1",
-    "iso8601==0.1.12",
-    "integrationhelper==0.2.2"
+    "pygrocy==1.2.1"
   ],
   "version": "v3.0.1",
   "iot_class": "local_polling"

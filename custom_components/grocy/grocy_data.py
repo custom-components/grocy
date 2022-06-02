@@ -1,7 +1,6 @@
 from aiohttp import hdrs, web
-from datetime import timedelta, datetime
+from datetime import datetime
 import logging
-import pytz
 
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -14,10 +13,7 @@ from .const import (
 )
 from .helpers import MealPlanItem, extract_base_url_and_path
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 _LOGGER = logging.getLogger(__name__)
-
-utc = pytz.UTC
 
 
 class GrocyData:
@@ -87,8 +83,8 @@ class GrocyData:
         overdue_chores = []
         for chore in chores:
             if chore.next_estimated_execution_time:
-                now = datetime.now().replace(tzinfo=utc)
-                due = chore.next_estimated_execution_time.replace(tzinfo=utc)
+                now = datetime.now()
+                due = chore.next_estimated_execution_time
                 if due < now:
                     overdue_chores.append(chore)
         return overdue_chores
@@ -132,7 +128,7 @@ class GrocyData:
         """Update data."""
         # This is where the main logic to update platform data goes.
         def wrapper():
-            return self.client.expiring_products(True)
+            return self.client.due_products(True)
 
         return await self.hass.async_add_executor_job(wrapper)
 

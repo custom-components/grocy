@@ -1,9 +1,8 @@
 """GrocyEntity class"""
 import json
 
-from homeassistant.const import MAJOR_VERSION, MINOR_VERSION
-from homeassistant.helpers import entity
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.device_registry import DeviceEntryType
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 # pylint: disable=relative-beyond-top-level
 from .const import (
@@ -17,50 +16,11 @@ from .const import (
 from .json_encode import GrocyJSONEncoder
 
 
-class GrocyCoordinatorEntity(entity.Entity):
-    """
-    CoordinatorEntity was added to HA in 0.115, this is a  copy of the
-    class CoordinatorEntity from homeassistant.helpers.update_coordinator
+class GrocyEntity(CoordinatorEntity):
+    """Base class for Grocy entities."""
 
-    Remove this class and use CoordinatorEntity instead when grocy require min version 0.115
-    """
-
-    def __init__(self, coordinator: DataUpdateCoordinator) -> None:
-        """Create the entity with a DataUpdateCoordinator."""
-        self.coordinator = coordinator
-
-    @property
-    def should_poll(self) -> bool:
-        """No need to poll. Coordinator notifies entity of updates."""
-        return False
-
-    @property
-    def available(self) -> bool:
-        """Return if entity is available."""
-        return self.coordinator.last_update_success
-
-    async def async_added_to_hass(self) -> None:
-        """When entity is added to hass."""
-        await super().async_added_to_hass()
-        self.async_on_remove(
-            self.coordinator.async_add_listener(self.async_write_ha_state)
-        )
-
-    async def async_update(self) -> None:
-        """Update the entity.
-
-        Only used by the generic entity update service.
-        """
-
-        # Ignore manual update requests if the entity is disabled
-        if not self.enabled:
-            return
-
-        await self.coordinator.async_request_refresh()
-
-
-class GrocyEntity(GrocyCoordinatorEntity):
     def __init__(self, coordinator, config_entry, entity_type):
+        """Initialize generic Grocy entity."""
         super().__init__(coordinator)
         self.config_entry = config_entry
         self.entity_type = entity_type
@@ -103,22 +63,13 @@ class GrocyEntity(GrocyCoordinatorEntity):
 
     @property
     def device_info(self):
-        info = {
-            # "identifiers": {(DOMAIN, self.unique_id)},
+        return {
             "identifiers": {(DOMAIN, self.config_entry.entry_id)},
             "name": NAME,
             "model": VERSION,
             "manufacturer": NAME,
+            "entry_type": DeviceEntryType.SERVICE,
         }
-        # LEGACY can be removed when min HA version is 2021.12
-        if (MAJOR_VERSION > 2021) or (MAJOR_VERSION == 2021 and MINOR_VERSION >= 12):
-            # pylint: disable=import-outside-toplevel
-            from homeassistant.helpers.device_registry import DeviceEntryType
-
-            info["entry_type"] = DeviceEntryType.SERVICE
-        else:
-            info["entry_type"] = "service"
-        return info
 
     @property
     def extra_state_attributes(self):
