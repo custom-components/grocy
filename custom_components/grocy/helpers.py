@@ -1,15 +1,20 @@
+"""Helpers for Grocy."""
+
 import base64
+from typing import Any, Dict, Tuple
 from urllib.parse import urlparse
-from typing import Tuple
 
 
 def extract_base_url_and_path(url: str) -> Tuple[str, str]:
     """Extract the base url and path from a given URL."""
     parsed_url = urlparse(url)
+
     return (f"{parsed_url.scheme}://{parsed_url.netloc}", parsed_url.path.strip("/"))
 
 
 class MealPlanItem(object):
+    """Grocy meal plan item definition."""
+
     def __init__(self, data):
         self.day = data.day
         self.note = data.note
@@ -22,5 +27,6 @@ class MealPlanItem(object):
         else:
             self.picture_url = None
 
-    def as_dict(self):
+    def as_dict(self) -> Dict[str, Any]:
+        """Return dictionary for object."""
         return vars(self)

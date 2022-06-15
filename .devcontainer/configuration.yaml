@@ -4,4 +4,4 @@ logger:
   default: info
   logs:
     custom_components.grocy: debug
-
+    pygrocy.grocy_api_client: debug

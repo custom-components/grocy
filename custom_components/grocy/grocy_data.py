@@ -1,15 +1,27 @@
-from aiohttp import hdrs, web
-from datetime import datetime
+"""Communication with Grocy API."""
 import logging
+from datetime import datetime
 
+from aiohttp import hdrs, web
 from homeassistant.components.http import HomeAssistantView
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
+    ATTR_CHORES,
+    ATTR_EXPIRED_PRODUCTS,
+    ATTR_EXPIRING_PRODUCTS,
+    ATTR_MEAL_PLAN,
+    ATTR_MISSING_PRODUCTS,
+    ATTR_OVERDUE_CHORES,
+    ATTR_OVERDUE_TASKS,
+    ATTR_SHOPPING_LIST,
+    ATTR_STOCK,
+    ATTR_TASKS,
     CONF_API_KEY,
-    CONF_URL,
     CONF_PORT,
-    GrocyEntityType,
+    CONF_URL,
 )
 from .helpers import MealPlanItem, extract_base_url_and_path
 
@@ -17,67 +29,47 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class GrocyData:
-    """This class handle communication and stores the data."""
+    """Handles communication and gets the data."""
 
-    def __init__(self, hass, client):
-        """Initialize the class."""
+    def __init__(self, hass, api):
+        """Initialize Grocy data."""
         self.hass = hass
-        self.client = client
-        self.sensor_types_dict = {
-            GrocyEntityType.STOCK: self.async_update_stock,
-            GrocyEntityType.CHORES: self.async_update_chores,
-            GrocyEntityType.TASKS: self.async_update_tasks,
-            GrocyEntityType.SHOPPING_LIST: self.async_update_shopping_list,
-            GrocyEntityType.EXPIRING_PRODUCTS: self.async_update_expiring_products,
-            GrocyEntityType.EXPIRED_PRODUCTS: self.async_update_expired_products,
-            GrocyEntityType.MISSING_PRODUCTS: self.async_update_missing_products,
-            GrocyEntityType.MEAL_PLAN: self.async_update_meal_plan,
-            GrocyEntityType.OVERDUE_CHORES: self.async_update_overdue_chores,
-            GrocyEntityType.OVERDUE_TASKS: self.async_update_overdue_tasks,
-        }
-        self.sensor_update_dict = {
-            GrocyEntityType.STOCK: None,
-            GrocyEntityType.CHORES: None,
-            GrocyEntityType.TASKS: None,
-            GrocyEntityType.SHOPPING_LIST: None,
-            GrocyEntityType.EXPIRING_PRODUCTS: None,
-            GrocyEntityType.EXPIRED_PRODUCTS: None,
-            GrocyEntityType.MISSING_PRODUCTS: None,
-            GrocyEntityType.MEAL_PLAN: None,
-            GrocyEntityType.OVERDUE_CHORES: None,
-            GrocyEntityType.OVERDUE_TASKS: None,
+        self.api = api
+        self.entity_update_method = {
+            ATTR_STOCK: self.async_update_stock,
+            ATTR_CHORES: self.async_update_chores,
+            ATTR_TASKS: self.async_update_tasks,
+            ATTR_SHOPPING_LIST: self.async_update_shopping_list,
+            ATTR_EXPIRING_PRODUCTS: self.async_update_expiring_products,
+            ATTR_EXPIRED_PRODUCTS: self.async_update_expired_products,
+            ATTR_MISSING_PRODUCTS: self.async_update_missing_products,
+            ATTR_MEAL_PLAN: self.async_update_meal_plan,
+            ATTR_OVERDUE_CHORES: self.async_update_overdue_chores,
+            ATTR_OVERDUE_TASKS: self.async_update_overdue_tasks,
         }
 
-    async def async_update_data(self, sensor_type):
+    async def async_update_data(self, entity_key):
         """Update data."""
-        sensor_update = self.sensor_update_dict[sensor_type]
-        db_changed = await self.hass.async_add_executor_job(
-            self.client.get_last_db_changed
-        )
-        if db_changed != sensor_update:
-            self.sensor_update_dict[sensor_type] = db_changed
-            if sensor_type in self.sensor_types_dict:
-                # This is where the main logic to update platform data goes.
-                return await self.sensor_types_dict[sensor_type]()
+        if entity_key in self.entity_update_method:
+            return await self.entity_update_method[entity_key]()
 
     async def async_update_stock(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
-        return await self.hass.async_add_executor_job(self.client.stock)
+        """Update stock data."""
+        return await self.hass.async_add_executor_job(self.api.stock)
 
     async def async_update_chores(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
+        """Update chores data."""
+
         def wrapper():
-            return self.client.chores(True)
+            return self.api.chores(True)
 
         return await self.hass.async_add_executor_job(wrapper)
 
     async def async_update_overdue_chores(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
+        """Update overdue chores data."""
+
         def wrapper():
-            return self.client.chores(True)
+            return self.api.chores(True)
 
         chores = await self.hass.async_add_executor_job(wrapper)
         overdue_chores = []
@@ -93,19 +85,19 @@ class GrocyData:
         """Get the configuration from Grocy."""
 
         def wrapper():
-            return self.client._api_client._do_get_request("system/config")
+            return self.api._api_client._do_get_request(
+                "system/config"
+            )  # TODO Make endpoint available in pygrocy
 
         return await self.hass.async_add_executor_job(wrapper)
 
     async def async_update_tasks(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
-        return await self.hass.async_add_executor_job(self.client.tasks)
+        """Update tasks data."""
+        return await self.hass.async_add_executor_job(self.api.tasks)
 
     async def async_update_overdue_tasks(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
-        tasks = await self.hass.async_add_executor_job(self.client.tasks)
+        """Update overdue tasks data."""
+        tasks = await self.hass.async_add_executor_job(self.api.tasks)
 
         overdue_tasks = []
         for task in tasks:
@@ -117,42 +109,42 @@ class GrocyData:
         return overdue_tasks
 
     async def async_update_shopping_list(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
+        """Update shopping list data."""
+
         def wrapper():
-            return self.client.shopping_list(True)
+            return self.api.shopping_list(True)
 
         return await self.hass.async_add_executor_job(wrapper)
 
     async def async_update_expiring_products(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
+        """Update expiring products data."""
+
         def wrapper():
-            return self.client.due_products(True)
+            return self.api.due_products(True)
 
         return await self.hass.async_add_executor_job(wrapper)
 
     async def async_update_expired_products(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
+        """Update expired products data."""
+
         def wrapper():
-            return self.client.expired_products(True)
+            return self.api.expired_products(True)
 
         return await self.hass.async_add_executor_job(wrapper)
 
     async def async_update_missing_products(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
+        """Update missing products data."""
+
         def wrapper():
-            return self.client.missing_products(True)
+            return self.api.missing_products(True)
 
         return await self.hass.async_add_executor_job(wrapper)
 
     async def async_update_meal_plan(self):
-        """Update data."""
-        # This is where the main logic to update platform data goes.
+        """Update meal plan data."""
+
         def wrapper():
-            meal_plan = self.client.meal_plan(True)
+            meal_plan = self.api.meal_plan(True)
             today = datetime.today().date()
             plan = [MealPlanItem(item) for item in meal_plan if item.day >= today]
             return sorted(plan, key=lambda item: item.day)
@@ -160,14 +152,16 @@ class GrocyData:
         return await self.hass.async_add_executor_job(wrapper)
 
 
-async def async_setup_image_api(hass, config):
+async def async_setup_endpoint_for_image_proxy(
+    hass: HomeAssistant, config_entry: ConfigEntry
+):
     """Setup and register the image api for grocy images with HA."""
     session = async_get_clientsession(hass)
 
-    url = config.get(CONF_URL)
+    url = config_entry.get(CONF_URL)
     (grocy_base_url, grocy_path) = extract_base_url_and_path(url)
-    api_key = config.get(CONF_API_KEY)
-    port_number = config.get(CONF_PORT)
+    api_key = config_entry.get(CONF_API_KEY)
+    port_number = config_entry.get(CONF_PORT)
     if grocy_path:
         grocy_full_url = f"{grocy_base_url}:{port_number}/{grocy_path}"
     else:
@@ -190,6 +184,7 @@ class GrocyPictureView(HomeAssistantView):
         self._api_key = api_key
 
     async def get(self, request, picture_type: str, filename: str) -> web.Response:
+        """GET request for the image."""
         width = request.query.get("width", 400)
         url = f"{self._base_url}/api/files/{picture_type}/{filename}"
         url = f"{url}?force_serve_as=picture&best_fit_width={int(width)}"
