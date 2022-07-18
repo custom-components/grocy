@@ -1,16 +1,13 @@
 """Grocy services."""
 from __future__ import annotations
 
-import asyncio
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.helpers import entity_component
+from pygrocy import EntityType, TransactionType
 
-from pygrocy import TransactionType, EntityType
-
-# pylint: disable=relative-beyond-top-level
-from .const import DOMAIN
+from .const import ATTR_CHORES, ATTR_TASKS, DOMAIN
+from .coordinator import GrocyDataUpdateCoordinator
 
 SERVICE_PRODUCT_ID = "product_id"
 SERVICE_AMOUNT = "amount"
@@ -87,9 +84,11 @@ SERVICES_WITH_ACCOMPANYING_SCHEMA: list[tuple[str, vol.Schema]] = [
 ]
 
 
-async def async_setup_services(hass: HomeAssistant, entry: ConfigEntry) -> None:
+async def async_setup_services(
+    hass: HomeAssistant, config_entry: ConfigEntry  # pylint: disable=unused-argument
+) -> None:
     """Set up services for Grocy integration."""
-    coordinator = hass.data[DOMAIN]
+    coordinator: GrocyDataUpdateCoordinator = hass.data[DOMAIN]
     if hass.services.async_services().get(DOMAIN):
         return
 
@@ -133,7 +132,7 @@ async def async_add_product_service(hass, coordinator, data):
     price = data.get(SERVICE_PRICE, "")
 
     def wrapper():
-        coordinator.api.add_product(product_id, amount, price)
+        coordinator.grocy_api.add_product(product_id, amount, price)
 
     await hass.async_add_executor_job(wrapper)
 
@@ -152,7 +151,7 @@ async def async_consume_product_service(hass, coordinator, data):
         transaction_type = TransactionType[transaction_type_raw]
 
     def wrapper():
-        coordinator.api.consume_product(
+        coordinator.grocy_api.consume_product(
             product_id,
             amount,
             spoiled=spoiled,
@@ -169,13 +168,10 @@ async def async_execute_chore_service(hass, coordinator, data):
     done_by = data.get(SERVICE_DONE_BY, "")
 
     def wrapper():
-        coordinator.api.execute_chore(chore_id, done_by)
+        coordinator.grocy_api.execute_chore(chore_id, done_by)
 
     await hass.async_add_executor_job(wrapper)
-
-    asyncio.run_coroutine_threadsafe(
-        entity_component.async_update_entity(hass, "sensor.grocy_chores"), hass.loop
-    )
+    await _async_force_update_entity(coordinator, ATTR_CHORES)
 
 
 async def async_complete_task_service(hass, coordinator, data):
@@ -183,13 +179,10 @@ async def async_complete_task_service(hass, coordinator, data):
     task_id = data[SERVICE_TASK_ID]
 
     def wrapper():
-        coordinator.api.complete_task(task_id)
+        coordinator.grocy_api.complete_task(task_id)
 
     await hass.async_add_executor_job(wrapper)
-
-    asyncio.run_coroutine_threadsafe(
-        entity_component.async_update_entity(hass, "sensor.grocy_tasks"), hass.loop
-    )
+    await _async_force_update_entity(coordinator, ATTR_TASKS)
 
 
 async def async_add_generic_service(hass, coordinator, data):
@@ -203,6 +196,22 @@ async def async_add_generic_service(hass, coordinator, data):
     data = data[SERVICE_DATA]
 
     def wrapper():
-        coordinator.api.add_generic(entity_type, data)
+        coordinator.grocy_api.add_generic(entity_type, data)
 
     await hass.async_add_executor_job(wrapper)
+
+
+async def _async_force_update_entity(
+    coordinator: GrocyDataUpdateCoordinator, entity_key: str
+) -> None:
+    """Force entity update for given entity key."""
+    entity = next(
+        (
+            entity
+            for entity in coordinator.entities
+            if entity.entity_description.key == entity_key
+        ),
+        None,
+    )
+    if entity:
+        await entity.async_update_ha_state(force_refresh=True)

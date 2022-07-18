@@ -1,27 +1,24 @@
 """Constants for Grocy."""
-from enum import Enum
+from datetime import timedelta
+from typing import Final
 
-# Base component constants
-NAME = "Grocy"
-DOMAIN = "grocy"
+NAME: Final = "Grocy"
+DOMAIN: Final = "grocy"
 VERSION = "0.0.0"
 
-ISSUE_URL = "https://github.com/custom-components/grocy/issues"
+ISSUE_URL: Final = "https://github.com/custom-components/grocy/issues"
 
+PLATFORMS: Final = ["binary_sensor", "sensor"]
 
-# Platforms
-PLATFORMS = ["binary_sensor", "sensor"]
+SCAN_INTERVAL = timedelta(seconds=30)
 
-# Configuration and options
-CONF_NAME = "name"
+DEFAULT_PORT: Final = 9192
+CONF_URL: Final = "url"
+CONF_PORT: Final = "port"
+CONF_API_KEY: Final = "api_key"
+CONF_VERIFY_SSL: Final = "verify_ssl"
 
-DEFAULT_PORT = 9192
-CONF_URL = "url"
-CONF_PORT = "port"
-CONF_API_KEY = "api_key"
-CONF_VERIFY_SSL = "verify_ssl"
-
-STARTUP_MESSAGE = f"""
+STARTUP_MESSAGE: Final = f"""
 -------------------------------------------------------------------
 {NAME}
 Version: {VERSION}
@@ -31,45 +28,18 @@ If you have any issues with this you need to open an issue here:
 -------------------------------------------------------------------
 """
 
+CHORES: Final = "Chore(s)"
+MEAL_PLANS: Final = "Meal(s)"
+PRODUCTS: Final = "Product(s)"
+TASKS: Final = "Task(s)"
 
-class GrocyEntityType(str, Enum):
-    """Entity type for Grocy entities."""
-
-    CHORES = "Chores"
-    EXPIRED_PRODUCTS = "Expired_products"
-    EXPIRING_PRODUCTS = "Expiring_products"
-    MEAL_PLAN = "Meal_plan"
-    MISSING_PRODUCTS = "Missing_products"
-    OVERDUE_CHORES = "Overdue_chores"
-    OVERDUE_TASKS = "Overdue_tasks"
-    PRODUCTS = "Products"
-    SHOPPING_LIST = "Shopping_list"
-    STOCK = "Stock"
-    TASKS = "Tasks"
-
-
-class GrocyEntityUnit(str, Enum):
-    """Unit of measurement for Grocy entities."""
-
-    CHORES = "Chore(s)"
-    MEAL_PLAN = "Meal(s)"
-    PRODUCTS = "Product(s)"
-    TASKS = "Task(s)"
-
-
-class GrocyEntityIcon(str, Enum):
-    """Icon for a Grocy entity."""
-
-    DEFAULT = "mdi:format-quote-close"
-
-    CHORES = "mdi:broom"
-    EXPIRED_PRODUCTS = "mdi:delete-alert-outline"
-    EXPIRING_PRODUCTS = "mdi:clock-fast"
-    MEAL_PLAN = "mdi:silverware-variant"
-    MISSING_PRODUCTS = "mdi:flask-round-bottom-empty-outline"
-    OVERDUE_CHORES = "mdi:alert-circle-check-outline"
-    OVERDUE_TASKS = "mdi:alert-circle-check-outline"
-    PRODUCTS = "mdi:food-fork-drink"
-    SHOPPING_LIST = "mdi:cart-outline"
-    STOCK = "mdi:fridge-outline"
-    TASKS = "mdi:checkbox-marked-circle-outline"
+ATTR_CHORES: Final = "chores"
+ATTR_EXPIRED_PRODUCTS: Final = "expired_products"
+ATTR_EXPIRING_PRODUCTS: Final = "expiring_products"
+ATTR_MEAL_PLAN: Final = "meal_plan"
+ATTR_MISSING_PRODUCTS: Final = "missing_products"
+ATTR_OVERDUE_CHORES: Final = "overdue_chores"
+ATTR_OVERDUE_TASKS: Final = "overdue_tasks"
+ATTR_SHOPPING_LIST: Final = "shopping_list"
+ATTR_STOCK: Final = "stock"
+ATTR_TASKS: Final = "tasks"

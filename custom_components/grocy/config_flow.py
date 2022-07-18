@@ -6,17 +6,16 @@ import voluptuous as vol
 from homeassistant import config_entries
 from pygrocy import Grocy
 
-from .helpers import extract_base_url_and_path
-
 from .const import (
     CONF_API_KEY,
-    CONF_PORT,  # pylint: disable=unused-import
+    CONF_PORT,
     CONF_URL,
     CONF_VERIFY_SSL,
     DEFAULT_PORT,
     DOMAIN,
     NAME,
 )
+from .helpers import extract_base_url_and_path
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,7 +35,6 @@ class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self._errors = {}
         _LOGGER.debug("Step user")
 
-        # Uncomment the next 2 lines if only a single instance of the integration is allowed:
         if self._async_current_entries():
             return self.async_abort(reason="single_instance_allowed")
 
@@ -51,8 +49,8 @@ class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             _LOGGER.debug(valid)
             if valid:
                 return self.async_create_entry(title=NAME, data=user_input)
-            else:
-                self._errors["base"] = "auth"
+
+            self._errors["base"] = "auth"
             return await self._show_config_form(user_input)
 
         return await self._show_config_form(user_input)
@@ -89,11 +87,12 @@ class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
             def system_info():
                 """Get system information from Grocy."""
-                client._api_client._do_get_request("system/info")
+                client._api_client._do_get_request(
+                    "system/info"
+                )  # TODO Make endpoint available in pygrocy
 
             await self.hass.async_add_executor_job(system_info)
             return True
-        except Exception as e:  # pylint: disable=broad-except
-            _LOGGER.error(e)
-            pass
+        except Exception as error:  # pylint: disable=broad-except
+            _LOGGER.error(error)
         return False

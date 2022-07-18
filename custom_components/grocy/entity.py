@@ -1,108 +1,56 @@
-"""GrocyEntity class"""
-import json
+"""Entity for Grocy."""
+from __future__ import annotations
 
+import json
+from collections.abc import Mapping
+from typing import Any
+
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceEntryType
+from homeassistant.helpers.entity import DeviceInfo, EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-# pylint: disable=relative-beyond-top-level
-from .const import (
-    DOMAIN,
-    GrocyEntityIcon,
-    GrocyEntityType,
-    GrocyEntityUnit,
-    NAME,
-    VERSION,
-)
-from .json_encode import GrocyJSONEncoder
+from .const import DOMAIN, NAME, VERSION
+from .coordinator import GrocyDataUpdateCoordinator
+from .json_encoder import CustomJSONEncoder
 
 
-class GrocyEntity(CoordinatorEntity):
-    """Base class for Grocy entities."""
+class GrocyEntity(CoordinatorEntity[GrocyDataUpdateCoordinator]):
+    """Grocy base entity definition."""
 
-    def __init__(self, coordinator, config_entry, entity_type):
-        """Initialize generic Grocy entity."""
+    def __init__(
+        self,
+        coordinator: GrocyDataUpdateCoordinator,
+        description: EntityDescription,
+        config_entry: ConfigEntry,
+    ) -> None:
+        """Initialize entity."""
         super().__init__(coordinator)
-        self.config_entry = config_entry
-        self.entity_type = entity_type
+        self._attr_name = description.name
+        self._attr_unique_id = f"{config_entry.entry_id}{description.key.lower()}"
+        self.entity_description = description
 
     @property
-    def unique_id(self):
-        """Return a unique ID to use for this entity."""
-        return f"{self.config_entry.entry_id}{self.entity_type.lower()}"
+    def device_info(self) -> DeviceInfo:
+        """Grocy device information."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.coordinator.config_entry.entry_id)},
+            name=NAME,
+            manufacturer=NAME,
+            software_version=VERSION,
+            entry_type=DeviceEntryType.SERVICE,
+        )
 
     @property
-    def name(self):
-        """Return the name of the binary_sensor."""
-        return f"{NAME} {self.entity_type.lower().replace('_', ' ')}"
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+        """Return the extra state attributes."""
+        data = self.coordinator.data.get(self.entity_description.key)
+        if data and hasattr(self.entity_description, "attributes_fn"):
+            return json.loads(
+                json.dumps(
+                    self.entity_description.attributes_fn(data),
+                    cls=CustomJSONEncoder,
+                )
+            )
 
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return if the entity should be enabled when first added to the entity registry."""
-        return False
-
-    @property
-    def entity_data(self):
-        """Return the entity_data of the entity."""
-        if self.coordinator.data is None:
-            return None
-        return self.coordinator.data.get(self.entity_type)
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit the value is expressed in."""
-        if GrocyEntityType(self.entity_type).name in [x.name for x in GrocyEntityUnit]:
-            return GrocyEntityUnit[GrocyEntityType(self.entity_type).name]
-
-    @property
-    def icon(self):
-        """Return the icon of the entity."""
-        if GrocyEntityType(self.entity_type).name in [x.name for x in GrocyEntityIcon]:
-            return GrocyEntityIcon[GrocyEntityType(self.entity_type).name]
-
-        return GrocyEntityIcon.DEFAULT
-
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {(DOMAIN, self.config_entry.entry_id)},
-            "name": NAME,
-            "model": VERSION,
-            "manufacturer": NAME,
-            "entry_type": DeviceEntryType.SERVICE,
-        }
-
-    @property
-    def extra_state_attributes(self):
-        """Return the state attributes."""
-        if not self.entity_data:
-            return
-
-        data = {}
-
-        if self.entity_type == GrocyEntityType.CHORES:
-            data = {"chores": [x.as_dict() for x in self.entity_data]}
-        elif self.entity_type == GrocyEntityType.EXPIRED_PRODUCTS:
-            data = {"expired": [x.as_dict() for x in self.entity_data]}
-        elif self.entity_type == GrocyEntityType.EXPIRING_PRODUCTS:
-            data = {"expiring": [x.as_dict() for x in self.entity_data]}
-        elif self.entity_type == GrocyEntityType.MEAL_PLAN:
-            data = {"meals": [x.as_dict() for x in self.entity_data]}
-        elif self.entity_type == GrocyEntityType.MISSING_PRODUCTS:
-            data = {"missing": [x.as_dict() for x in self.entity_data]}
-        elif self.entity_type == GrocyEntityType.OVERDUE_CHORES:
-            data = {"chores": [x.as_dict() for x in self.entity_data]}
-        elif self.entity_type == GrocyEntityType.OVERDUE_TASKS:
-            data = {"tasks": [x.as_dict() for x in self.entity_data]}
-        elif self.entity_type == GrocyEntityType.PRODUCTS:
-            data = {"products": [x.as_dict() for x in self.entity_data]}
-        elif self.entity_type == GrocyEntityType.SHOPPING_LIST:
-            data = {"products": [x.as_dict() for x in self.entity_data]}
-        elif self.entity_type == GrocyEntityType.STOCK:
-            data = {"products": [x.as_dict() for x in self.entity_data]}
-        elif self.entity_type == GrocyEntityType.TASKS:
-            data = {"tasks": [x.as_dict() for x in self.entity_data]}
-
-        if data:
-            data["count"] = sum(len(entry) for entry in data.values())
-
-        return json.loads(json.dumps(data, cls=GrocyJSONEncoder))
+        return None
