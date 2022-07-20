@@ -19,6 +19,7 @@ from .const import (
     ATTR_MEAL_PLAN,
     ATTR_MISSING_PRODUCTS,
     ATTR_OVERDUE_CHORES,
+    ATTR_OVERDUE_PRODUCTS,
     ATTR_OVERDUE_TASKS,
     ATTR_SHOPPING_LIST,
     ATTR_STOCK,
@@ -74,6 +75,7 @@ async def _async_get_available_entities(grocy_data: GrocyData) -> List[str]:
             available_entities.append(ATTR_MISSING_PRODUCTS)
             available_entities.append(ATTR_EXPIRED_PRODUCTS)
             available_entities.append(ATTR_EXPIRING_PRODUCTS)
+            available_entities.append(ATTR_OVERDUE_PRODUCTS)
 
         if _is_enabled_grocy_feature(grocy_config, "FEATURE_FLAG_SHOPPINGLIST"):
             available_entities.append(ATTR_SHOPPING_LIST)

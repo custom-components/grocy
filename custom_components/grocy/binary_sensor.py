@@ -19,6 +19,7 @@ from .const import (
     ATTR_EXPIRING_PRODUCTS,
     ATTR_MISSING_PRODUCTS,
     ATTR_OVERDUE_CHORES,
+    ATTR_OVERDUE_PRODUCTS,
     ATTR_OVERDUE_TASKS,
     DOMAIN,
 )
@@ -77,6 +78,16 @@ BINARY_SENSORS: tuple[GrocyBinarySensorEntityDescription, ...] = (
         exists_fn=lambda entities: ATTR_EXPIRING_PRODUCTS in entities,
         attributes_fn=lambda data: {
             "expiring_products": [x.as_dict() for x in data],
+            "count": len(data),
+        },
+    ),
+    GrocyBinarySensorEntityDescription(
+        key=ATTR_OVERDUE_PRODUCTS,
+        name="Grocy overdue products",
+        icon="mdi:alert-circle-check-outline",
+        exists_fn=lambda entities: ATTR_OVERDUE_PRODUCTS in entities,
+        attributes_fn=lambda data: {
+            "overdue_products": [x.as_dict() for x in data],
             "count": len(data),
         },
     ),
