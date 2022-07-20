@@ -23,7 +23,7 @@ from .const import (
     CONF_PORT,
     CONF_URL,
 )
-from .helpers import MealPlanItem, extract_base_url_and_path
+from .helpers import MealPlanItemWrapper, extract_base_url_and_path
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -146,8 +146,10 @@ class GrocyData:
         def wrapper():
             meal_plan = self.api.meal_plan(True)
             today = datetime.today().date()
-            plan = [MealPlanItem(item) for item in meal_plan if item.day >= today]
-            return sorted(plan, key=lambda item: item.day)
+            plan = [
+                MealPlanItemWrapper(item) for item in meal_plan if item.day >= today
+            ]
+            return sorted(plan, key=lambda item: item.meal_plan.day)
 
         return await self.hass.async_add_executor_job(wrapper)
 
