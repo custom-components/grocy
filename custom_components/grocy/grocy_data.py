@@ -15,6 +15,7 @@ from .const import (
     ATTR_MEAL_PLAN,
     ATTR_MISSING_PRODUCTS,
     ATTR_OVERDUE_CHORES,
+    ATTR_OVERDUE_PRODUCTS,
     ATTR_OVERDUE_TASKS,
     ATTR_SHOPPING_LIST,
     ATTR_STOCK,
@@ -42,6 +43,7 @@ class GrocyData:
             ATTR_SHOPPING_LIST: self.async_update_shopping_list,
             ATTR_EXPIRING_PRODUCTS: self.async_update_expiring_products,
             ATTR_EXPIRED_PRODUCTS: self.async_update_expired_products,
+            ATTR_OVERDUE_PRODUCTS: self.async_update_overdue_products,
             ATTR_MISSING_PRODUCTS: self.async_update_missing_products,
             ATTR_MEAL_PLAN: self.async_update_meal_plan,
             ATTR_OVERDUE_CHORES: self.async_update_overdue_chores,
@@ -129,6 +131,14 @@ class GrocyData:
 
         def wrapper():
             return self.api.expired_products(True)
+
+        return await self.hass.async_add_executor_job(wrapper)
+
+    async def async_update_overdue_products(self):
+        """Update overdue products data."""
+
+        def wrapper():
+            return self.api.overdue_products(True)
 
         return await self.hass.async_add_executor_job(wrapper)
 

@@ -36,7 +36,7 @@ Future integration updates will appear automatically within Home Assistant via H
 
 **All entities are disabled from the start. You have to manually enable the entities you want to use in Home Assistant.**
 You get a sensor each for chores, meal plan, shopping list, stock and tasks.
-You get a binary sensor each for expired, expiring and missing products and overdue tasks and chores.
+You get a binary sensor each for overdue, expired, expiring and missing products and overdue tasks and chores.
 
 
 # Services
