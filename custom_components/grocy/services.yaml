@@ -92,6 +92,13 @@ execute_chore:
       description: The id of the user who executed the chore
       selector:
         text:
+    skipped:
+      name: Skip execution
+      description: Skip next chore schedule
+      example: false
+      default: false
+      selector:
+        boolean:
 
 complete_task:
   name: Complete Task
