@@ -63,6 +63,10 @@ Consumes a given amount of a product from the stock.
 
 Executes the given chore with an optional timestamp and executor.
 
+- **Grocy: Consume Recipe** (_grocy.consume_recipe_)
+
+Consumes the given recipe.
+
 
 # Translations
 

@@ -146,3 +146,15 @@ add_generic:
       default: {"name": "Task name", "due_date": "2021-05-21"}
       selector:
         object:
+
+consume_recipe:
+  name: Consume Recipe
+  description: Consumes the given recipe
+  fields:
+    recipe_id:
+      name: Recipe Id
+      example: '3'
+      required: true
+      description: The id of the recipe to consume
+      selector:
+        text:
