@@ -17,6 +17,7 @@ SERVICE_SUBPRODUCT_SUBSTITUTION = "allow_subproduct_substitution"
 SERVICE_TRANSACTION_TYPE = "transaction_type"
 SERVICE_CHORE_ID = "chore_id"
 SERVICE_DONE_BY = "done_by"
+SERVICE_SKIPPED = "skipped"
 SERVICE_TASK_ID = "task_id"
 SERVICE_ENTITY_TYPE = "entity_type"
 SERVICE_DATA = "data"
@@ -56,6 +57,7 @@ SERVICE_EXECUTE_CHORE_SCHEMA = vol.All(
         {
             vol.Required(SERVICE_CHORE_ID): vol.Coerce(int),
             vol.Optional(SERVICE_DONE_BY): vol.Coerce(int),
+            vol.Optional(SERVICE_SKIPPED): bool,
         }
     )
 )
@@ -180,9 +182,10 @@ async def async_execute_chore_service(hass, coordinator, data):
     """Execute a chore in Grocy."""
     chore_id = data[SERVICE_CHORE_ID]
     done_by = data.get(SERVICE_DONE_BY, "")
+    skipped = data.get(SERVICE_SKIPPED, False)
 
     def wrapper():
-        coordinator.grocy_api.execute_chore(chore_id, done_by)
+        coordinator.grocy_api.execute_chore(chore_id, done_by, skipped=skipped)
 
     await hass.async_add_executor_job(wrapper)
     await _async_force_update_entity(coordinator, ATTR_CHORES)
