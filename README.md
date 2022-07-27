@@ -35,8 +35,8 @@ Future integration updates will appear automatically within Home Assistant via H
 # Entities
 
 **All entities are disabled from the start. You have to manually enable the entities you want to use in Home Assistant.**
-You get a sensor each for chores, meal plan, shopping list, stock and tasks.
-You get a binary sensor each for overdue, expired, expiring and missing products and overdue tasks and chores.
+You get a sensor each for chores, meal plan, shopping list, stock, tasks and batteries.
+You get a binary sensor each for overdue, expired, expiring and missing products and for overdue tasks, overdue chores and overdue batteries.
 
 
 # Services
@@ -50,6 +50,10 @@ Adds a single object of the given entity type.
 - **Grocy: Add Product To Stock** (_grocy.add_product_to_stock_)
 
 Adds a given amount of a product to the stock.
+
+- **Grocy: Track Battery** (_grocy.track_battery_)
+
+Tracks the given battery.
 
 - **Grocy: Complete Task** (_grocy.complete_task_)
 

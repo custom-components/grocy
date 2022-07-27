@@ -1,19 +1,25 @@
 """Communication with Grocy API."""
+from __future__ import annotations
+
 import logging
 from datetime import datetime
+from typing import List
 
 from aiohttp import hdrs, web
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from pygrocy.data_models.battery import Battery
 
 from .const import (
+    ATTR_BATTERIES,
     ATTR_CHORES,
     ATTR_EXPIRED_PRODUCTS,
     ATTR_EXPIRING_PRODUCTS,
     ATTR_MEAL_PLAN,
     ATTR_MISSING_PRODUCTS,
+    ATTR_OVERDUE_BATTERIES,
     ATTR_OVERDUE_CHORES,
     ATTR_OVERDUE_PRODUCTS,
     ATTR_OVERDUE_TASKS,
@@ -48,6 +54,8 @@ class GrocyData:
             ATTR_MEAL_PLAN: self.async_update_meal_plan,
             ATTR_OVERDUE_CHORES: self.async_update_overdue_chores,
             ATTR_OVERDUE_TASKS: self.async_update_overdue_tasks,
+            ATTR_BATTERIES: self.async_update_batteries,
+            ATTR_OVERDUE_BATTERIES: self.async_update_overdue_batteries,
         }
 
     async def async_update_data(self, entity_key):
@@ -160,6 +168,23 @@ class GrocyData:
                 MealPlanItemWrapper(item) for item in meal_plan if item.day >= today
             ]
             return sorted(plan, key=lambda item: item.meal_plan.day)
+
+        return await self.hass.async_add_executor_job(wrapper)
+
+    async def async_update_batteries(self) -> List[Battery]:
+        """Update batteries."""
+
+        def wrapper():
+            return self.api.batteries(get_details=True)
+
+        return await self.hass.async_add_executor_job(wrapper)
+
+    async def async_update_overdue_batteries(self) -> List[Battery]:
+        """Update overdue batteries."""
+
+        def wrapper():
+            filter_query = [f"next_estimated_charge_time<{datetime.now()}"]
+            return self.api.batteries(filter_query, get_details=True)
 
         return await self.hass.async_add_executor_job(wrapper)
 

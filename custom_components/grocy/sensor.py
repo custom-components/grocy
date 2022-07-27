@@ -17,6 +17,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 
 from .const import (
+    ATTR_BATTERIES,
     ATTR_CHORES,
     ATTR_MEAL_PLAN,
     ATTR_SHOPPING_LIST,
@@ -24,6 +25,7 @@ from .const import (
     ATTR_TASKS,
     CHORES,
     DOMAIN,
+    ITEMS,
     MEAL_PLANS,
     PRODUCTS,
     TASKS,
@@ -123,6 +125,18 @@ SENSORS: tuple[GrocySensorEntityDescription, ...] = (
         exists_fn=lambda entities: ATTR_TASKS in entities,
         attributes_fn=lambda data: {
             "tasks": [x.as_dict() for x in data],
+            "count": len(data),
+        },
+    ),
+    GrocySensorEntityDescription(
+        key=ATTR_BATTERIES,
+        name="Grocy batteries",
+        native_unit_of_measurement=ITEMS,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:battery",
+        exists_fn=lambda entities: ATTR_BATTERIES in entities,
+        attributes_fn=lambda data: {
+            "batteries": [x.as_dict() for x in data],
             "count": len(data),
         },
     ),
