@@ -13,11 +13,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import (
+    ATTR_BATTERIES,
     ATTR_CHORES,
     ATTR_EXPIRED_PRODUCTS,
     ATTR_EXPIRING_PRODUCTS,
     ATTR_MEAL_PLAN,
     ATTR_MISSING_PRODUCTS,
+    ATTR_OVERDUE_BATTERIES,
     ATTR_OVERDUE_CHORES,
     ATTR_OVERDUE_PRODUCTS,
     ATTR_OVERDUE_TASKS,
@@ -90,6 +92,10 @@ async def _async_get_available_entities(grocy_data: GrocyData) -> List[str]:
 
         if _is_enabled_grocy_feature(grocy_config, "FEATURE_FLAG_RECIPES"):
             available_entities.append(ATTR_MEAL_PLAN)
+
+        if _is_enabled_grocy_feature(grocy_config, "FEATURE_FLAG_BATTERIES"):
+            available_entities.append(ATTR_BATTERIES)
+            available_entities.append(ATTR_OVERDUE_BATTERIES)
 
     _LOGGER.debug("Available entities: %s", available_entities)
 
