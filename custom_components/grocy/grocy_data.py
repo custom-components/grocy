@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 
 from aiohttp import hdrs, web
@@ -78,18 +78,12 @@ class GrocyData:
     async def async_update_overdue_chores(self):
         """Update overdue chores data."""
 
-        def wrapper():
-            return self.api.chores(True)
+        query_filter = [f"next_estimated_execution_time<{datetime.now()}"]
 
-        chores = await self.hass.async_add_executor_job(wrapper)
-        overdue_chores = []
-        for chore in chores:
-            if chore.next_estimated_execution_time:
-                now = datetime.now()
-                due = chore.next_estimated_execution_time
-                if due < now:
-                    overdue_chores.append(chore)
-        return overdue_chores
+        def wrapper():
+            return self.api.chores(get_details=True, query_filters=query_filter)
+
+        return await self.hass.async_add_executor_job(wrapper)
 
     async def async_get_config(self):
         """Get the configuration from Grocy."""
@@ -103,20 +97,22 @@ class GrocyData:
 
     async def async_update_tasks(self):
         """Update tasks data."""
+
         return await self.hass.async_add_executor_job(self.api.tasks)
 
     async def async_update_overdue_tasks(self):
         """Update overdue tasks data."""
-        tasks = await self.hass.async_add_executor_job(self.api.tasks)
 
-        overdue_tasks = []
-        for task in tasks:
-            if task.due_date:
-                current_date = datetime.now().date()
-                due_date = task.due_date
-                if due_date < current_date:
-                    overdue_tasks.append(task)
-        return overdue_tasks
+        and_query_filter = [
+            f"due_date<{datetime.now().date()}",
+            # It's not possible to pass an empty value to Grocy, so use a regex that matches non-empty values to exclude empty str due_date.
+            r"due_date§.*\S.*",
+        ]
+
+        def wrapper():
+            return self.api.tasks(query_filters=and_query_filter)
+
+        return await self.hass.async_add_executor_job(wrapper)
 
     async def async_update_shopping_list(self):
         """Update shopping list data."""
@@ -161,12 +157,13 @@ class GrocyData:
     async def async_update_meal_plan(self):
         """Update meal plan data."""
 
+        # The >= condition is broken before Grocy 3.3.1. So use > to maintain backward compatibility.
+        yesterday = datetime.now() - timedelta(1)
+        query_filter = [f"day>{yesterday.date()}"]
+
         def wrapper():
-            meal_plan = self.api.meal_plan(True)
-            today = datetime.today().date()
-            plan = [
-                MealPlanItemWrapper(item) for item in meal_plan if item.day >= today
-            ]
+            meal_plan = self.api.meal_plan(get_details=True, query_filters=query_filter)
+            plan = [MealPlanItemWrapper(item) for item in meal_plan]
             return sorted(plan, key=lambda item: item.meal_plan.day)
 
         return await self.hass.async_add_executor_job(wrapper)
