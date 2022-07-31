@@ -7,7 +7,7 @@ https://github.com/custom-components/grocy
 from __future__ import annotations
 
 import logging
-from typing import Any, List
+from typing import List
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -72,44 +72,31 @@ async def _async_get_available_entities(grocy_data: GrocyData) -> List[str]:
     available_entities = []
     grocy_config = await grocy_data.async_get_config()
     if grocy_config:
-        if _is_enabled_grocy_feature(grocy_config, "FEATURE_FLAG_STOCK"):
+        if "FEATURE_FLAG_STOCK" in grocy_config.enabled_features:
             available_entities.append(ATTR_STOCK)
             available_entities.append(ATTR_MISSING_PRODUCTS)
             available_entities.append(ATTR_EXPIRED_PRODUCTS)
             available_entities.append(ATTR_EXPIRING_PRODUCTS)
             available_entities.append(ATTR_OVERDUE_PRODUCTS)
 
-        if _is_enabled_grocy_feature(grocy_config, "FEATURE_FLAG_SHOPPINGLIST"):
+        if "FEATURE_FLAG_SHOPPINGLIST" in grocy_config.enabled_features:
             available_entities.append(ATTR_SHOPPING_LIST)
 
-        if _is_enabled_grocy_feature(grocy_config, "FEATURE_FLAG_TASKS"):
+        if "FEATURE_FLAG_TASKS" in grocy_config.enabled_features:
             available_entities.append(ATTR_TASKS)
             available_entities.append(ATTR_OVERDUE_TASKS)
 
-        if _is_enabled_grocy_feature(grocy_config, "FEATURE_FLAG_CHORES"):
+        if "FEATURE_FLAG_CHORES" in grocy_config.enabled_features:
             available_entities.append(ATTR_CHORES)
             available_entities.append(ATTR_OVERDUE_CHORES)
 
-        if _is_enabled_grocy_feature(grocy_config, "FEATURE_FLAG_RECIPES"):
+        if "FEATURE_FLAG_RECIPES" in grocy_config.enabled_features:
             available_entities.append(ATTR_MEAL_PLAN)
 
-        if _is_enabled_grocy_feature(grocy_config, "FEATURE_FLAG_BATTERIES"):
+        if "FEATURE_FLAG_BATTERIES" in grocy_config.enabled_features:
             available_entities.append(ATTR_BATTERIES)
             available_entities.append(ATTR_OVERDUE_BATTERIES)
 
     _LOGGER.debug("Available entities: %s", available_entities)
 
     return available_entities
-
-
-def _is_enabled_grocy_feature(grocy_config: Any, feature_setting_key: str) -> bool:
-    """
-    Return whether the Grocy feature is enabled or not, default is enabled.
-    Setting value received from Grocy can be a str or bool.
-    """
-    feature_setting_value = grocy_config[feature_setting_key]
-    _LOGGER.debug(
-        "Grocy feature '%s' has value '%s'.", feature_setting_key, feature_setting_value
-    )
-
-    return feature_setting_value not in (False, "0")
