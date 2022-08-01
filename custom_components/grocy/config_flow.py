@@ -87,9 +87,7 @@ class GrocyFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
             def system_info():
                 """Get system information from Grocy."""
-                client._api_client._do_get_request(
-                    "system/info"
-                )  # TODO Make endpoint available in pygrocy
+                return client.get_system_info()
 
             await self.hass.async_add_executor_job(system_info)
             return True

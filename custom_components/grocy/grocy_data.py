@@ -95,9 +95,7 @@ class GrocyData:
         """Get the configuration from Grocy."""
 
         def wrapper():
-            return self.api._api_client._do_get_request(
-                "system/config"
-            )  # TODO Make endpoint available in pygrocy
+            return self.api.get_system_config()
 
         return await self.hass.async_add_executor_job(wrapper)
 
