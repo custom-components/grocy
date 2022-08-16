@@ -1,0 +1,21 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Conecte-se à sua instância do Grocy",
+                "data": {
+                    "url": "URL da API do Grocy (e.g. \"http://seugrocyurl.com\")",
+                    "api_key": "Chave da API do Grocy",
+                    "port": "Número da porta (O padrão é a 9192)",
+                    "verify_ssl": "Verificar certificado SSL"
+                }
+            }
+        },
+        "error": {
+            "auth": "Algo deu errado."
+        },
+        "abort": {
+            "single_instance_allowed": "Apenas uma única configuração do Grocy é permitida."
+        }
+    }
+}
