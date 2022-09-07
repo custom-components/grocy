@@ -26,6 +26,36 @@ add_product_to_stock:
       description: The purchase price per purchase quantity unit of the added product
       selector:
         text:
+
+open_product:
+  name: Open Product
+  description: Opens a given amount of a product in stock
+  fields:
+    product_id:
+      name: Product Id
+      example: '3'
+      required: true
+      description: The id of the product to open
+      selector:
+        text:
+    amount:
+      name: Amount
+      example: 1
+      required: true
+      description: The amount to open
+      selector:
+        number:
+          min: 1
+          max: 1000
+          mode: box
+    allow_subproduct_substitution:
+      name: Subproduct substitution
+      description: If subproduct substitution is allowed
+      example: false
+      default: false
+      selector:
+        boolean:
+
 consume_product_from_stock:
   name: Consume Product From Stock
   description: Consumes a given amount of a product to the stock

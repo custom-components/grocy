@@ -51,6 +51,10 @@ Adds a single object of the given entity type.
 
 Adds a given amount of a product to the stock.
 
+- **Grocy: Open Product** (_grocy.open_product_)
+
+Opens a given amount of a product in stock.
+
 - **Grocy: Track Battery** (_grocy.track_battery_)
 
 Tracks the given battery.
