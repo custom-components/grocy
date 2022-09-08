@@ -25,6 +25,7 @@ SERVICE_RECIPE_ID = "recipe_id"
 SERVICE_BATTERY_ID = "battery_id"
 
 SERVICE_ADD_PRODUCT = "add_product_to_stock"
+SERVICE_OPEN_PRODUCT = "open_product"
 SERVICE_CONSUME_PRODUCT = "consume_product_from_stock"
 SERVICE_EXECUTE_CHORE = "execute_chore"
 SERVICE_COMPLETE_TASK = "complete_task"
@@ -38,6 +39,16 @@ SERVICE_ADD_PRODUCT_SCHEMA = vol.All(
             vol.Required(SERVICE_PRODUCT_ID): vol.Coerce(int),
             vol.Required(SERVICE_AMOUNT): vol.Coerce(float),
             vol.Optional(SERVICE_PRICE): str,
+        }
+    )
+)
+
+SERVICE_OPEN_PRODUCT_SCHEMA = vol.All(
+    vol.Schema(
+        {
+            vol.Required(SERVICE_PRODUCT_ID): vol.Coerce(int),
+            vol.Required(SERVICE_AMOUNT): vol.Coerce(float),
+            vol.Optional(SERVICE_SUBPRODUCT_SUBSTITUTION): bool,
         }
     )
 )
@@ -99,6 +110,7 @@ SERVICE_TRACK_BATTERY_SCHEMA = vol.All(
 
 SERVICES_WITH_ACCOMPANYING_SCHEMA: list[tuple[str, vol.Schema]] = [
     (SERVICE_ADD_PRODUCT, SERVICE_ADD_PRODUCT_SCHEMA),
+    (SERVICE_OPEN_PRODUCT, SERVICE_OPEN_PRODUCT_SCHEMA),
     (SERVICE_CONSUME_PRODUCT, SERVICE_CONSUME_PRODUCT_SCHEMA),
     (SERVICE_EXECUTE_CHORE, SERVICE_EXECUTE_CHORE_SCHEMA),
     (SERVICE_COMPLETE_TASK, SERVICE_COMPLETE_TASK_SCHEMA),
@@ -123,6 +135,9 @@ async def async_setup_services(
 
         if service == SERVICE_ADD_PRODUCT:
             await async_add_product_service(hass, coordinator, service_data)
+
+        elif service == SERVICE_OPEN_PRODUCT:
+            await async_open_product_service(hass, coordinator, service_data)
 
         elif service == SERVICE_CONSUME_PRODUCT:
             await async_consume_product_service(hass, coordinator, service_data)
@@ -163,6 +178,20 @@ async def async_add_product_service(hass, coordinator, data):
 
     def wrapper():
         coordinator.grocy_api.add_product(product_id, amount, price)
+
+    await hass.async_add_executor_job(wrapper)
+
+
+async def async_open_product_service(hass, coordinator, data):
+    """Open a product in Grocy."""
+    product_id = data[SERVICE_PRODUCT_ID]
+    amount = data[SERVICE_AMOUNT]
+    allow_subproduct_substitution = data.get(SERVICE_SUBPRODUCT_SUBSTITUTION, False)
+
+    def wrapper():
+        coordinator.grocy_api.open_product(
+            product_id, amount, allow_subproduct_substitution
+        )
 
     await hass.async_add_executor_job(wrapper)
 
