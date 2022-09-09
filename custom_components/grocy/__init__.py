@@ -11,6 +11,7 @@ from typing import List
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from pygrocy import Grocy
 
 from .const import (
     ATTR_BATTERIES,
@@ -26,12 +27,19 @@ from .const import (
     ATTR_SHOPPING_LIST,
     ATTR_STOCK,
     ATTR_TASKS,
+    CONF_API_KEY,
+    CONF_PORT,
+    CONF_URL,
+    CONF_VERIFY_SSL,
     DOMAIN,
+    GROCY_AVAILABLE_ENTITIES,
+    GROCY_CLIENT,
     PLATFORMS,
+    REGISTERED_ENTITIES,
     STARTUP_MESSAGE,
 )
-from .coordinator import GrocyDataUpdateCoordinator
 from .grocy_data import GrocyData, async_setup_endpoint_for_image_proxy
+from .helpers import extract_base_url_and_path
 from .services import async_setup_services, async_unload_services
 
 _LOGGER = logging.getLogger(__name__)
@@ -41,19 +49,36 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Set up this integration using UI."""
     _LOGGER.info(STARTUP_MESSAGE)
 
-    coordinator: GrocyDataUpdateCoordinator = GrocyDataUpdateCoordinator(hass)
-    coordinator.available_entities = await _async_get_available_entities(
-        coordinator.grocy_data
+    grocy_client = setup_grocy_client(hass, config_entry)
+    available_entities = await _async_get_available_entities(grocy_client)
+
+    hass.data.setdefault(
+        DOMAIN,
+        {
+            GROCY_CLIENT: grocy_client,
+            GROCY_AVAILABLE_ENTITIES: available_entities,
+            REGISTERED_ENTITIES: [],
+        },
     )
-    await coordinator.async_config_entry_first_refresh()
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN] = coordinator
 
     hass.config_entries.async_setup_platforms(config_entry, PLATFORMS)
     await async_setup_services(hass, config_entry)
     await async_setup_endpoint_for_image_proxy(hass, config_entry.data)
 
     return True
+
+
+def setup_grocy_client(hass: HomeAssistant, config_entry: ConfigEntry) -> GrocyData:
+    """Initialize Grocy"""
+    url = config_entry.data[CONF_URL]
+    api_key = config_entry.data[CONF_API_KEY]
+    port = config_entry.data[CONF_PORT]
+    verify_ssl = config_entry.data[CONF_VERIFY_SSL]
+
+    (base_url, path) = extract_base_url_and_path(url)
+
+    grocy_api = Grocy(base_url, api_key, path=path, port=port, verify_ssl=verify_ssl)
+    return GrocyData(hass, grocy_api)
 
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
@@ -67,10 +92,10 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
     return unloaded
 
 
-async def _async_get_available_entities(grocy_data: GrocyData) -> List[str]:
+async def _async_get_available_entities(grocy_client: GrocyData) -> List[str]:
     """Return a list of available entities based on enabled Grocy features."""
     available_entities = []
-    grocy_config = await grocy_data.async_get_config()
+    grocy_config = await grocy_client.async_get_config()
     if grocy_config:
         if "FEATURE_FLAG_STOCK" in grocy_config.enabled_features:
             available_entities.append(ATTR_STOCK)

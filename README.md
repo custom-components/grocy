@@ -27,7 +27,7 @@ The configuration is slightly different for those who use the [official Grocy ad
 4. Restart Home Assistant as instructed by HACS.
 5. Install the [Grocy integration](https://my.home-assistant.io/redirect/config_flow_start/?domain=grocy). Fill out the information according to [this instruction](#integration-configuration).
 6. Before integration version v4.3.3, now restart Home Assistant again (with later versions you can skip this step).
-7. You will now have a new integration for Grocy. All entities are disabled from start, manually enable the entities you want to use.
+7. You will now have a new integration for Grocy. All entities are disabled from start, manually enable the entities you want to use. It can take up to 30 seconds before all entities are visible.
 
 Future integration updates will appear automatically within Home Assistant via HACS.
 
@@ -35,8 +35,8 @@ Future integration updates will appear automatically within Home Assistant via H
 # Entities
 
 **All entities are disabled from the start. You have to manually enable the entities you want to use in Home Assistant.**
-You get a sensor each for chores, meal plan, shopping list, stock, tasks and batteries.
-You get a binary sensor each for overdue, expired, expiring and missing products and for overdue tasks, overdue chores and overdue batteries.
+You get a sensor each for chores, meal plan, shopping list, stock, tasks and batteries. The sensors refresh every 60 seconds.
+You get a binary sensor each for overdue, expired, expiring and missing products and for overdue tasks, overdue chores and overdue batteries. The binary sensors refresh every 5 minutes.
 
 
 # Services
