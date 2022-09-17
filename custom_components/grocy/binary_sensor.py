@@ -33,6 +33,7 @@ from .grocy_data import GrocyData
 _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=300)
+PARALLEL_UPDATES = 1
 
 
 async def async_setup_entry(
