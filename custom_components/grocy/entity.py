@@ -2,58 +2,39 @@
 from __future__ import annotations
 
 import json
-import logging
 from collections.abc import Mapping
-from typing import Any, List
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType
-from homeassistant.helpers.entity import DeviceInfo, Entity, EntityDescription
+from homeassistant.helpers.entity import DeviceInfo, EntityDescription
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, GROCY_CLIENT, NAME, VERSION
-from .grocy_data import GrocyData
+from .const import DOMAIN, NAME, VERSION
+from .coordinator import GrocyDataUpdateCoordinator
 from .json_encoder import CustomJSONEncoder
 
-_LOGGER = logging.getLogger(__name__)
 
-
-class GrocyEntity(Entity):
+class GrocyEntity(CoordinatorEntity[GrocyDataUpdateCoordinator]):
     """Grocy base entity definition."""
 
     def __init__(
         self,
-        hass: HomeAssistant,
+        coordinator: GrocyDataUpdateCoordinator,
         description: EntityDescription,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize entity."""
+        super().__init__(coordinator)
         self._attr_name = description.name
         self._attr_unique_id = f"{config_entry.entry_id}{description.key.lower()}"
-        self.entity_description: EntityDescription = description
-        self.config_entry: ConfigEntry = config_entry
-        self.grocy_client: GrocyData = hass.data[DOMAIN][GROCY_CLIENT]
-        self.data: List[Any] = []
-
-    async def async_update(self) -> None:
-        """Update Grocy entity."""
-        if not self.enabled:
-            return
-
-        try:
-            self.data = await self.entity_description.value_fn(self.grocy_client)
-            self._attr_available = True
-        except Exception as error:  # pylint: disable=broad-except
-            self.data = []
-            if self._attr_available:
-                _LOGGER.error("An error occurred while updating sensor", exc_info=error)
-            self._attr_available = False
+        self.entity_description = description
 
     @property
     def device_info(self) -> DeviceInfo:
         """Grocy device information."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self.config_entry.entry_id)},
+            identifiers={(DOMAIN, self.coordinator.config_entry.entry_id)},
             name=NAME,
             manufacturer=NAME,
             software_version=VERSION,
@@ -63,7 +44,7 @@ class GrocyEntity(Entity):
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
         """Return the extra state attributes."""
-        data = self.data
+        data = self.coordinator.data.get(self.entity_description.key)
         if data and hasattr(self.entity_description, "attributes_fn"):
             return json.loads(
                 json.dumps(

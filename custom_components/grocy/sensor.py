@@ -4,8 +4,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from datetime import timedelta
-from typing import Any, Coroutine, List
+from typing import Any, List
 
 from homeassistant.components.sensor import (
     SensorEntity,
@@ -26,19 +25,15 @@ from .const import (
     ATTR_TASKS,
     CHORES,
     DOMAIN,
-    GROCY_AVAILABLE_ENTITIES,
     ITEMS,
     MEAL_PLANS,
     PRODUCTS,
-    REGISTERED_ENTITIES,
     TASKS,
 )
+from .coordinator import GrocyDataUpdateCoordinator
 from .entity import GrocyEntity
-from .grocy_data import GrocyData
 
 _LOGGER = logging.getLogger(__name__)
-
-SCAN_INTERVAL = timedelta(seconds=60)
 
 
 async def async_setup_entry(
@@ -47,14 +42,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ):
     """Setup sensor platform."""
-    available_entities = hass.data[DOMAIN][GROCY_AVAILABLE_ENTITIES]
-    registered_entities = hass.data[DOMAIN][REGISTERED_ENTITIES]
+    coordinator: GrocyDataUpdateCoordinator = hass.data[DOMAIN]
     entities = []
     for description in SENSORS:
-        if description.exists_fn(available_entities):
-            entity = GrocySensorEntity(hass, description, config_entry)
+        if description.exists_fn(coordinator.available_entities):
+            entity = GrocySensorEntity(coordinator, description, config_entry)
+            coordinator.entities.append(entity)
             entities.append(entity)
-            registered_entities.append(entity)
         else:
             _LOGGER.debug(
                 "Entity description '%s' is not available.",
@@ -65,16 +59,7 @@ async def async_setup_entry(
 
 
 @dataclass
-class GrocyEntityDescriptionMixin:
-    """Mixin for required keys."""
-
-    value_fn: Callable[[GrocyData], Coroutine[Any, Any, Any]]
-
-
-@dataclass
-class GrocySensorEntityDescription(
-    SensorEntityDescription, GrocyEntityDescriptionMixin
-):
+class GrocySensorEntityDescription(SensorEntityDescription):
     """Grocy sensor entity description."""
 
     attributes_fn: Callable[[List[Any]], Mapping[str, Any] | None] = lambda _: None
@@ -90,7 +75,6 @@ SENSORS: tuple[GrocySensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:broom",
         exists_fn=lambda entities: ATTR_CHORES in entities,
-        value_fn=lambda grocy: grocy.async_update_chores(),
         attributes_fn=lambda data: {
             "chores": [x.as_dict() for x in data],
             "count": len(data),
@@ -103,7 +87,6 @@ SENSORS: tuple[GrocySensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:silverware-variant",
         exists_fn=lambda entities: ATTR_MEAL_PLAN in entities,
-        value_fn=lambda grocy: grocy.async_update_meal_plan(),
         attributes_fn=lambda data: {
             "meals": [x.as_dict() for x in data],
             "count": len(data),
@@ -116,7 +99,6 @@ SENSORS: tuple[GrocySensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:cart-outline",
         exists_fn=lambda entities: ATTR_SHOPPING_LIST in entities,
-        value_fn=lambda grocy: grocy.async_update_shopping_list(),
         attributes_fn=lambda data: {
             "products": [x.as_dict() for x in data],
             "count": len(data),
@@ -129,7 +111,6 @@ SENSORS: tuple[GrocySensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:fridge-outline",
         exists_fn=lambda entities: ATTR_STOCK in entities,
-        value_fn=lambda grocy: grocy.async_update_stock(),
         attributes_fn=lambda data: {
             "products": [x.as_dict() for x in data],
             "count": len(data),
@@ -142,7 +123,6 @@ SENSORS: tuple[GrocySensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:checkbox-marked-circle-outline",
         exists_fn=lambda entities: ATTR_TASKS in entities,
-        value_fn=lambda grocy: grocy.async_update_tasks(),
         attributes_fn=lambda data: {
             "tasks": [x.as_dict() for x in data],
             "count": len(data),
@@ -155,7 +135,6 @@ SENSORS: tuple[GrocySensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:battery",
         exists_fn=lambda entities: ATTR_BATTERIES in entities,
-        value_fn=lambda grocy: grocy.async_update_batteries(),
         attributes_fn=lambda data: {
             "batteries": [x.as_dict() for x in data],
             "count": len(data),
@@ -170,4 +149,6 @@ class GrocySensorEntity(GrocyEntity, SensorEntity):
     @property
     def native_value(self) -> StateType:
         """Return the value reported by the sensor."""
-        return len(self.data) if self.data else 0
+        entity_data = self.coordinator.data.get(self.entity_description.key, None)
+
+        return len(entity_data) if entity_data else 0
