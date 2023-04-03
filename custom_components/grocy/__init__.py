@@ -49,7 +49,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN] = coordinator
 
-    hass.config_entries.async_setup_platforms(config_entry, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
     await async_setup_services(hass, config_entry)
     await async_setup_endpoint_for_image_proxy(hass, config_entry.data)
 
