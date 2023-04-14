@@ -222,7 +222,7 @@ update_generic:
 
     object_id:
       name: Object ID
-      descriuption: The ID of the entity to update.
+      description: The ID of the entity to update.
       required: true
       example: '1'
       selector:
@@ -243,7 +243,7 @@ delete_generic:
   fields:
     entity_type:
       name: Entity Type
-      description: The type of entity you like to update.
+      description: The type of entity to be deleted.
       required: true
       example: 'tasks'
       default: 'tasks'
@@ -274,7 +274,7 @@ delete_generic:
 
     object_id:
       name: Object ID
-      descriuption: The ID of the entity to delete.
+      description: The ID of the entity to delete.
       required: true
       example: '1'
       selector:
