@@ -184,6 +184,103 @@ add_generic:
       selector:
         object:
 
+
+update_generic:
+  name: Update Generic
+  description: Edits a single object of the given entity type
+  fields:
+    entity_type:
+      name: Entity Type
+      description: The type of entity you like to update.
+      required: true
+      example: 'tasks'
+      default: 'tasks'
+      selector:
+        select:
+          options:
+            - "products"
+            - "chores"
+            - "product_barcodes"
+            - "batteries"
+            - "locations"
+            - "quantity_units"
+            - "quantity_unit_conversions"
+            - "shopping_list"
+            - "shopping_lists"
+            - "shopping_locations"
+            - "recipes"
+            - "recipes_pos"
+            - "recipes_nestings"
+            - "tasks"
+            - "task_categories"
+            - "product_groups"
+            - "equipment"
+            - "userfields"
+            - "userentities"
+            - "userobjects"
+            - "meal_plan"
+
+    object_id:
+      name: Object ID
+      description: The ID of the entity to update.
+      required: true
+      example: '1'
+      selector:
+        text:
+
+    data:
+      name: Data
+      description: "JSON object with what data you want to update (yaml format also works). See Grocy api documentation on Generic entity interactions: https://demo.grocy.info/api"
+      required: true
+      default: {"name": "Task name", "due_date": "2021-05-21"}
+      selector:
+        object:
+
+
+delete_generic:
+  name: Delete Generic
+  description: Deletes a single object of the given entity type
+  fields:
+    entity_type:
+      name: Entity Type
+      description: The type of entity to be deleted.
+      required: true
+      example: 'tasks'
+      default: 'tasks'
+      selector:
+        select:
+          options:
+            - "products"
+            - "chores"
+            - "product_barcodes"
+            - "batteries"
+            - "locations"
+            - "quantity_units"
+            - "quantity_unit_conversions"
+            - "shopping_list"
+            - "shopping_lists"
+            - "shopping_locations"
+            - "recipes"
+            - "recipes_pos"
+            - "recipes_nestings"
+            - "tasks"
+            - "task_categories"
+            - "product_groups"
+            - "equipment"
+            - "userfields"
+            - "userentities"
+            - "userobjects"
+            - "meal_plan"
+
+    object_id:
+      name: Object ID
+      description: The ID of the entity to delete.
+      required: true
+      example: '1'
+      selector:
+        text:
+
+
 consume_recipe:
   name: Consume Recipe
   description: Consumes the given recipe

@@ -23,6 +23,7 @@ SERVICE_ENTITY_TYPE = "entity_type"
 SERVICE_DATA = "data"
 SERVICE_RECIPE_ID = "recipe_id"
 SERVICE_BATTERY_ID = "battery_id"
+SERVICE_OBJECT_ID = "object_id"
 
 SERVICE_ADD_PRODUCT = "add_product_to_stock"
 SERVICE_OPEN_PRODUCT = "open_product"
@@ -30,6 +31,8 @@ SERVICE_CONSUME_PRODUCT = "consume_product_from_stock"
 SERVICE_EXECUTE_CHORE = "execute_chore"
 SERVICE_COMPLETE_TASK = "complete_task"
 SERVICE_ADD_GENERIC = "add_generic"
+SERVICE_UPDATE_GENERIC = "update_generic"
+SERVICE_DELETE_GENERIC = "delete_generic"
 SERVICE_CONSUME_RECIPE = "consume_recipe"
 SERVICE_TRACK_BATTERY = "track_battery"
 
@@ -92,6 +95,25 @@ SERVICE_ADD_GENERIC_SCHEMA = vol.All(
     )
 )
 
+SERVICE_UPDATE_GENERIC_SCHEMA = vol.All(
+    vol.Schema(
+        {
+            vol.Required(SERVICE_ENTITY_TYPE): str,
+            vol.Required(SERVICE_OBJECT_ID): vol.Coerce(int),
+            vol.Required(SERVICE_DATA): object,
+        }
+    )
+)
+
+SERVICE_DELETE_GENERIC_SCHEMA = vol.All(
+    vol.Schema(
+        {
+            vol.Required(SERVICE_ENTITY_TYPE): str,
+            vol.Required(SERVICE_OBJECT_ID): vol.Coerce(int),
+        }
+    )
+)
+
 SERVICE_CONSUME_RECIPE_SCHEMA = vol.All(
     vol.Schema(
         {
@@ -115,6 +137,8 @@ SERVICES_WITH_ACCOMPANYING_SCHEMA: list[tuple[str, vol.Schema]] = [
     (SERVICE_EXECUTE_CHORE, SERVICE_EXECUTE_CHORE_SCHEMA),
     (SERVICE_COMPLETE_TASK, SERVICE_COMPLETE_TASK_SCHEMA),
     (SERVICE_ADD_GENERIC, SERVICE_ADD_GENERIC_SCHEMA),
+    (SERVICE_UPDATE_GENERIC, SERVICE_UPDATE_GENERIC_SCHEMA),
+    (SERVICE_DELETE_GENERIC, SERVICE_DELETE_GENERIC_SCHEMA),
     (SERVICE_CONSUME_RECIPE, SERVICE_CONSUME_RECIPE_SCHEMA),
     (SERVICE_TRACK_BATTERY, SERVICE_TRACK_BATTERY_SCHEMA),
 ]
@@ -150,6 +174,12 @@ async def async_setup_services(
 
         elif service == SERVICE_ADD_GENERIC:
             await async_add_generic_service(hass, coordinator, service_data)
+
+        elif service == SERVICE_UPDATE_GENERIC:
+            await async_update_generic_service(hass, coordinator, service_data)
+
+        elif service == SERVICE_DELETE_GENERIC:
+            await async_delete_generic_service(hass, coordinator, service_data)
 
         elif service == SERVICE_CONSUME_RECIPE:
             await async_consume_recipe_service(hass, coordinator, service_data)
@@ -257,6 +287,40 @@ async def async_add_generic_service(hass, coordinator, data):
 
     def wrapper():
         coordinator.grocy_api.add_generic(entity_type, data)
+
+    await hass.async_add_executor_job(wrapper)
+
+
+async def async_update_generic_service(hass, coordinator, data):
+    """Update a generic entity in Grocy."""
+    entity_type_raw = data.get(SERVICE_ENTITY_TYPE, None)
+    entity_type = EntityType.TASKS
+
+    if entity_type_raw is not None:
+        entity_type = EntityType(entity_type_raw)
+
+    object_id = data[SERVICE_OBJECT_ID]
+
+    data = data[SERVICE_DATA]
+
+    def wrapper():
+        coordinator.grocy_api.update_generic(entity_type, object_id, data)
+
+    await hass.async_add_executor_job(wrapper)
+
+
+async def async_delete_generic_service(hass, coordinator, data):
+    """Delete a generic entity in Grocy."""
+    entity_type_raw = data.get(SERVICE_ENTITY_TYPE, None)
+    entity_type = EntityType.TASKS
+
+    if entity_type_raw is not None:
+        entity_type = EntityType(entity_type_raw)
+
+    object_id = data[SERVICE_OBJECT_ID]
+
+    def wrapper():
+        coordinator.grocy_api.delete_generic(entity_type, object_id)
 
     await hass.async_add_executor_job(wrapper)
 
