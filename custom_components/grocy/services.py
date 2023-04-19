@@ -289,6 +289,7 @@ async def async_add_generic_service(hass, coordinator, data):
         coordinator.grocy_api.add_generic(entity_type, data)
 
     await hass.async_add_executor_job(wrapper)
+    await post_generic_refresh(coordinator, entity_type);
 
 
 async def async_update_generic_service(hass, coordinator, data):
@@ -307,6 +308,7 @@ async def async_update_generic_service(hass, coordinator, data):
         coordinator.grocy_api.update_generic(entity_type, object_id, data)
 
     await hass.async_add_executor_job(wrapper)
+    await post_generic_refresh(coordinator, entity_type);
 
 
 async def async_delete_generic_service(hass, coordinator, data):
@@ -323,7 +325,12 @@ async def async_delete_generic_service(hass, coordinator, data):
         coordinator.grocy_api.delete_generic(entity_type, object_id)
 
     await hass.async_add_executor_job(wrapper)
+    await post_generic_refresh(coordinator, entity_type);
 
+
+async def post_generic_refresh(coordinator, entity_type):
+    if entity_type == "tasks" or entity_type == "chores":
+        await _async_force_update_entity(coordinator, entity_type)
 
 async def async_consume_recipe_service(hass, coordinator, data):
     """Consume a recipe in Grocy."""
