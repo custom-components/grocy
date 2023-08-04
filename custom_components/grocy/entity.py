@@ -37,7 +37,7 @@ class GrocyEntity(CoordinatorEntity[GrocyDataUpdateCoordinator]):
             identifiers={(DOMAIN, self.coordinator.config_entry.entry_id)},
             name=NAME,
             manufacturer=NAME,
-            software_version=VERSION,
+            sw_version=VERSION,
             entry_type=DeviceEntryType.SERVICE,
         )
 
