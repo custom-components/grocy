@@ -9,9 +9,11 @@ from __future__ import annotations
 import logging
 from typing import List
 
+from requests.exceptions import JSONDecodeError
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import PlatformNotReady
+from homeassistant.exceptions import ConfigEntryNotReady
 
 from .const import (
     ATTR_BATTERIES,
@@ -47,7 +49,13 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             coordinator.grocy_data
         )
     except ConnectionError as ex:
-        raise PlatformNotReady(f"Connection error while connecting to {device.ipaddr}: {ex}") from ex
+        raise ConfigEntryNotReady(
+            f"Connection error while connecting to Grocy: {ex}"
+        ) from ex
+    except JSONDecodeError as ex:
+        raise ConfigEntryNotReady(
+            f"Invalid response from Grocy, is Add-on running?: {ex}"
+        ) from ex
     await coordinator.async_config_entry_first_refresh()
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN] = coordinator
