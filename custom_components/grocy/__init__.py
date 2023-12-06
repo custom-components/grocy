@@ -9,11 +9,10 @@ from __future__ import annotations
 import logging
 from typing import List
 
-from requests.exceptions import JSONDecodeError
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
+from requests.exceptions import JSONDecodeError
 
 from .const import (
     ATTR_BATTERIES,
