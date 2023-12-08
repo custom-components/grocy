@@ -1,0 +1,21 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Pripojte sa k svojej inštancii Grocy",
+                "data": {
+                    "url": "Grocy API URL (napr. \"http://yourgrocyurl.com\")",
+                    "api_key": "Grocy API kľúč",
+                    "port": "Číslo portu (9192)",
+                    "verify_ssl": "Overte certifikát SSL"
+                }
+            }
+        },
+        "error": {
+            "auth": "Niečo sa pokazilo."
+        },
+        "abort": {
+            "single_instance_allowed": "Je povolená iba jedna konfigurácia Grocy."
+        }
+    }
+}
