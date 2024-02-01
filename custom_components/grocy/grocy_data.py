@@ -5,7 +5,9 @@ from datetime import datetime, timedelta
 import logging
 
 from aiohttp import hdrs, web
+from pygrocy import Grocy
 from pygrocy.data_models.battery import Battery
+from pygrocy.data_models.chore import Chore
 
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.config_entries import ConfigEntry
@@ -38,7 +40,7 @@ _LOGGER = logging.getLogger(__name__)
 class GrocyData:
     """Handles communication and gets the data."""
 
-    def __init__(self, hass: HomeAssistant, api) -> None:  # noqa: D107
+    def __init__(self, hass: HomeAssistant, api: Grocy) -> None:  # noqa: D107
         """Initialize Grocy data."""
         self.hass = hass
         self.api = api
@@ -70,7 +72,7 @@ class GrocyData:
     async def async_update_chores(self):
         """Update chores data."""
 
-        def wrapper():
+        def wrapper() -> list[Chore]:
             return self.api.chores(True)
 
         return await self.hass.async_add_executor_job(wrapper)
