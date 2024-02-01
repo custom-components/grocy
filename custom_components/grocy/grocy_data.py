@@ -38,7 +38,7 @@ _LOGGER = logging.getLogger(__name__)
 class GrocyData:
     """Handles communication and gets the data."""
 
-    def __init__(self, hass, api):
+    def __init__(self, hass: HomeAssistant, api) -> None:  # noqa: D107
         """Initialize Grocy data."""
         self.hass = hass
         self.api = api
@@ -210,7 +210,7 @@ class GrocyPictureView(HomeAssistantView):
     url = "/api/grocy/{picture_type}/{filename}"
     name = "api:grocy:picture"
 
-    def __init__(self, session, base_url, api_key):
+    def __init__(self, session, base_url, api_key) -> None:  # noqa: D107
         self._session = session
         self._base_url = base_url
         self._api_key = api_key

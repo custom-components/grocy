@@ -18,7 +18,7 @@ def extract_base_url_and_path(url: str) -> tuple[str, str]:
 class MealPlanItemWrapper:
     """Wrapper around the pygrocy MealPlanItem."""
 
-    def __init__(self, meal_plan: MealPlanItem):
+    def __init__(self, meal_plan: MealPlanItem) -> None:  # noqa: D107
         self._meal_plan = meal_plan
 
     @property

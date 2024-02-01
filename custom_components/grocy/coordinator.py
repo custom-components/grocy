@@ -60,7 +60,7 @@ class GrocyDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         for entity in self.entities:
             if not entity.enabled:
-                _LOGGER.debug("Entity %s is disabled.", entity.entity_id)
+                _LOGGER.debug("Entity %s is disabled", entity.entity_id)
                 continue
 
             try:

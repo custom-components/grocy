@@ -51,7 +51,7 @@ async def async_setup_entry(
             entities.append(entity)
         else:
             _LOGGER.debug(
-                "Entity description '%s' is not available.",
+                "Entity description '%s' is not available",
                 description.key,
             )
 
