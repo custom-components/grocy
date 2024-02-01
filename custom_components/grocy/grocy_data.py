@@ -1,16 +1,16 @@
 """Communication with Grocy API."""
 from __future__ import annotations
 
-import logging
 from datetime import datetime, timedelta
-from typing import List
+import logging
 
 from aiohttp import hdrs, web
+from pygrocy.data_models.battery import Battery
+
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from pygrocy.data_models.battery import Battery
 
 from .const import (
     ATTR_BATTERIES,
@@ -166,7 +166,7 @@ class GrocyData:
 
         return await self.hass.async_add_executor_job(wrapper)
 
-    async def async_update_batteries(self) -> List[Battery]:
+    async def async_update_batteries(self) -> list[Battery]:
         """Update batteries."""
 
         def wrapper():
@@ -174,7 +174,7 @@ class GrocyData:
 
         return await self.hass.async_add_executor_job(wrapper)
 
-    async def async_update_overdue_batteries(self) -> List[Battery]:
+    async def async_update_overdue_batteries(self) -> list[Battery]:
         """Update overdue batteries."""
 
         def wrapper():
@@ -187,7 +187,7 @@ class GrocyData:
 async def async_setup_endpoint_for_image_proxy(
     hass: HomeAssistant, config_entry: ConfigEntry
 ):
-    """Setup and register the image api for grocy images with HA."""
+    """Do setup and register the image api for grocy images with HA."""
     session = async_get_clientsession(hass)
 
     url = config_entry.get(CONF_URL)

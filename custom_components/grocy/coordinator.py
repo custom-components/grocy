@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
+
+from pygrocy import Grocy
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from pygrocy import Grocy
 
 from .const import (
     CONF_API_KEY,
@@ -23,7 +24,7 @@ from .helpers import extract_base_url_and_path
 _LOGGER = logging.getLogger(__name__)
 
 
-class GrocyDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
+class GrocyDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Grocy data update coordinator."""
 
     def __init__(
@@ -50,8 +51,8 @@ class GrocyDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         )
         self.grocy_data = GrocyData(hass, self.grocy_api)
 
-        self.available_entities: List[str] = []
-        self.entities: List[Entity] = []
+        self.available_entities: list[str] = []
+        self.entities: list[Entity] = []
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data."""

@@ -1,10 +1,10 @@
 """Sensor platform for Grocy."""
 from __future__ import annotations
 
-import logging
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Any, List
+import logging
+from typing import Any
 
 from homeassistant.components.sensor import (
     SensorEntity,
@@ -41,7 +41,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ):
-    """Setup sensor platform."""
+    """Do setup sensor platform."""
     coordinator: GrocyDataUpdateCoordinator = hass.data[DOMAIN]
     entities = []
     for description in SENSORS:
@@ -62,8 +62,8 @@ async def async_setup_entry(
 class GrocySensorEntityDescription(SensorEntityDescription):
     """Grocy sensor entity description."""
 
-    attributes_fn: Callable[[List[Any]], Mapping[str, Any] | None] = lambda _: None
-    exists_fn: Callable[[List[str]], bool] = lambda _: True
+    attributes_fn: Callable[[list[Any]], Mapping[str, Any] | None] = lambda _: None
+    exists_fn: Callable[[list[str]], bool] = lambda _: True
     entity_registry_enabled_default: bool = False
 
 
