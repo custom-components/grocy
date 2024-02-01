@@ -1,4 +1,4 @@
-"""Sensor platform for Grocy."""
+"""Todo platform for Grocy."""
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
@@ -40,10 +40,10 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ):
-    """Do setup sensor platform."""
+    """Do setup todo platform."""
     coordinator: GrocyDataUpdateCoordinator = hass.data[DOMAIN]
     entities = []
-    for description in SENSORS:
+    for description in TODOS:
         if description.exists_fn(coordinator.available_entities):
             entity = GrocyTodoListEntity(coordinator, description, config_entry)
             coordinator.entities.append(entity)
@@ -59,7 +59,7 @@ async def async_setup_entry(
 
 @dataclass
 class GrocyTodoListEntityDescription:
-    """Grocy sensor entity description."""
+    """Grocy todo entity description."""
 
     key: str = None
     name: str = None
@@ -74,7 +74,7 @@ class GrocyTodoListEntityDescription:
     entity_registry_enabled_default: bool = False
 
 
-SENSORS: tuple[GrocyTodoListEntityDescription, ...] = (
+TODOS: tuple[GrocyTodoListEntityDescription, ...] = (
     GrocyTodoListEntityDescription(
         key=ATTR_CHORES,
         name="Grocy chores",
@@ -103,7 +103,7 @@ class GrocyTodoItem(TodoItem):
 
 
 class GrocyTodoListEntity(GrocyEntity, TodoListEntity):
-    """Grocy sensor entity definition."""
+    """Grocy todo entity definition."""
 
     _attr_supported_features = (
         # TodoListEntityFeature.CREATE_TODO_ITEM
@@ -126,7 +126,7 @@ class GrocyTodoListEntity(GrocyEntity, TodoListEntity):
 
     @property
     def native_value(self) -> StateType:
-        """Return the value reported by the sensor."""
+        """Return the value reported by the todo."""
         entity_data = self.coordinator.data.get(self.entity_description.key, None)
 
         return len(entity_data) if entity_data else 0
