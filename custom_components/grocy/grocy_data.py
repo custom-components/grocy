@@ -105,7 +105,9 @@ class GrocyData:
 
         and_query_filter = [
             f"due_date<{datetime.now().date()}",
-            # It's not possible to pass an empty value to Grocy, so use a regex that matches non-empty values to exclude empty str due_date.
+            # It's not possible to pass an empty value to Grocy
+            # so use a regex that matches non-empty values
+            # to exclude empty str due_date.
             r"due_date§.*\S.*",
         ]
 
@@ -157,7 +159,8 @@ class GrocyData:
     async def async_update_meal_plan(self):
         """Update meal plan data."""
 
-        # The >= condition is broken before Grocy 3.3.1. So use > to maintain backward compatibility.
+        # The >= condition is broken before Grocy 3.3.1.
+        # So use > to maintain backward compatibility.
         yesterday = datetime.now() - timedelta(1)
         query_filter = [f"day>{yesterday.date()}"]
 

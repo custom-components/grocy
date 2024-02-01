@@ -1,7 +1,7 @@
 """Todo platform for Grocy."""
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from dataclasses import dataclass
 import datetime
 import logging
@@ -12,24 +12,11 @@ from pygrocy.data_models.chore import Chore
 from homeassistant.components.todo import TodoItem, TodoItemStatus, TodoListEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import StateType
 
-from .const import (
-    ATTR_BATTERIES,
-    ATTR_CHORES,
-    ATTR_MEAL_PLAN,
-    ATTR_SHOPPING_LIST,
-    ATTR_STOCK,
-    ATTR_TASKS,
-    CHORES,
-    DOMAIN,
-    ITEMS,
-    MEAL_PLANS,
-    PRODUCTS,
-    TASKS,
-)
-from .coordinator import GrocyDataUpdateCoordinator
+from .const import ATTR_CHORES, DOMAIN
+from .coordinator import GrocyCoordinatorData, GrocyDataUpdateCoordinator
 from .entity import GrocyEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -58,18 +45,10 @@ async def async_setup_entry(
 
 
 @dataclass
-class GrocyTodoListEntityDescription:
+class GrocyTodoListEntityDescription(EntityDescription):
     """Grocy todo entity description."""
 
-    key: str = None
-    name: str = None
-    icon: str = None
-    summary: str = None
-    status: str = None
-    due: any = None
-    description: str = None
-    items: Mapping[str, any]
-    attributes_fn: Callable[[list[Any]], Mapping[str, Any] | None] = lambda _: None
+    attributes_fn: Callable[[list[Any]], GrocyCoordinatorData | None] = lambda _: None
     exists_fn: Callable[[list[str]], bool] = lambda _: True
     entity_registry_enabled_default: bool = False
 
@@ -88,16 +67,16 @@ class GrocyTodoItem(TodoItem):
     def __init__(self, chore: Chore):
         due = chore.next_estimated_execution_time
         days_until = (
-            due - datetime.date.today()
+            due.date() - datetime.date.today()
             if chore.track_date_only
             else due - datetime.datetime.now()
         )
         super().__init__(
             summary=chore.name,
             due=due,
-            status=TodoItemStatus.COMPLETED
-            if chore.rollover or days_until < 1
-            else TodoItemStatus.NEEDS_ACTION,
+            status=TodoItemStatus.NEEDS_ACTION
+            if chore.rollover or days_until.days < 1
+            else TodoItemStatus.COMPLETED,
             description=chore.description or None,
         )
 
@@ -114,22 +93,11 @@ class GrocyTodoListEntity(GrocyEntity, TodoListEntity):
         # | TodoListEntityFeature.SET_DESCRIPTION_ON_ITEM
     )
 
-    def __init__(  # noqa: D107
-        self,
-        coordinator: GrocyDataUpdateCoordinator,
-        description: GrocyTodoListEntityDescription,
-        config_entry: ConfigEntry,
-    ) -> None:
-        data: list[Chore] = self.coordinator.data.get(self.entity_description.key)
-        self._attr_todo_items = [GrocyTodoItem(item) for item in data]
-        super().__init__(coordinator, description, config_entry)
-
     @property
-    def native_value(self) -> StateType:
+    def todo_items(self) -> list[TodoItem] | None:
         """Return the value reported by the todo."""
-        entity_data = self.coordinator.data.get(self.entity_description.key, None)
-
-        return len(entity_data) if entity_data else 0
+        entity_data = self.coordinator.data[self.entity_description.key]
+        return [GrocyTodoItem(item) for item in entity_data] if entity_data else None
 
     async def async_create_todo_item(self, item: TodoItem) -> None:
         """Add an item to the To-do list."""
