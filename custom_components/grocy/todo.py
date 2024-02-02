@@ -45,6 +45,7 @@ from .services import (
     SERVICE_ENTITY_TYPE,
     SERVICE_OBJECT_ID,
     SERVICE_PRODUCT_ID,
+    SERVICE_RECIPE_ID,
     SERVICE_SHOPPING_LIST_ID,
     SERVICE_SKIPPED,
     SERVICE_TASK_ID,
@@ -268,7 +269,12 @@ class GrocyTodoListEntity(GrocyEntity, TodoListEntity):
 
     def _get_grocy_item(self, item_id: str):
         entity_data = self.coordinator.data[self.entity_description.key]
-        return [item for item in entity_data if item.id.__str__() == item_id][0] or None
+        return [
+            item
+            for item in entity_data
+            if (item.id if hasattr(item, "id") else item.meal_plan.id).__str__()
+            == item_id
+        ][0] or None
 
     @property
     def todo_items(self) -> list[TodoItem] | None:
@@ -355,12 +361,20 @@ class GrocyTodoListEntity(GrocyEntity, TodoListEntity):
                 raise NotImplementedError(self.entity_description.key)
         elif self.entity_description.key == ATTR_MEAL_PLAN:
             if item.status == TodoItemStatus.COMPLETED:
-                data: dict[str, Any] = {
-                    SERVICE_CHORE_ID: item.uid,
-                    SERVICE_DONE_BY: 1,
-                    SERVICE_SKIPPED: False,
-                }
-                # await async_execute_chore_service(self.hass, self.coordinator, data)
+                grocy_item = self._get_grocy_item(item.uid)
+                await async_consume_recipe_service(
+                    self.hass,
+                    self.coordinator,
+                    {SERVICE_RECIPE_ID: grocy_item.meal_plan.recipe.id},
+                )
+                await async_delete_generic_service(
+                    self.hass,
+                    self.coordinator,
+                    {
+                        SERVICE_ENTITY_TYPE: "meal_plan",
+                        SERVICE_OBJECT_ID: item.uid,
+                    },
+                )
             else:
                 # I Probably need to cache the chore completion, so that I can undo it...
                 raise NotImplementedError(self.entity_description.key)
