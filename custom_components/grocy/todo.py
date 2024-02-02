@@ -365,7 +365,6 @@ class GrocyTodoListEntity(GrocyEntity, TodoListEntity):
                 # I Probably need to cache the chore completion, so that I can undo it...
                 raise NotImplementedError(self.entity_description.key)
         elif self.entity_description.key == ATTR_SHOPPING_LIST:
-            # In Validation
             if item.status == TodoItemStatus.COMPLETED:
                 # TODO pygrocy doesn't track shopping lists, but they are needed here
                 grocy_item = self._get_grocy_item(item.uid)
@@ -381,7 +380,6 @@ class GrocyTodoListEntity(GrocyEntity, TodoListEntity):
             else:
                 raise NotImplementedError(self.entity_description.key)
         elif self.entity_description.key == ATTR_STOCK:
-            # In Validation
             if item.status == TodoItemStatus.COMPLETED:
                 grocy_item = self._get_grocy_item(item.uid)
                 await async_consume_product_service(
