@@ -268,7 +268,7 @@ class GrocyTodoListEntity(GrocyEntity, TodoListEntity):
 
     def _get_grocy_item(self, item_id: str):
         entity_data = self.coordinator.data[self.entity_description.key]
-        return [item for item in entity_data if item.id == item_id][0] or None
+        return [item for item in entity_data if item.id.__str__() == item_id][0] or None
 
     @property
     def todo_items(self) -> list[TodoItem] | None:
@@ -277,7 +277,7 @@ class GrocyTodoListEntity(GrocyEntity, TodoListEntity):
         return (
             [GrocyTodoItem(item, self.entity_description.key) for item in entity_data]
             if entity_data
-            else None
+            else []
         )
 
     async def async_create_todo_item(self, item: TodoItem) -> None:
@@ -367,12 +367,13 @@ class GrocyTodoListEntity(GrocyEntity, TodoListEntity):
         elif self.entity_description.key == ATTR_SHOPPING_LIST:
             # In Validation
             if item.status == TodoItemStatus.COMPLETED:
+                # TODO pygrocy doesn't track shopping lists, but they are needed here
                 grocy_item = self._get_grocy_item(item.uid)
                 await async_remove_product_in_shopping_list(
                     self.hass,
                     self.coordinator,
                     {
-                        SERVICE_SHOPPING_LIST_ID: item.uid,
+                        SERVICE_SHOPPING_LIST_ID: 1,
                         SERVICE_PRODUCT_ID: grocy_item.product_id,
                         SERVICE_AMOUNT: grocy_item.amount,
                     },
