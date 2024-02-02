@@ -29,6 +29,7 @@ from .const import (
     ATTR_CHORES,
     ATTR_MEAL_PLAN,
     ATTR_SHOPPING_LIST,
+    ATTR_STOCK,
     ATTR_TASKS,
     DOMAIN,
 )
@@ -105,6 +106,12 @@ TODOS: tuple[GrocyTodoListEntityDescription, ...] = (
         name="Grocy shopping list",
         icon="mdi:cart-outline",
         exists_fn=lambda entities: ATTR_SHOPPING_LIST in entities,
+    ),
+    GrocyTodoListEntityDescription(
+        key=ATTR_STOCK,
+        name="Grocy stock",
+        icon="mdi:fridge-outline",
+        exists_fn=lambda entities: ATTR_STOCK in entities,
     ),
     GrocyTodoListEntityDescription(
         key=ATTR_TASKS,
@@ -186,6 +193,16 @@ class GrocyTodoItem(TodoItem):
                 due=due,
                 status=_calculate_item_status(days_until),
                 description=item.meal_plan.recipe.description or None,
+            )
+        elif isinstance(item, Product):
+            super().__init__(
+                uid=item.id.__str__(),
+                summary=f"{item.available_amount:.2f}x {item.name}",
+                status=TodoItemStatus.NEEDS_ACTION
+                if (item.available_amount or 0) > 0
+                else TodoItemStatus.COMPLETED,
+                # TODO, the description attribute isn't pulled for products in pygrocy
+                description=None,
             )
         elif isinstance(item, ShoppingListProduct):
             super().__init__(
