@@ -24,7 +24,7 @@ from .const import (
     SCAN_INTERVAL,
 )
 from .grocy_data import GrocyData
-from .helpers import extract_base_url_and_path
+from .helpers import MealPlanItemWrapper, extract_base_url_and_path
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class GrocyCoordinatorData:
     chores: list[Chore] | None = None
     expired_products: list[Product] | None = None
     expiring_products: list[Product] | None = None
-    meal_plan: list[MealPlanItem] | None = None
+    meal_plan: list[MealPlanItemWrapper] | None = None
     missing_products: list[Product] | None = None
     overdue_batteries: list[Battery] | None = None
     overdue_chores: list[Chore] | None = None
@@ -47,27 +47,9 @@ class GrocyCoordinatorData:
 
     def __setitem__(self, key, value):
         setattr(self, key, value)
-        match key:
-            case "batteries":
-                self.batteries = value
-            case "chores":
-                self.chores = value
-            case "expired_products":
-                self.expired_products = value
-            case _:
-                return None
 
     def __getitem__(self, key: str):
         return getattr(self, key)
-        match key:
-            case "batteries":
-                return self.batteries
-            case "chores":
-                return self.chores
-            case "expired_products":
-                return self.expired_products
-            case _:
-                return None
 
 
 class GrocyDataUpdateCoordinator(DataUpdateCoordinator[GrocyCoordinatorData]):

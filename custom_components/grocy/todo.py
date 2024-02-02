@@ -7,7 +7,10 @@ import datetime
 import logging
 from typing import Any
 
+from pygrocy.data_models.battery import Battery
 from pygrocy.data_models.chore import Chore
+from pygrocy.data_models.meal_items import MealPlanItem
+from pygrocy.data_models.product import Product, ShoppingListProduct
 from pygrocy.data_models.task import Task
 
 from homeassistant.components.todo import (
@@ -21,9 +24,17 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import ATTR_CHORES, ATTR_TASKS, DOMAIN
+from .const import (
+    ATTR_BATTERIES,
+    ATTR_CHORES,
+    ATTR_MEAL_PLAN,
+    ATTR_SHOPPING_LIST,
+    ATTR_TASKS,
+    DOMAIN,
+)
 from .coordinator import GrocyCoordinatorData, GrocyDataUpdateCoordinator
 from .entity import GrocyEntity
+from .helpers import MealPlanItemWrapper
 from .services import (
     SERVICE_CHORE_ID,
     SERVICE_DONE_BY,
@@ -72,10 +83,28 @@ class GrocyTodoListEntityDescription(EntityDescription):
 
 TODOS: tuple[GrocyTodoListEntityDescription, ...] = (
     GrocyTodoListEntityDescription(
+        key=ATTR_BATTERIES,
+        name="Grocy batteries",
+        icon="mdi:battery",
+        exists_fn=lambda entities: ATTR_BATTERIES in entities,
+    ),
+    GrocyTodoListEntityDescription(
         key=ATTR_CHORES,
         name="Grocy chores",
         icon="mdi:broom",
         exists_fn=lambda entities: ATTR_CHORES in entities,
+    ),
+    GrocyTodoListEntityDescription(
+        key=ATTR_MEAL_PLAN,
+        name="Grocy meal plan",
+        icon="mdi:silverware-variant",
+        exists_fn=lambda entities: ATTR_MEAL_PLAN in entities,
+    ),
+    GrocyTodoListEntityDescription(
+        key=ATTR_SHOPPING_LIST,
+        name="Grocy shopping list",
+        icon="mdi:cart-outline",
+        exists_fn=lambda entities: ATTR_SHOPPING_LIST in entities,
     ),
     GrocyTodoListEntityDescription(
         key=ATTR_TASKS,
@@ -87,11 +116,12 @@ TODOS: tuple[GrocyTodoListEntityDescription, ...] = (
 
 
 def _calculate_days_until(
-    due: datetime.datetime | None, date_only: bool = False
+    due: datetime.datetime | datetime.date | None, date_only: bool = False
 ) -> int:
     return (
         (
-            due.date() - datetime.date.today()
+            (due.date() if isinstance(due, datetime.datetime) else due)
+            - datetime.date.today()
             if date_only
             else due - datetime.datetime.now()
         ).days
@@ -105,22 +135,72 @@ def _calculate_item_status(daysUntilDue: int):
 
 
 class GrocyTodoItem(TodoItem):
-    def __init__(self, item: Chore | Task | None = None):
+    def __init__(
+        self,
+        item: Chore
+        | Battery
+        | MealPlanItem
+        | MealPlanItemWrapper
+        | Product
+        | ShoppingListProduct
+        | Task
+        | None = None,
+        key: str = "",
+    ):
         if isinstance(item, Chore):
             due = item.next_estimated_execution_time
-            days_until = _calculate_days_until(
-                item.next_estimated_execution_time, item.track_date_only
-            )
+            days_until = _calculate_days_until(due, item.track_date_only)
             super().__init__(
                 uid=item.id.__str__(),
                 summary=item.name,
                 due=due,
                 status=_calculate_item_status(days_until),
                 description=item.description or None,
+            )
+        elif isinstance(item, Battery):
+            due = item.next_estimated_charge_time
+            days_until = _calculate_days_until(due, True)
+            super().__init__(
+                uid=item.id.__str__(),
+                summary=item.name,
+                due=due,
+                status=_calculate_item_status(days_until),
+                description=item.description or None,
+            )
+        elif isinstance(item, MealPlanItem):
+            due = item.day
+            days_until = _calculate_days_until(due, True)
+            super().__init__(
+                uid=item.id.__str__(),
+                summary=item.recipe.name,
+                due=due,
+                status=_calculate_item_status(days_until),
+                description=item.recipe.description or None,
+            )
+        elif isinstance(item, MealPlanItemWrapper):
+            due = item.meal_plan.day
+            days_until = _calculate_days_until(due, True)
+            super().__init__(
+                uid=item.meal_plan.id.__str__(),
+                summary=item.meal_plan.recipe.name,
+                due=due,
+                status=_calculate_item_status(days_until),
+                description=item.meal_plan.recipe.description or None,
+            )
+        elif isinstance(item, ShoppingListProduct):
+            super().__init__(
+                uid=item.id.__str__(),
+                summary=f"{item.amount:.2f}x {item.product.name}",
+                due=None,
+                status=TodoItemStatus.NEEDS_ACTION
+                # TODO, needs the 'done' attribute instead; however, this isn't supported by pygrocy yet.
+                if item.amount > 0
+                else TodoItemStatus.COMPLETED,
+                description=item.note or None,
             )
         elif isinstance(item, Task):
             due = item.due_date
-            days_until = _calculate_days_until(item.due_date, True)
+            days_until = _calculate_days_until(due, True)
             super().__init__(
                 uid=item.id.__str__(),
                 summary=item.name,
@@ -128,6 +208,8 @@ class GrocyTodoItem(TodoItem):
                 status=_calculate_item_status(days_until),
                 description=item.description or None,
             )
+        else:
+            raise NotImplementedError(f"{key} => {type(item)}")
 
 
 class GrocyTodoListEntity(GrocyEntity, TodoListEntity):
@@ -135,7 +217,7 @@ class GrocyTodoListEntity(GrocyEntity, TodoListEntity):
 
     _attr_supported_features = (
         # TodoListEntityFeature.CREATE_TODO_ITEM
-        TodoListEntityFeature.UPDATE_TODO_ITEM | TodoListEntityFeature.DELETE_TODO_ITEM
+        # TodoListEntityFeature.UPDATE_TODO_ITEM | TodoListEntityFeature.DELETE_TODO_ITEM
         # | TodoListEntityFeature.SET_DUE_DATE_ON_ITEM
         # | TodoListEntityFeature.SET_DUE_DATETIME_ON_ITEM
         # | TodoListEntityFeature.SET_DESCRIPTION_ON_ITEM
@@ -145,7 +227,11 @@ class GrocyTodoListEntity(GrocyEntity, TodoListEntity):
     def todo_items(self) -> list[TodoItem] | None:
         """Return the value reported by the todo."""
         entity_data = self.coordinator.data[self.entity_description.key]
-        return [GrocyTodoItem(item) for item in entity_data] if entity_data else None
+        return (
+            [GrocyTodoItem(item, self.entity_description.key) for item in entity_data]
+            if entity_data
+            else None
+        )
 
     async def async_create_todo_item(self, item: TodoItem) -> None:
         """Add an item to the To-do list."""
