@@ -1,16 +1,18 @@
 """Communication with Grocy API."""
 from __future__ import annotations
 
-import logging
 from datetime import datetime, timedelta
-from typing import List
+import logging
 
 from aiohttp import hdrs, web
+from pygrocy import Grocy
+from pygrocy.data_models.battery import Battery
+from pygrocy.data_models.chore import Chore
+
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from pygrocy.data_models.battery import Battery
 
 from .const import (
     ATTR_BATTERIES,
@@ -38,7 +40,7 @@ _LOGGER = logging.getLogger(__name__)
 class GrocyData:
     """Handles communication and gets the data."""
 
-    def __init__(self, hass, api):
+    def __init__(self, hass: HomeAssistant, api: Grocy) -> None:  # noqa: D107
         """Initialize Grocy data."""
         self.hass = hass
         self.api = api
@@ -70,7 +72,7 @@ class GrocyData:
     async def async_update_chores(self):
         """Update chores data."""
 
-        def wrapper():
+        def wrapper() -> list[Chore]:
             return self.api.chores(True)
 
         return await self.hass.async_add_executor_job(wrapper)
@@ -103,7 +105,9 @@ class GrocyData:
 
         and_query_filter = [
             f"due_date<{datetime.now().date()}",
-            # It's not possible to pass an empty value to Grocy, so use a regex that matches non-empty values to exclude empty str due_date.
+            # It's not possible to pass an empty value to Grocy
+            # so use a regex that matches non-empty values
+            # to exclude empty str due_date.
             r"due_date§.*\S.*",
         ]
 
@@ -155,7 +159,8 @@ class GrocyData:
     async def async_update_meal_plan(self):
         """Update meal plan data."""
 
-        # The >= condition is broken before Grocy 3.3.1. So use > to maintain backward compatibility.
+        # The >= condition is broken before Grocy 3.3.1.
+        # So use > to maintain backward compatibility.
         yesterday = datetime.now() - timedelta(1)
         query_filter = [f"day>{yesterday.date()}"]
 
@@ -166,7 +171,7 @@ class GrocyData:
 
         return await self.hass.async_add_executor_job(wrapper)
 
-    async def async_update_batteries(self) -> List[Battery]:
+    async def async_update_batteries(self) -> list[Battery]:
         """Update batteries."""
 
         def wrapper():
@@ -174,7 +179,7 @@ class GrocyData:
 
         return await self.hass.async_add_executor_job(wrapper)
 
-    async def async_update_overdue_batteries(self) -> List[Battery]:
+    async def async_update_overdue_batteries(self) -> list[Battery]:
         """Update overdue batteries."""
 
         def wrapper():
@@ -187,7 +192,7 @@ class GrocyData:
 async def async_setup_endpoint_for_image_proxy(
     hass: HomeAssistant, config_entry: ConfigEntry
 ):
-    """Setup and register the image api for grocy images with HA."""
+    """Do setup and register the image api for grocy images with HA."""
     session = async_get_clientsession(hass)
 
     url = config_entry.get(CONF_URL)
@@ -210,7 +215,7 @@ class GrocyPictureView(HomeAssistantView):
     url = "/api/grocy/{picture_type}/{filename}"
     name = "api:grocy:picture"
 
-    def __init__(self, session, base_url, api_key):
+    def __init__(self, session, base_url, api_key) -> None:  # noqa: D107
         self._session = session
         self._base_url = base_url
         self._api_key = api_key

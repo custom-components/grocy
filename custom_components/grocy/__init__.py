@@ -1,5 +1,4 @@
-"""
-Custom integration to integrate Grocy with Home Assistant.
+"""Custom integration to integrate Grocy with Home Assistant.
 
 For more details about this integration, please refer to
 https://github.com/custom-components/grocy
@@ -7,7 +6,6 @@ https://github.com/custom-components/grocy
 from __future__ import annotations
 
 import logging
-from typing import List
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -67,7 +65,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
     return unloaded
 
 
-async def _async_get_available_entities(grocy_data: GrocyData) -> List[str]:
+async def _async_get_available_entities(grocy_data: GrocyData) -> list[str]:
     """Return a list of available entities based on enabled Grocy features."""
     available_entities = []
     grocy_config = await grocy_data.async_get_config()

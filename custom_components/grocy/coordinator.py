@@ -1,13 +1,19 @@
 """Data update coordinator for Grocy."""
 from __future__ import annotations
 
+from dataclasses import dataclass
 import logging
-from typing import Any, Dict, List
+
+from pygrocy import Grocy
+from pygrocy.data_models.battery import Battery
+from pygrocy.data_models.chore import Chore
+from pygrocy.data_models.meal_items import MealPlanItem
+from pygrocy.data_models.product import Product, ShoppingListProduct
+from pygrocy.data_models.task import Task
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from pygrocy import Grocy
 
 from .const import (
     CONF_API_KEY,
@@ -18,12 +24,35 @@ from .const import (
     SCAN_INTERVAL,
 )
 from .grocy_data import GrocyData
-from .helpers import extract_base_url_and_path
+from .helpers import MealPlanItemWrapper, extract_base_url_and_path
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class GrocyDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
+@dataclass
+class GrocyCoordinatorData:
+    batteries: list[Battery] | None = None
+    chores: list[Chore] | None = None
+    expired_products: list[Product] | None = None
+    expiring_products: list[Product] | None = None
+    meal_plan: list[MealPlanItemWrapper] | None = None
+    missing_products: list[Product] | None = None
+    overdue_batteries: list[Battery] | None = None
+    overdue_chores: list[Chore] | None = None
+    overdue_products: list[Product] | None = None
+    overdue_tasks: list[Task] | None = None
+    shopping_list: list[ShoppingListProduct] | None = None
+    stock: list[Product] | None = None
+    tasks: list[Task] | None = None
+
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
+
+    def __getitem__(self, key: str):
+        return getattr(self, key)
+
+
+class GrocyDataUpdateCoordinator(DataUpdateCoordinator[GrocyCoordinatorData]):
     """Grocy data update coordinator."""
 
     def __init__(
@@ -50,16 +79,15 @@ class GrocyDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         )
         self.grocy_data = GrocyData(hass, self.grocy_api)
 
-        self.available_entities: List[str] = []
-        self.entities: List[Entity] = []
+        self.available_entities: list[str] = []
+        self.entities: list[Entity] = []
 
-    async def _async_update_data(self) -> dict[str, Any]:
+    async def _async_update_data(self) -> GrocyCoordinatorData:
         """Fetch data."""
-        data: dict[str, Any] = {}
-
+        data = GrocyCoordinatorData()
         for entity in self.entities:
             if not entity.enabled:
-                _LOGGER.debug("Entity %s is disabled.", entity.entity_id)
+                _LOGGER.debug("Entity %s is disabled", entity.entity_id)
                 continue
 
             try:

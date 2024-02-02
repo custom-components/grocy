@@ -8,7 +8,7 @@ VERSION = "0.0.0"
 
 ISSUE_URL: Final = "https://github.com/custom-components/grocy/issues"
 
-PLATFORMS: Final = ["binary_sensor", "sensor"]
+PLATFORMS: Final = ["binary_sensor", "sensor", "todo"]
 
 SCAN_INTERVAL = timedelta(seconds=30)
 
