@@ -10,7 +10,7 @@ from homeassistant.components.http import HomeAssistantView
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from pygrocy.data_models.battery import Battery
+from pygrocy2.data_models.battery import Battery
 
 from .const import (
     ATTR_BATTERIES,

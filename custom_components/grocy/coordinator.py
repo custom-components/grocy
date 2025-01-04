@@ -7,7 +7,7 @@ from typing import Any, Dict, List
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from pygrocy import Grocy
+from pygrocy2.grocy import Grocy
 
 from .const import (
     CONF_API_KEY,
