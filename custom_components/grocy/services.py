@@ -5,6 +5,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from pygrocy2.grocy import EntityType, TransactionType
+from datetime import datetime
 
 from .const import ATTR_CHORES, ATTR_TASKS, DOMAIN
 from .coordinator import GrocyDataUpdateCoordinator
@@ -17,6 +18,7 @@ SERVICE_SUBPRODUCT_SUBSTITUTION = "allow_subproduct_substitution"
 SERVICE_TRANSACTION_TYPE = "transaction_type"
 SERVICE_CHORE_ID = "chore_id"
 SERVICE_DONE_BY = "done_by"
+SERVICE_EXECUTION_NOW = "track_execution_now"
 SERVICE_SKIPPED = "skipped"
 SERVICE_TASK_ID = "task_id"
 SERVICE_ENTITY_TYPE = "entity_type"
@@ -73,6 +75,7 @@ SERVICE_EXECUTE_CHORE_SCHEMA = vol.All(
         {
             vol.Required(SERVICE_CHORE_ID): vol.Coerce(int),
             vol.Optional(SERVICE_DONE_BY): vol.Coerce(int),
+            vol.Optional(SERVICE_EXECUTION_NOW): bool,
             vol.Optional(SERVICE_SKIPPED): bool,
         }
     )
@@ -252,13 +255,16 @@ async def async_consume_product_service(hass, coordinator, data):
 
 
 async def async_execute_chore_service(hass, coordinator, data):
+    should_track_now = data.get(SERVICE_EXECUTION_NOW, True)
+
     """Execute a chore in Grocy."""
     chore_id = data[SERVICE_CHORE_ID]
     done_by = data.get(SERVICE_DONE_BY, "")
+    tracked_time = datetime.utcnow() if should_track_now else None
     skipped = data.get(SERVICE_SKIPPED, False)
 
     def wrapper():
-        coordinator.grocy_api.execute_chore(chore_id, done_by, skipped=skipped)
+        coordinator.grocy_api.execute_chore(chore_id, done_by, tracked_time, skipped=skipped)
 
     await hass.async_add_executor_job(wrapper)
     await _async_force_update_entity(coordinator, ATTR_CHORES)
