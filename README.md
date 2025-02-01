@@ -77,6 +77,10 @@ Executes the given chore with an optional timestamp and executor.
 
 Consumes the given recipe.
 
+- **Grocy: Add Missing Products to Shopping List** (_grocy.add_missing_products_to_shopping_list_)
+
+Adds currently missing products to a given shopping list.
+
 
 # Translations
 

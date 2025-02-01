@@ -24,6 +24,7 @@ SERVICE_DATA = "data"
 SERVICE_RECIPE_ID = "recipe_id"
 SERVICE_BATTERY_ID = "battery_id"
 SERVICE_OBJECT_ID = "object_id"
+SERVICE_LIST_ID = "list_id"
 
 SERVICE_ADD_PRODUCT = "add_product_to_stock"
 SERVICE_OPEN_PRODUCT = "open_product"
@@ -35,6 +36,7 @@ SERVICE_UPDATE_GENERIC = "update_generic"
 SERVICE_DELETE_GENERIC = "delete_generic"
 SERVICE_CONSUME_RECIPE = "consume_recipe"
 SERVICE_TRACK_BATTERY = "track_battery"
+SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST = "add_missing_products_to_shopping_list"
 
 SERVICE_ADD_PRODUCT_SCHEMA = vol.All(
     vol.Schema(
@@ -130,6 +132,14 @@ SERVICE_TRACK_BATTERY_SCHEMA = vol.All(
     )
 )
 
+SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST_SCHEMA: vol.All(
+    vol.Schema(
+        {
+            vol.Optional(SERVICE_LIST_ID): vol.Coerce(int),
+        }
+    )
+)
+
 SERVICES_WITH_ACCOMPANYING_SCHEMA: list[tuple[str, vol.Schema]] = [
     (SERVICE_ADD_PRODUCT, SERVICE_ADD_PRODUCT_SCHEMA),
     (SERVICE_OPEN_PRODUCT, SERVICE_OPEN_PRODUCT_SCHEMA),
@@ -141,6 +151,7 @@ SERVICES_WITH_ACCOMPANYING_SCHEMA: list[tuple[str, vol.Schema]] = [
     (SERVICE_DELETE_GENERIC, SERVICE_DELETE_GENERIC_SCHEMA),
     (SERVICE_CONSUME_RECIPE, SERVICE_CONSUME_RECIPE_SCHEMA),
     (SERVICE_TRACK_BATTERY, SERVICE_TRACK_BATTERY_SCHEMA),
+    (SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST, SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST_SCHEMA),
 ]
 
 
@@ -351,6 +362,14 @@ async def async_track_battery_service(hass, coordinator, data):
 
     await hass.async_add_executor_job(wrapper)
 
+async def async_add_missing_products_to_shopping_list(hass, coordinator, data):
+    '''Adds currently missing proudcts (below defined min. stock amount) to the given shopping list.'''
+    list_id = data.get(SERVICE_LIST_ID, None)
+
+    def wrapper():
+        coordinator.grocy_api.add_missing_product_to_shopping_list(list_id)
+    
+    await hass.async_add_executor_job(wrapper)
 
 async def _async_force_update_entity(
     coordinator: GrocyDataUpdateCoordinator, entity_key: str
