@@ -370,7 +370,7 @@ async def async_track_battery_service(hass, coordinator, data):
 
 async def async_add_missing_products_to_shopping_list(hass, coordinator, data):
     '''Adds currently missing proudcts (below defined min. stock amount) to the given shopping list.'''
-    list_id = data.get(SERVICE_LIST_ID, None)
+    list_id = data.get(SERVICE_LIST_ID, 1)
 
     def wrapper():
         coordinator.grocy_api.add_missing_product_to_shopping_list(list_id)
