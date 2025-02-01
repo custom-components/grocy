@@ -122,6 +122,14 @@ execute_chore:
       description: The id of the user who executed the chore
       selector:
         text:
+    track_execution_now:
+      name: Execution now
+      example: false
+      default: true
+      required: false
+      description: If the chore execution should be tracked with the time now
+      selector:
+        boolean:
     skipped:
       name: Skip execution
       description: Skip next chore schedule
