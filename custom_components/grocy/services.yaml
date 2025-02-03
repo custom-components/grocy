@@ -312,3 +312,15 @@ track_battery:
       description: The id of the battery
       selector:
         text:
+
+add_missing_products_to_shopping_list:
+  name: Add Missing Products to Shopping List
+  description: Adds currently missing products to the given shopping list.
+  fields:
+    list_id:
+      name: List Id
+      example: '1'
+      required: false
+      description: The id of the shopping list to be added to.
+      selector:
+        text:
