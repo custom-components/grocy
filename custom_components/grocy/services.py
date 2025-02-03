@@ -135,7 +135,7 @@ SERVICE_TRACK_BATTERY_SCHEMA = vol.All(
     )
 )
 
-SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST_SCHEMA: vol.All(
+SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST_SCHEMA = vol.All(
     vol.Schema(
         {
             vol.Optional(SERVICE_LIST_ID): vol.Coerce(int),
