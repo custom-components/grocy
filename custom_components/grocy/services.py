@@ -201,6 +201,9 @@ async def async_setup_services(
         elif service == SERVICE_TRACK_BATTERY:
             await async_track_battery_service(hass, coordinator, service_data)
 
+        elif service == SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST:
+            await async_add_missing_products_to_shopping_list(hass, coordinator, service_data)
+
     for service, schema in SERVICES_WITH_ACCOMPANYING_SCHEMA:
         hass.services.async_register(DOMAIN, service, async_call_grocy_service, schema)
 
