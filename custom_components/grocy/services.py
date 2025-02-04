@@ -266,12 +266,12 @@ async def async_consume_product_service(hass, coordinator, data):
 
 
 async def async_execute_chore_service(hass, coordinator, data):
-    should_track_now = data.get(SERVICE_EXECUTION_NOW, True)
+    should_track_now = data.get(SERVICE_EXECUTION_NOW, False)
 
     """Execute a chore in Grocy."""
     chore_id = data[SERVICE_CHORE_ID]
     done_by = data.get(SERVICE_DONE_BY, "")
-    tracked_time = datetime.utcnow() if should_track_now else None
+    tracked_time = datetime.now() if should_track_now else None
     skipped = data.get(SERVICE_SKIPPED, False)
 
     def wrapper():
