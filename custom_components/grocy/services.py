@@ -39,6 +39,7 @@ SERVICE_DELETE_GENERIC = "delete_generic"
 SERVICE_CONSUME_RECIPE = "consume_recipe"
 SERVICE_TRACK_BATTERY = "track_battery"
 SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST = "add_missing_products_to_shopping_list"
+SERVICE_REMOVE_PRODUCT_IN_SHOPPING_LIST = "remove_product_in_shopping_list"
 
 SERVICE_ADD_PRODUCT_SCHEMA = vol.All(
     vol.Schema(
@@ -143,6 +144,16 @@ SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST_SCHEMA = vol.All(
     )
 )
 
+SERVICE_REMOVE_PRODUCT_IN_SHOPPING_LIST_SCHEMA = vol.All(
+    vol.Schema(
+        {
+            vol.Required(SERVICE_PRODUCT_ID): vol.Coerce(int),
+            vol.Optional(SERVICE_LIST_ID): vol.Coerce(int),
+            vol.Required(SERVICE_AMOUNT): vol.Coerce(float),
+        }
+    )
+)
+
 SERVICES_WITH_ACCOMPANYING_SCHEMA: list[tuple[str, vol.Schema]] = [
     (SERVICE_ADD_PRODUCT, SERVICE_ADD_PRODUCT_SCHEMA),
     (SERVICE_OPEN_PRODUCT, SERVICE_OPEN_PRODUCT_SCHEMA),
@@ -155,6 +166,7 @@ SERVICES_WITH_ACCOMPANYING_SCHEMA: list[tuple[str, vol.Schema]] = [
     (SERVICE_CONSUME_RECIPE, SERVICE_CONSUME_RECIPE_SCHEMA),
     (SERVICE_TRACK_BATTERY, SERVICE_TRACK_BATTERY_SCHEMA),
     (SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST, SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST_SCHEMA),
+    (SERVICE_REMOVE_PRODUCT_IN_SHOPPING_LIST, SERVICE_REMOVE_PRODUCT_IN_SHOPPING_LIST_SCHEMA),
 ]
 
 
@@ -200,6 +212,9 @@ async def async_setup_services(
 
         elif service == SERVICE_TRACK_BATTERY:
             await async_track_battery_service(hass, coordinator, service_data)
+
+        elif service == SERVICE_REMOVE_PRODUCT_IN_SHOPPING_LIST:
+            await async_remove_product_in_shopping_list_service(hass, coordinator, service_data)
 
     for service, schema in SERVICES_WITH_ACCOMPANYING_SCHEMA:
         hass.services.async_register(DOMAIN, service, async_call_grocy_service, schema)
@@ -369,12 +384,23 @@ async def async_track_battery_service(hass, coordinator, data):
     await hass.async_add_executor_job(wrapper)
 
 async def async_add_missing_products_to_shopping_list(hass, coordinator, data):
-    '''Adds currently missing proudcts (below defined min. stock amount) to the given shopping list.'''
+    """Adds currently missing proudcts (below defined min. stock amount) to the given shopping list."""
     list_id = data.get(SERVICE_LIST_ID, 1)
 
     def wrapper():
         coordinator.grocy_api.add_missing_product_to_shopping_list(list_id)
     
+    await hass.async_add_executor_job(wrapper)
+
+async def async_remove_product_in_shopping_list_service(hass, coordinator, data):
+    """Removes the given product from the given shopping list"""
+    product_id = data[SERVICE_PRODUCT_ID]
+    list_id = data.get(SERVICE_LIST_ID, 1)
+    amount = data[SERVICE_AMOUNT]
+
+    def wrapper():
+        coordinator.grocy_api.remove_product_in_shopping_list(product_id, list_id, amount)
+
     await hass.async_add_executor_job(wrapper)
 
 async def _async_force_update_entity(
