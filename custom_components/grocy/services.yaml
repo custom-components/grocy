@@ -324,3 +324,32 @@ add_missing_products_to_shopping_list:
       description: The id of the shopping list to be added to.
       selector:
         text:
+
+remove_product_in_shopping_list:
+  name: Remove Product in Shopping List
+  description: Removes a product in the given shopping list.
+  fields:
+    list_id:
+      name: List Id
+      example: '1'
+      required: false
+      description: The id of the shopping list to be added to.
+      selector:
+        text:
+    product_id:
+      name: Product Id
+      example: '3'
+      required: true
+      description: The id of the product to remove
+      selector:
+        text:
+    amount:
+      name: Amount
+      example: 3
+      required: true
+      description: The amount to remove
+      selector:
+        number:
+          min: 1
+          max: 1000
+          mode: box
