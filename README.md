@@ -81,6 +81,9 @@ Consumes the given recipe.
 
 Adds currently missing products to a given shopping list.
 
+- **Grocy: Remove Product in Shopping List** (_grocy.remove_product_in_shopping_list_)
+
+Removes a product in the given shopping list.
 
 # Translations
 
