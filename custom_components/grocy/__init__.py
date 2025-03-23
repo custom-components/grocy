@@ -11,10 +11,12 @@ from typing import List
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import async_get_platforms
 
 from .const import (
     ATTR_BATTERIES,
     ATTR_CHORES,
+    ATTR_EQUIPMENT,
     ATTR_EXPIRED_PRODUCTS,
     ATTR_EXPIRING_PRODUCTS,
     ATTR_MEAL_PLAN,
@@ -33,6 +35,7 @@ from .const import (
 from .coordinator import GrocyDataUpdateCoordinator
 from .grocy_data import GrocyData, async_setup_endpoint_for_image_proxy
 from .services import async_setup_services, async_unload_services
+from .equipment_sensor import async_setup_equipment_custom_fields
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -52,6 +55,20 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
     await async_setup_services(hass, config_entry)
     await async_setup_endpoint_for_image_proxy(hass, config_entry.data)
+
+    # Setup equipment custom field sensors
+    if ATTR_EQUIPMENT in coordinator.available_entities:
+        # Force an initial equipment data fetch to avoid "Update failed" errors
+        try:
+            equipment_data = await coordinator.grocy_data.async_update_equipment()
+            coordinator.data[ATTR_EQUIPMENT] = equipment_data
+        except Exception as error:
+            _LOGGER.error("Error pre-fetching equipment data: %s", error)
+
+        # Now setup custom field sensors once data is available
+        for platform in async_get_platforms(hass, config_entry.domain):
+            if platform.domain == "sensor":
+                await async_setup_equipment_custom_fields(hass, config_entry, platform.async_add_entities)
 
     return True
 
@@ -96,6 +113,9 @@ async def _async_get_available_entities(grocy_data: GrocyData) -> List[str]:
         if "FEATURE_FLAG_BATTERIES" in grocy_config.enabled_features:
             available_entities.append(ATTR_BATTERIES)
             available_entities.append(ATTR_OVERDUE_BATTERIES)
+
+        if "FEATURE_FLAG_EQUIPMENT" in grocy_config.enabled_features:
+            available_entities.append(ATTR_EQUIPMENT)
 
     _LOGGER.debug("Available entities: %s", available_entities)
 

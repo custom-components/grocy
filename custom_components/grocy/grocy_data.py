@@ -15,6 +15,7 @@ from pygrocy2.data_models.battery import Battery
 from .const import (
     ATTR_BATTERIES,
     ATTR_CHORES,
+    ATTR_EQUIPMENT,
     ATTR_EXPIRED_PRODUCTS,
     ATTR_EXPIRING_PRODUCTS,
     ATTR_MEAL_PLAN,
@@ -56,6 +57,7 @@ class GrocyData:
             ATTR_OVERDUE_TASKS: self.async_update_overdue_tasks,
             ATTR_BATTERIES: self.async_update_batteries,
             ATTR_OVERDUE_BATTERIES: self.async_update_overdue_batteries,
+            ATTR_EQUIPMENT: self.async_update_equipment,
         }
 
     async def async_update_data(self, entity_key):
@@ -180,6 +182,14 @@ class GrocyData:
         def wrapper():
             filter_query = [f"next_estimated_charge_time<{datetime.now()}"]
             return self.api.batteries(filter_query, get_details=True)
+
+        return await self.hass.async_add_executor_job(wrapper)
+
+    async def async_update_equipment(self):
+        """Update equipment data."""
+
+        def wrapper():
+            return self.api.equipment(get_details=True)
 
         return await self.hass.async_add_executor_job(wrapper)
 
