@@ -68,8 +68,7 @@ class ProductWrapper:
         if product.product and product.product.picture_file_name:
             b64name = base64.b64encode(product.product.picture_file_name.encode("ascii"))
             return f"/api/grocy/productpictures/{str(b64name, 'utf-8')}"
-        elif product.product:
-            return json.dumps(product.product.as_dict())
+        
         return None        
 
     def as_dict(self) -> Dict[str, Any]:
