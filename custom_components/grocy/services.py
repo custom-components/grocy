@@ -212,7 +212,10 @@ async def async_setup_services(
 
         elif service == SERVICE_TRACK_BATTERY:
             await async_track_battery_service(hass, coordinator, service_data)
-
+            
+        elif service == SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST:
+            await async_add_missing_products_to_shopping_list(hass, coordinator, service_data)
+            
         elif service == SERVICE_REMOVE_PRODUCT_IN_SHOPPING_LIST:
             await async_remove_product_in_shopping_list_service(hass, coordinator, service_data)
 
