@@ -30,7 +30,7 @@ from .const import (
     CONF_PORT,
     CONF_URL,
 )
-from .helpers import MealPlanItemWrapper, extract_base_url_and_path
+from .helpers import ProductWrapper, MealPlanItemWrapper, extract_base_url_and_path
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -65,7 +65,11 @@ class GrocyData:
 
     async def async_update_stock(self):
         """Update stock data."""
-        return await self.hass.async_add_executor_job(self.api.stock)
+
+        def wrapper():
+            return [ProductWrapper(item, self.hass) for item in self.api._api_client.get_stock()]
+        
+        return await self.hass.async_add_executor_job(wrapper)
 
     async def async_update_chores(self):
         """Update chores data."""
