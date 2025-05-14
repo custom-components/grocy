@@ -1,4 +1,4 @@
-This repository is no longer actively maintained.
+# This repository is no longer actively maintained and is looking for someone to take over, otherwise it will be archived.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
 
