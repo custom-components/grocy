@@ -19,12 +19,14 @@ from homeassistant.helpers.typing import StateType
 from .const import (
     ATTR_BATTERIES,
     ATTR_CHORES,
+    ATTR_EQUIPMENT,
     ATTR_MEAL_PLAN,
     ATTR_SHOPPING_LIST,
     ATTR_STOCK,
     ATTR_TASKS,
     CHORES,
     DOMAIN,
+    EQUIPMENT,
     ITEMS,
     MEAL_PLANS,
     PRODUCTS,
@@ -137,6 +139,18 @@ SENSORS: tuple[GrocySensorEntityDescription, ...] = (
         exists_fn=lambda entities: ATTR_BATTERIES in entities,
         attributes_fn=lambda data: {
             "batteries": [x.as_dict() for x in data],
+            "count": len(data),
+        },
+    ),
+    GrocySensorEntityDescription(
+        key=ATTR_EQUIPMENT,
+        name="Grocy equipment",
+        native_unit_of_measurement=EQUIPMENT,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:tools",
+        exists_fn=lambda entities: ATTR_EQUIPMENT in entities,
+        attributes_fn=lambda data: {
+            "equipment": [x.as_dict() for x in data],
             "count": len(data),
         },
     ),
