@@ -11,6 +11,8 @@ from typing import List
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
+from requests.exceptions import JSONDecodeError
 
 from .const import (
     ATTR_BATTERIES,
@@ -40,11 +42,19 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Set up this integration using UI."""
     _LOGGER.info(STARTUP_MESSAGE)
-
-    coordinator: GrocyDataUpdateCoordinator = GrocyDataUpdateCoordinator(hass)
-    coordinator.available_entities = await _async_get_available_entities(
-        coordinator.grocy_data
-    )
+    try:
+        coordinator: GrocyDataUpdateCoordinator = GrocyDataUpdateCoordinator(hass)
+        coordinator.available_entities = await _async_get_available_entities(
+            coordinator.grocy_data
+        )
+    except ConnectionError as ex:
+        raise ConfigEntryNotReady(
+            f"Connection error while connecting to Grocy: {ex}"
+        ) from ex
+    except JSONDecodeError as ex:
+        raise ConfigEntryNotReady(
+            f"Invalid response from Grocy, is Add-on running?: {ex}"
+        ) from ex
     await coordinator.async_config_entry_first_refresh()
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN] = coordinator
