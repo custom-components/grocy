@@ -134,7 +134,6 @@ dmypy.json
 */dist/*
 
 # misc
-.vscode
 .ruff_cache
 
 # Home Assistant configuration
