@@ -128,3 +128,15 @@ dmypy.json
 .pyre/
 
 # End of https://www.gitignore.io/api/python
+
+# artifacts
+*/build/*
+*/dist/*
+
+# misc
+.vscode
+.ruff_cache
+
+# Home Assistant configuration
+config/*
+!config/configuration.yaml

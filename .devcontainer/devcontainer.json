@@ -1,26 +1,43 @@
 {
-	"image": "ghcr.io/ludeeus/devcontainer/integration:stable",
-	"context": "..",
-	"appPort": [
-		"9123:8123"
-	],
-	"postCreateCommand": "for req in $(jq -c -r '.requirements | .[]' custom_components/grocy/manifest.json); do python -m pip install $req; done && container install",
-	"extensions": [
-		"ms-python.python",
-		"github.vscode-pull-request-github",
-		"tabnine.tabnine-vscode",
-		"ms-python.vscode-pylance"
-	],
-	"settings": {
-		"files.eol": "\n",
-		"editor.tabSize": 4,
-		"python.pythonPath": "/usr/bin/python3",
-		"python.linting.pylintEnabled": true,
-		"python.linting.enabled": true,
-		"python.formatting.provider": "black",
-		"editor.formatOnPaste": false,
-		"editor.formatOnSave": true,
-		"editor.formatOnType": true,
-		"files.trimTrailingWhitespace": true
+	"name": "ludeeus/integration_blueprint",
+	"image": "mcr.microsoft.com/devcontainers/python:3.13",
+	"postCreateCommand": "scripts/setup",
+	"forwardPorts": [8123],
+	"portsAttributes": {
+		"8123": {
+			"label": "Home Assistant",
+			"onAutoForward": "notify"
+		}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"charliermarsh.ruff",
+				"github.vscode-pull-request-github",
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"ryanluker.vscode-coverage-gutters"
+			],
+			"settings": {
+				"files.eol": "\n",
+				"editor.tabSize": 4,
+				"editor.formatOnPaste": true,
+				"editor.formatOnSave": true,
+				"editor.formatOnType": false,
+				"files.trimTrailingWhitespace": true,
+				"python.analysis.typeCheckingMode": "basic",
+				"python.analysis.autoImportCompletions": true,
+				"python.defaultInterpreterPath": "/usr/local/bin/python",
+				"[python]": {
+					"editor.defaultFormatter": "charliermarsh.ruff"
+				}
+			}
+		}
+	},
+	"remoteUser": "vscode",
+	"features": {
+		"ghcr.io/devcontainers-extra/features/apt-packages:1": {
+			"packages": ["ffmpeg", "libturbojpeg0", "libpcap-dev"]
+		}
 	}
 }
