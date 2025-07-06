@@ -1,4 +1,5 @@
 """Todo platform for Grocy."""
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -7,11 +8,11 @@ import datetime
 import logging
 from typing import Any
 
-from pygrocy.data_models.battery import Battery
-from pygrocy.data_models.chore import Chore
-from pygrocy.data_models.meal_items import MealPlanItem
-from pygrocy.data_models.product import Product, ShoppingListProduct
-from pygrocy.data_models.task import Task
+from pygrocy2.data_models.battery import Battery
+from pygrocy2.data_models.chore import Chore
+from pygrocy2.data_models.meal_items import MealPlanItem
+from pygrocy2.data_models.product import Product, ShoppingListProduct
+from pygrocy2.data_models.task import Task
 
 from homeassistant.components.todo import (
     TodoItem,

@@ -1,11 +1,11 @@
 """Adds config flow for Grocy."""
+
 from collections import OrderedDict
 import logging
 
-from pygrocy import Grocy
 import voluptuous as vol
-
 from homeassistant import config_entries
+from pygrocy2.grocy import Grocy
 
 from .const import (
     CONF_API_KEY,

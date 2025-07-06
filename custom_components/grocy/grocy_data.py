@@ -1,13 +1,14 @@
 """Communication with Grocy API."""
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta
 import logging
 
 from aiohttp import hdrs, web
-from pygrocy import Grocy
-from pygrocy.data_models.battery import Battery
-from pygrocy.data_models.chore import Chore
+from pygrocy2.grocy import Grocy
+from pygrocy2.data_models.chore import Chore
+from pygrocy2.data_models.battery import Battery
 
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.config_entries import ConfigEntry
@@ -32,7 +33,7 @@ from .const import (
     CONF_PORT,
     CONF_URL,
 )
-from .helpers import MealPlanItemWrapper, extract_base_url_and_path
+from .helpers import ProductWrapper, MealPlanItemWrapper, extract_base_url_and_path
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ _LOGGER = logging.getLogger(__name__)
 class GrocyData:
     """Handles communication and gets the data."""
 
-    def __init__(self, hass: HomeAssistant, api: Grocy) -> None:  # noqa: D107
+    def __init__(self, hass: HomeAssistant, api: grocy) -> None:  # noqa: D107
         """Initialize Grocy data."""
         self.hass = hass
         self.api = api
@@ -67,7 +68,14 @@ class GrocyData:
 
     async def async_update_stock(self):
         """Update stock data."""
-        return await self.hass.async_add_executor_job(self.api.stock)
+
+        def wrapper():
+            return [
+                ProductWrapper(item, self.hass)
+                for item in self.api._api_client.get_stock()
+            ]
+
+        return await self.hass.async_add_executor_job(wrapper)
 
     async def async_update_chores(self):
         """Update chores data."""

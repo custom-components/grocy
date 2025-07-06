@@ -1,15 +1,15 @@
 """Data update coordinator for Grocy."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 import logging
 
-from pygrocy import Grocy
-from pygrocy.data_models.battery import Battery
-from pygrocy.data_models.chore import Chore
-from pygrocy.data_models.meal_items import MealPlanItem
-from pygrocy.data_models.product import Product, ShoppingListProduct
-from pygrocy.data_models.task import Task
+from pygrocy2.data_models.battery import Battery
+from pygrocy2.data_models.chore import Chore
+from pygrocy2.data_models.product import Product, ShoppingListProduct
+from pygrocy2.data_models.task import Task
+from pygrocy2.grocy import Grocy
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
@@ -91,10 +91,10 @@ class GrocyDataUpdateCoordinator(DataUpdateCoordinator[GrocyCoordinatorData]):
                 continue
 
             try:
-                data[
-                    entity.entity_description.key
-                ] = await self.grocy_data.async_update_data(
-                    entity.entity_description.key
+                data[entity.entity_description.key] = (
+                    await self.grocy_data.async_update_data(
+                        entity.entity_description.key
+                    )
                 )
             except Exception as error:  # pylint: disable=broad-except
                 raise UpdateFailed(f"Update failed: {error}") from error
