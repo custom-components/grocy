@@ -5,3 +5,9 @@ set -e
 cd "$(dirname "$0")/.."
 
 python3 -m pip install --requirement requirements.txt
+
+for req in $(jq -c -r '.requirements | .[]' custom_components/grocy/manifest.json);
+  do
+      echo "Installing requirement: $req";
+      python -m pip install $req;
+done
