@@ -20,16 +20,27 @@ The configuration is slightly different for those who use the [official Grocy ad
 2. In the 'Configuration' section of the add-on config, input `9192` in the Network port field - see [screenshot](#screenshot-addon-config). Save your changes and restart the add-on.
 3. Now continue with the instructions below.
 
-## Instructions for <a name="both"></a>both installation methods
-1. Install [HACS](https://hacs.xyz/), if you haven't already done so.
-2. In Home Assistant go to HACS > Integrations. Search for the "Grocy custom component" repository by clicking the "Explore & download repositories" button in the bottom right corner.
-3. In the bottom right corner click "Download the repository with HACS". Click "Download". Optional: for latest features and fixes choose "Show beta versions".
-4. Restart Home Assistant as instructed by HACS.
-5. Install the [Grocy integration](https://my.home-assistant.io/redirect/config_flow_start/?domain=grocy). Fill out the information according to [this instruction](#integration-configuration).
-6. Before integration version v4.3.3, now restart Home Assistant again (with later versions you can skip this step).
-7. You will now have a new integration for Grocy. All entities are disabled from start, manually enable the entities you want to use.
+## HACS
+The easiest way to install this integration is with [HACS][hacs]. First, install [HACS][hacs-download] if you don't have it yet. In Home Assistant, go to `HACS`, click on 3 dot menu at the right top, choose "Custom repositories", and in fields below put a link to this repo "https://github.com/custom-components/grocy", and type select "Integration".
+
+New repository should appear in the list "Grocy custom component". Click on it, then press button at the bottom right "Download", then press "Download" in a new window, and finally restart Home Assistant (you should also get a "repair" notification in your Home Assistant Settings menu). 
+
+Install the [Grocy integration](https://my.home-assistant.io/redirect/config_flow_start/?domain=grocy). 
+Fill out the information according to [this instruction](#integration-configuration).
 
 Future integration updates will appear automatically within Home Assistant via HACS.
+
+You will now have a new integration for Grocy. All entities are disabled from start, manually enable the entities you want to use.
+
+[hacs]: https://hacs.xyz
+[hacs-download]: https://hacs.xyz/docs/setup/download
+[hacsbadge]: https://img.shields.io/badge/HACS-Default-blue.svg?style=flat
+
+### Manual installation
+1. Update Home Assistant to version 2025.02 or newer.
+2. Clone this repository.
+3. Copy the `custom_components/grocy` folder into your Home Assistant's `custom_components` folder.
+4. Restart Home Assistant
 
 
 # Entities
