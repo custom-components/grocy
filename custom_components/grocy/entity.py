@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
-from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceEntryType
@@ -11,7 +9,7 @@ from homeassistant.helpers.entity import DeviceInfo, EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, NAME, VERSION
-from .coordinator import GrocyDataUpdateCoordinator
+from .coordinator import GrocyCoordinatorData, GrocyDataUpdateCoordinator
 from .json_encoder import CustomJSONEncoder
 
 
@@ -42,9 +40,9 @@ class GrocyEntity(CoordinatorEntity[GrocyDataUpdateCoordinator]):
         )
 
     @property
-    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+    def extra_state_attributes(self) -> GrocyCoordinatorData | None:
         """Return the extra state attributes."""
-        data = self.coordinator.data.get(self.entity_description.key)
+        data = self.coordinator.data[self.entity_description.key]
         if data and hasattr(self.entity_description, "attributes_fn"):
             return json.loads(
                 json.dumps(
