@@ -22,7 +22,7 @@ jobs:
         run: |
           ./bin/lokalise2 \
             --token "${{ secrets.lokalise_token }}"\
-            --project-id "260939135f7593a05f2b79.75475372" \
+            --project-id "53414540688134cd63b8f8.43636770" \
             file download \
             --format json \
             --unzip-to /tmp/lokalise \
