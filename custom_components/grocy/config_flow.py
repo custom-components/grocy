@@ -1,6 +1,7 @@
 """Adds config flow for Grocy."""
-import logging
+
 from collections import OrderedDict
+import logging
 
 import voluptuous as vol
 from homeassistant import config_entries

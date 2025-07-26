@@ -1,10 +1,15 @@
 """Grocy services."""
+
 from __future__ import annotations
 
+from pygrocy2.data_models.generic import EntityType
+from pygrocy2.grocy_api_client import TransactionType
 import voluptuous as vol
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
-from pygrocy2.grocy import EntityType, TransactionType
+from pygrocy2.data_models.generic import EntityType
+from pygrocy2.grocy_api_client import TransactionType
 from datetime import datetime
 
 from .const import ATTR_CHORES, ATTR_TASKS, DOMAIN
@@ -13,6 +18,7 @@ from .coordinator import GrocyDataUpdateCoordinator
 SERVICE_PRODUCT_ID = "product_id"
 SERVICE_AMOUNT = "amount"
 SERVICE_PRICE = "price"
+SERVICE_SHOPPING_LIST_ID = "shopping_list_id"
 SERVICE_SPOILED = "spoiled"
 SERVICE_SUBPRODUCT_SUBSTITUTION = "allow_subproduct_substitution"
 SERVICE_TRANSACTION_TYPE = "transaction_type"
@@ -165,13 +171,20 @@ SERVICES_WITH_ACCOMPANYING_SCHEMA: list[tuple[str, vol.Schema]] = [
     (SERVICE_DELETE_GENERIC, SERVICE_DELETE_GENERIC_SCHEMA),
     (SERVICE_CONSUME_RECIPE, SERVICE_CONSUME_RECIPE_SCHEMA),
     (SERVICE_TRACK_BATTERY, SERVICE_TRACK_BATTERY_SCHEMA),
-    (SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST, SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST_SCHEMA),
-    (SERVICE_REMOVE_PRODUCT_IN_SHOPPING_LIST, SERVICE_REMOVE_PRODUCT_IN_SHOPPING_LIST_SCHEMA),
+    (
+        SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST,
+        SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST_SCHEMA,
+    ),
+    (
+        SERVICE_REMOVE_PRODUCT_IN_SHOPPING_LIST,
+        SERVICE_REMOVE_PRODUCT_IN_SHOPPING_LIST_SCHEMA,
+    ),
 ]
 
 
 async def async_setup_services(
-    hass: HomeAssistant, config_entry: ConfigEntry  # pylint: disable=unused-argument
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,  # pylint: disable=unused-argument
 ) -> None:
     """Set up services for Grocy integration."""
     coordinator: GrocyDataUpdateCoordinator = hass.data[DOMAIN]
@@ -212,12 +225,16 @@ async def async_setup_services(
 
         elif service == SERVICE_TRACK_BATTERY:
             await async_track_battery_service(hass, coordinator, service_data)
-            
+
         elif service == SERVICE_ADD_MISSING_PRODUCTS_TO_SHOPPING_LIST:
-            await async_add_missing_products_to_shopping_list(hass, coordinator, service_data)
-            
+            await async_add_missing_products_to_shopping_list(
+                hass, coordinator, service_data
+            )
+
         elif service == SERVICE_REMOVE_PRODUCT_IN_SHOPPING_LIST:
-            await async_remove_product_in_shopping_list_service(hass, coordinator, service_data)
+            await async_remove_product_in_shopping_list_service(
+                hass, coordinator, service_data
+            )
 
     for service, schema in SERVICES_WITH_ACCOMPANYING_SCHEMA:
         hass.services.async_register(DOMAIN, service, async_call_grocy_service, schema)
@@ -232,7 +249,9 @@ async def async_unload_services(hass: HomeAssistant) -> None:
         hass.services.async_remove(DOMAIN, service)
 
 
-async def async_add_product_service(hass, coordinator, data):
+async def async_add_product_service(
+    hass: HomeAssistant, coordinator: GrocyDataUpdateCoordinator, data
+):
     """Add a product in Grocy."""
     product_id = data[SERVICE_PRODUCT_ID]
     amount = data[SERVICE_AMOUNT]
@@ -244,7 +263,9 @@ async def async_add_product_service(hass, coordinator, data):
     await hass.async_add_executor_job(wrapper)
 
 
-async def async_open_product_service(hass, coordinator, data):
+async def async_open_product_service(
+    hass: HomeAssistant, coordinator: GrocyDataUpdateCoordinator, data
+):
     """Open a product in Grocy."""
     product_id = data[SERVICE_PRODUCT_ID]
     amount = data[SERVICE_AMOUNT]
@@ -258,7 +279,9 @@ async def async_open_product_service(hass, coordinator, data):
     await hass.async_add_executor_job(wrapper)
 
 
-async def async_consume_product_service(hass, coordinator, data):
+async def async_consume_product_service(
+    hass: HomeAssistant, coordinator: GrocyDataUpdateCoordinator, data
+):
     """Consume a product in Grocy."""
     product_id = data[SERVICE_PRODUCT_ID]
     amount = data[SERVICE_AMOUNT]
@@ -283,23 +306,24 @@ async def async_consume_product_service(hass, coordinator, data):
     await hass.async_add_executor_job(wrapper)
 
 
-async def async_execute_chore_service(hass, coordinator, data):
-    should_track_now = data.get(SERVICE_EXECUTION_NOW, False)
-
+async def async_execute_chore_service(
+    hass: HomeAssistant, coordinator: GrocyDataUpdateCoordinator, data
+):
     """Execute a chore in Grocy."""
     chore_id = data[SERVICE_CHORE_ID]
     done_by = data.get(SERVICE_DONE_BY, "")
-    tracked_time = datetime.now() if should_track_now else None
     skipped = data.get(SERVICE_SKIPPED, False)
 
     def wrapper():
-        coordinator.grocy_api.execute_chore(chore_id, done_by, tracked_time, skipped=skipped)
+        coordinator.grocy_api.execute_chore(chore_id, done_by, skipped=skipped)
 
     await hass.async_add_executor_job(wrapper)
     await _async_force_update_entity(coordinator, ATTR_CHORES)
 
 
-async def async_complete_task_service(hass, coordinator, data):
+async def async_complete_task_service(
+    hass: HomeAssistant, coordinator: GrocyDataUpdateCoordinator, data
+):
     """Complete a task in Grocy."""
     task_id = data[SERVICE_TASK_ID]
 
@@ -310,7 +334,9 @@ async def async_complete_task_service(hass, coordinator, data):
     await _async_force_update_entity(coordinator, ATTR_TASKS)
 
 
-async def async_add_generic_service(hass, coordinator, data):
+async def async_add_generic_service(
+    hass: HomeAssistant, coordinator: GrocyDataUpdateCoordinator, data
+):
     """Add a generic entity in Grocy."""
     entity_type_raw = data.get(SERVICE_ENTITY_TYPE, None)
     entity_type = EntityType.TASKS
@@ -324,10 +350,12 @@ async def async_add_generic_service(hass, coordinator, data):
         coordinator.grocy_api.add_generic(entity_type, data)
 
     await hass.async_add_executor_job(wrapper)
-    await post_generic_refresh(coordinator, entity_type);
+    await _post_generic_refresh(coordinator, entity_type)
 
 
-async def async_update_generic_service(hass, coordinator, data):
+async def async_update_generic_service(
+    hass: HomeAssistant, coordinator: GrocyDataUpdateCoordinator, data
+):
     """Update a generic entity in Grocy."""
     entity_type_raw = data.get(SERVICE_ENTITY_TYPE, None)
     entity_type = EntityType.TASKS
@@ -343,31 +371,36 @@ async def async_update_generic_service(hass, coordinator, data):
         coordinator.grocy_api.update_generic(entity_type, object_id, data)
 
     await hass.async_add_executor_job(wrapper)
-    await post_generic_refresh(coordinator, entity_type);
+    await _post_generic_refresh(coordinator, entity_type)
 
 
-async def async_delete_generic_service(hass, coordinator, data):
+async def async_delete_generic_service(
+    hass: HomeAssistant, coordinator: GrocyDataUpdateCoordinator, data
+):
     """Delete a generic entity in Grocy."""
     entity_type_raw = data.get(SERVICE_ENTITY_TYPE, None)
-    entity_type = EntityType.TASKS
 
-    if entity_type_raw is not None:
-        entity_type = EntityType(entity_type_raw)
+    entity_type = (
+        EntityType(entity_type_raw) if entity_type_raw is not None else EntityType.TASKS
+    )
 
-    object_id = data[SERVICE_OBJECT_ID]
+    object_id = int(data[SERVICE_OBJECT_ID])
 
     def wrapper():
         coordinator.grocy_api.delete_generic(entity_type, object_id)
 
     await hass.async_add_executor_job(wrapper)
-    await post_generic_refresh(coordinator, entity_type);
+    await _post_generic_refresh(coordinator, entity_type)
 
 
-async def post_generic_refresh(coordinator, entity_type):
-    if entity_type == "tasks" or entity_type == "chores":
+async def _post_generic_refresh(coordinator: GrocyDataUpdateCoordinator, entity_type):
+    if entity_type in ("tasks", "chores"):
         await _async_force_update_entity(coordinator, entity_type)
 
-async def async_consume_recipe_service(hass, coordinator, data):
+
+async def async_consume_recipe_service(
+    hass: HomeAssistant, coordinator: GrocyDataUpdateCoordinator, data
+):
     """Consume a recipe in Grocy."""
     recipe_id = data[SERVICE_RECIPE_ID]
 
@@ -377,7 +410,25 @@ async def async_consume_recipe_service(hass, coordinator, data):
     await hass.async_add_executor_job(wrapper)
 
 
-async def async_track_battery_service(hass, coordinator, data):
+async def async_remove_product_in_shopping_list(
+    hass: HomeAssistant, coordinator: GrocyDataUpdateCoordinator, data
+):
+    """Consume a recipe in Grocy."""
+    product_id = data[SERVICE_PRODUCT_ID]
+    shopping_list_id = data[SERVICE_SHOPPING_LIST_ID]
+    amount = data[SERVICE_AMOUNT]
+
+    def wrapper():
+        coordinator.grocy_api.remove_product_in_shopping_list(
+            product_id, shopping_list_id, amount
+        )
+
+    await hass.async_add_executor_job(wrapper)
+
+
+async def async_track_battery_service(
+    hass: HomeAssistant, coordinator: GrocyDataUpdateCoordinator, data
+):
     """Track a battery in Grocy."""
     battery_id = data[SERVICE_BATTERY_ID]
 
@@ -386,14 +437,16 @@ async def async_track_battery_service(hass, coordinator, data):
 
     await hass.async_add_executor_job(wrapper)
 
+
 async def async_add_missing_products_to_shopping_list(hass, coordinator, data):
     """Adds currently missing proudcts (below defined min. stock amount) to the given shopping list."""
     list_id = data.get(SERVICE_LIST_ID, 1)
 
     def wrapper():
         coordinator.grocy_api.add_missing_product_to_shopping_list(list_id)
-    
+
     await hass.async_add_executor_job(wrapper)
+
 
 async def async_remove_product_in_shopping_list_service(hass, coordinator, data):
     """Removes the given product from the given shopping list"""
@@ -402,9 +455,12 @@ async def async_remove_product_in_shopping_list_service(hass, coordinator, data)
     amount = data[SERVICE_AMOUNT]
 
     def wrapper():
-        coordinator.grocy_api.remove_product_in_shopping_list(product_id, list_id, amount)
+        coordinator.grocy_api.remove_product_in_shopping_list(
+            product_id, list_id, amount
+        )
 
     await hass.async_add_executor_job(wrapper)
+
 
 async def _async_force_update_entity(
     coordinator: GrocyDataUpdateCoordinator, entity_key: str
