@@ -13,7 +13,7 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/custom-components/grocy/issues",
   "requirements": [
-    "pygrocy2==2.4.1"
+    "pygrocy2==2.5.0"
   ],
   "version": "0.0.0"
 }
