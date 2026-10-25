@@ -1,6 +1,15 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
 
 ---
+
+⚠️ **This repository is no longer actively maintained.**
+
+The actively maintained fork of this integration can be found at **[https://github.com/iamkarlson/grocy](https://github.com/iamkarlson/grocy)**.
+
+Thank you to everyone who has used, contributed to, and supported this project over the years! 🙏
+
+---
+
 **INFO**
 
 **The integration supports Grocy version 3.2 and above.**
